@@ -204,6 +204,7 @@
   <aside class="right">
     <div class="panel">
       <h2>Install</h2>
+      <div class="chips" id="scope" title="where the plugins go: user — all your projects, project — this repo only (.claude/settings.json)"></div>
       <div class="hint" id="mode-hint"></div>
     </div>
     <div class="panel">
@@ -228,7 +229,9 @@
   const $ = id => document.getElementById(id);
   if (!C) { $('tbody').innerHTML = '<tr><td class="empty">No catalog.js — run <code>python3 ui/build.py</code></td></tr>'; return; }
   const items = C.items, S = C.session_model, VER = C.verdicts, MK = C.marketplace;
-  const ADD = `claude plugin marketplace add ${MK.repo || '<path to your ai-context-builder clone>'}`;
+  const ADD_BASE = `claude plugin marketplace add ${MK.repo || '<path to your ai-context-builder clone>'}`;
+  const scopeFlag = () => state.scope === 'user' ? '' : ` --scope ${state.scope}`;
+  const ADD = () => ADD_BASE + scopeFlag();
   const CAP_TOK = 1500;                      // recommended cap on the standing cost of the selection, tok in every prompt
   const byName = new Map(items.map(i => [i.name, i]));
   const VERDICT_ORDER = Object.fromEntries(Object.keys(VER).map((v, i) => [v, i]));
@@ -241,12 +244,12 @@
   };
   const state = {
     selected: new Set(ls.get('acb.selected2', []).filter(n => byName.has(n))),
-    open: new Set(),
+    open: new Set(), scope: ls.get('acb.scope', 'user'),
     sort: ls.get('acb.sort2', { key: 'default', dir: -1 }), kind: 'all', verdicts: new Set(), q: '', group: ls.get('acb.group', 'kind'),
     cols: new Set(ls.get('acb.cols5', DEFAULT_COLS).filter(k => OPTIONAL_COLS.includes(k))),
   };
   if (!['default', 'title', ...OPTIONAL_COLS].includes(state.sort.key)) state.sort = { key: 'default', dir: -1 };
-  const persist = () => { ls.set('acb.selected2', [...state.selected]); ls.set('acb.sort2', state.sort); ls.set('acb.cols5', [...state.cols]); ls.set('acb.group', state.group); };
+  const persist = () => { ls.set('acb.selected2', [...state.selected]); ls.set('acb.sort2', state.sort); ls.set('acb.scope', state.scope); ls.set('acb.cols5', [...state.cols]); ls.set('acb.group', state.group); };
 
   // ---- utils ----
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -295,6 +298,9 @@
   const GROUPS = [['kind', 'by kind'], ['plugin', 'by bundle']];
   $('group').innerHTML = GROUPS.map(([g, l]) => `<button data-group="${g}" class="${state.group === g ? 'on' : ''}">${l}</button>`).join('');
   $('group').onclick = e => { const b = e.target.closest('[data-group]'); if (!b) return; state.group = b.dataset.group; $('group').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); persist(); render(); };
+  const SCOPES = [['user', 'globally (user)'], ['project', 'this project']];
+  $('scope').innerHTML = SCOPES.map(([v, l]) => `<button data-scope="${v}" class="${state.scope === v ? 'on' : ''}">${l}</button>`).join('');
+  $('scope').onclick = e => { const b = e.target.closest('[data-scope]'); if (!b) return; state.scope = b.dataset.scope; $('scope').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); persist(); render(); };
   $('f-q').oninput = e => { state.q = e.target.value.trim(); $('f-clear').hidden = !state.q; render(); };
   $('f-clear').onclick = () => { state.q = ''; $('f-q').value = ''; $('f-clear').hidden = true; render(); };
 
@@ -537,8 +543,8 @@
     const s = [...sel].sort((a, b) => order[a.kind] - order[b.kind] || a.name.localeCompare(b.name));
     const lines = ['Set up the context for this project.', ''];
     lines.push('1. Run in the project root (the marketplace is added once):');
-    lines.push(`   ${ADD}`);
-    for (const it of s) lines.push(`   ${it.install.cmd}`);
+    lines.push(`   ${ADD()}`);
+    for (const it of s) lines.push(`   ${it.install.cmd}${scopeFlag()}`);
     const envs = [...new Set(s.flatMap(envOf))];
     if (envs.length) lines.push(`   Before that, the environment must have: ${envs.join(', ')}.`);
     lines.push('', '2. Add a "When to use" section to the project CLAUDE.md:');
@@ -552,10 +558,10 @@
     const b = $('copy'), t = b.textContent; b.textContent = 'copied ✓'; setTimeout(() => b.textContent = t, 1200);
   };
 
-  $('mode-hint').innerHTML = `The unit of installation is a plugin from the <code>${esc(MK.name)}</code> marketplace: once <code>${esc(ADD)}</code>, then <code>claude plugin install &lt;name&gt;@${esc(MK.name)}</code> for every ticked entry. A skill installs as its own folder, a bundle installs whole (skills, agents, hooks, MCP servers). The version is pinned to a commit of this repo; to update — <code>claude plugin update</code>.`;
+  const renderHint = () => $('mode-hint').innerHTML = `The unit of installation is a plugin from the <code>${esc(MK.name)}</code> marketplace: once <code>${esc(ADD())}</code>, then <code>claude plugin install &lt;name&gt;@${esc(MK.name)}${esc(scopeFlag())}</code> for every ticked entry. ${state.scope === 'user' ? 'User scope: the plugins are available in all your projects.' : 'Project scope: the plugins are declared in <code>.claude/settings.json</code> of this repo and travel with it.'} A skill installs as its own folder, a bundle installs whole (skills, agents, hooks, MCP servers). The version is pinned to a commit of this repo; to update — <code>claude plugin update</code>.`;
   $('foot').innerHTML = `The catalog holds entries with a finished REVIEW.md; drafts never reach it — <code>python3 ui/build.py</code> lists them. Eval is the latest run of <code>python3 ui/eval.py &lt;path in lib&gt;</code>, results in <code>catalog/&lt;entry&gt;/evals/results/</code>. Token cost is measured against a typical session: ${S.turns} turns × ${fmtK(S.context_tokens)} tok of context and ${S.output_tokens} tok of output (config.json → session_model).${C.git ? '' : ' The repo is not in git: review dates and staleness are not computed.'} Catalog built ${esc(C.generated_at)}.`;
 
-  function render() { renderTable(); renderBasket(); }
+  function render() { renderTable(); renderBasket(); renderHint(); }
   render();
 })();
 </script>
