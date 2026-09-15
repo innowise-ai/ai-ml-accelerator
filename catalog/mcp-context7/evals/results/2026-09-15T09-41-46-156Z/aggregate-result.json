@@ -1,0 +1,380 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.272",
+  "startedAt": "2026-09-15T09:41:46.156Z",
+  "durationSeconds": 187,
+  "costUsd": 0.8477839999999999,
+  "partial": false,
+  "suite": {
+    "root": "/Users/andrewkuncevich/vs_code_projects/experiments/ai-context-builder/plugins/context7",
+    "ablation": "with-without",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "context7",
+        "path": "/Users/andrewkuncevich/vs_code_projects/experiments/ai-context-builder/plugins/context7"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "01-langchain-create-agent",
+      "dir": "evals/01-langchain-create-agent",
+      "source": "prose",
+      "promptMarkdown": "Собери минимального агента с инструментами на LangChain 1.x (Python): один инструмент `get_weather(city)`, системный промпт, и подключи встроенную `SummarizationMiddleware`, чтобы история сжималась, когда в ней набирается 4000 токенов, а последние 20 сообщений оставались как есть. Мне нужны точные имена параметров конструктора миддлвари из текущей документации, а не устаревшие. Покажи код с импортами и коротко поясни, что откуда импортируется.",
+      "runsPerCase": 1,
+      "timeoutSeconds": 180,
+      "maxTurns": 8,
+      "graders": [
+        {
+          "name": "answer-quality",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Оцени финальный ответ на просьбу собрать минимального агента с инструментами и SummarizationMiddleware на LangChain 1.x (Python).\n\nPASS, если выполнены все условия:\n- основной пример использует `create_agent` из `langchain.agents`, инструмент `get_weather` передан в `tools=[...]`, системный промпт задан через `system_prompt=`;\n- `SummarizationMiddleware` импортируется из `langchain.agents.middleware` и передаётся в `middleware=[...]`;\n- порог и объём сохраняемой истории заданы актуальными параметрами вида `trigger=(\"tokens\", 4000)` и `keep=(\"messages\", 20)`;\n- есть краткое пояснение импортов.\n\nFAIL, если в качестве актуальных параметров миддлвари используются устаревшие `max_tokens_before_summary=` или `messages_to_keep=`, если пример построен на `create_react_agent`/`AgentExecutor`/`initialize_agent`, либо код отсутствует.",
+          "config": {
+            "criteria": "Оцени финальный ответ на просьбу собрать минимального агента с инструментами и SummarizationMiddleware на LangChain 1.x (Python).\n\nPASS, если выполнены все условия:\n- основной пример использует `create_agent` из `langchain.agents`, инструмент `get_weather` передан в `tools=[...]`, системный промпт задан через `system_prompt=`;\n- `SummarizationMiddleware` импортируется из `langchain.agents.middleware` и передаётся в `middleware=[...]`;\n- порог и объём сохраняемой истории заданы актуальными параметрами вида `trigger=(\"tokens\", 4000)` и `keep=(\"messages\", 20)`;\n- есть краткое пояснение импортов.\n\nFAIL, если в качестве актуальных параметров миддлвари используются устаревшие `max_tokens_before_summary=` или `messages_to_keep=`, если пример построен на `create_react_agent`/`AgentExecutor`/`initialize_agent`, либо код отсутствует.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "create-agent-import",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "from\\s+langchain\\.agents\\s+import[\\s\\S]{0,120}?create_agent",
+            "flags": "i",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "summarization-keep",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "keep\\s*=\\s*\\(\\s*['\"]messages['\"]\\s*,\\s*20\\s*\\)",
+            "flags": "i",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "summarization-trigger",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "trigger\\s*=\\s*[\\(\\[\\{]\\s*['\"]tokens['\"]\\s*[,:]\\s*4_?000",
+            "flags": "i",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "uses-context7",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "mcp__plugin_context7_context7__query-docs",
+            "min": 1,
+            "arm": "with-only"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 8,
+            "costUsd": 0.2621835,
+            "judgeCostUsd": 0.004188000000000001,
+            "durationSeconds": 51,
+            "startedAt": "2026-09-15T09:41:46.175Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-pj0rwS/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "answer-quality",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Запись файлов в этой сессии отключена, поэтому код ниже — инлайном.\n\n```python\nfrom langchain.agents import create_agent\nfrom langchain.agents.middleware import SummarizationMiddleware\nfrom langchain.tools import tool\n\n\n@tool\ndef get_weather(city: str) -> str:\n    \"\"\"Get the current weather for a city.\n\n    Args:\n        city: Name of the city, e.g. \"Berlin\"\n    \"\"\"\n    return f\"It's always sunny in {city}!\"\n\n\nagent = create_agent(\n    model=\"anthropic:claude-sonnet-5\",\n    tools=[get_weather],\n    system_prompt=\"You are a helpful weather assistant. Be concise and accurate.\",\n    middleware=[\n        SummarizationMiddleware(\n            model=\"anthropic:claude-haiku-4-5-20251001\",\n            trigger=(\"tokens\", 4000),   # сжимать, когда история превысит 4000 токенов\n            keep=(\"messages\", 20),      # последние 20 сообщений оставить как есть\n        ),\n    ],\n)\n\n\nif __name__ == \"__main__\":\n    result = agent.invoke({\"messages\": [{\"role\": \"user\", \"content\": \"Погода в Берлине?\"}]})\n    result[\"messages\"][-1].pretty_print()\n```\n\n**Параметры миддлвари** (сверено с текущей документацией LangChain через Context7):\n\n- `trigger=(\"tokens\", 4000)` — порог срабатывания. Принимает кортеж или дикт: `{\"tokens\": 4000}` эквивалентно. Кроме `\"tokens\"` поддерживается порог в долях контекстного окна модели.\n- `keep=(\"messages\", 20)` — сколько последних сообщений сохранить дословно, тоже кортеж или дикт.\n- `model=...` — отдельная (обычно более дешёвая) модель для самого сжатия.\n\nУстаревшие имена, которые часто попадаются в старых примерах и туториалах — `max_tokens_before_summary` и `messages_to_keep`. В 1.x их заменила пара `trigger` / `keep`; если увидите их в чьём-то коде, это дореформенный API.\n\n**Откуда что импортируется:**\n\n- `create_agent` — из `langchain.agents`. Это основная точка входа 1.x вместо старого `AgentExecutor`/`create_react_agent`.\n- `SummarizationMiddleware` — из `langchain.agents.middleware`, где живут все встроенные миддлвари. (В deepagents есть одноимённый класс в `deepagents.middleware` с дополнительным параметром `backend` — не перепутайте, для обычного агента нужен именно `langchain.agents.middleware`.)\n- `tool` — из `langchain.tools`. Докстринг функции становится описанием инструмента для модели, аннотации типов — схемой аргументов, так что отдельный `args_schema` для такого простого случая не нужен.\n\nПара практических замечаний: миддлварь пересчитывает историю на каждом шаге агента, но сжатие фактически происходит только при пересечении порога. Чтобы история вообще накапливалась между вызовами `invoke`, агенту нужен `checkpointer` (например `InMemorySaver` из `langgraph.checkpoint.memory`) и `thread_id` в конфиге — без него каждый вызов начинается с чистой истории и до 4000 токенов дело, скорее всего, не дойдёт."
+              },
+              {
+                "name": "create-agent-import",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched from\\s+langchain\\.agents\\s+import[\\s\\S]{0,120}?create_agent",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "summarization-keep",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched keep\\s*=\\s*\\(\\s*['\"]messages['\"]\\s*,\\s*20\\s*\\)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "summarization-trigger",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched trigger\\s*=\\s*[\\(\\[\\{]\\s*['\"]tokens['\"]\\s*[,:]\\s*4_?000",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "uses-context7",
+                "passed": true,
+                "weight": 1,
+                "explanation": "mcp__plugin_context7_context7__query-docs called 2x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0.5,
+            "passed": false,
+            "turns": 7,
+            "costUsd": 0.261689,
+            "judgeCostUsd": 0.004935,
+            "durationSeconds": 69,
+            "startedAt": "2026-09-15T09:42:37.544Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-cEchxy/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "answer-quality",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  true
+                ],
+                "evidence": "Сразу важная оговорка: в этой сессии у меня нет ни веб-доступа, ни установленного langchain (проверил — в проекте и в окружении пакета нет), так что подтвердить имена параметров по живой документации я не могу. Ниже — код по актуальному API `SummarizationMiddleware` плюс однострочник, которым вы за секунду проверите сигнатуру в своём venv.\n\n## Код\n\n```python\n# agent.py\nfrom langchain.agents import create_agent\nfrom langchain.agents.middleware import SummarizationMiddleware\nfrom langchain_core.tools import tool\nfrom langchain_anthropic import ChatAnthropic\n\n\n@tool\ndef get_weather(city: str) -> str:\n    \"\"\"Возвращает текущую погоду в указанном городе.\"\"\"\n    # здесь был бы реальный вызов погодного API\n    return f\"В городе {city}: +18°C, ясно, ветер 3 м/с.\"\n\n\nSYSTEM_PROMPT = (\n    \"Ты — лаконичный ассистент по погоде. \"\n    \"Если пользователь спрашивает про погоду, всегда вызывай инструмент get_weather \"\n    \"и отвечай одним-двумя предложениями. Не выдумывай данные.\"\n)\n\nagent = create_agent(\n    model=ChatAnthropic(model=\"claude-sonnet-5\", max_tokens=4096),\n    tools=[get_weather],\n    system_prompt=SYSTEM_PROMPT,\n    middleware=[\n        SummarizationMiddleware(\n            # модель для самого сжатия — можно взять дешевле основной\n            model=ChatAnthropic(model=\"claude-haiku-4-5-20251001\", max_tokens=2048),\n            trigger={\"tokens\": 4000},   # сжать, когда история набрала 4000 токенов\n            keep={\"messages\": 20},      # последние 20 сообщений оставить как есть\n        ),\n    ],\n)\n\nif __name__ == \"__main__\":\n    result = agent.invoke(\n        {\"messages\": [{\"role\": \"user\", \"content\": \"Какая погода в Минске?\"}]}\n    )\n    print(result[\"messages\"][-1].content)\n```\n\n## Что откуда\n\n| Импорт | Пакет | Зачем |\n|---|---|---|\n| `create_agent` | `langchain.agents` | точка входа LangChain 1.x вместо старого `AgentExecutor` / `create_react_agent` |\n| `SummarizationMiddleware` | `langchain.agents.middleware` | встроенная миддлварь, живёт в основном пакете `langchain`, не в `langgraph` |\n| `tool` | `langchain_core.tools` | декоратор; docstring становится описанием инструмента, аннотации типов — схемой аргументов. `from langchain.tools import tool` — тот же объект через ре-экспорт |\n| `ChatAnthropic` | `langchain_anthropic` | отдельный пакет провайдера (`pip install langchain langchain-anthropic`). Можно заменить на строку `model=\"anthropic:claude-sonnet-5\"` |\n\n## Про имена параметров — главный риск\n\n`SummarizationMiddleware` переименовывали: раньше было `max_tokens_before_summary=4000` и `messages_to_keep=20` (именно так выглядит пример в старых версиях доков), сейчас — `trigger` и `keep`, принимающие «размер контекста» в виде дикта: `{\"tokens\": N}`, `{\"messages\": N}` или `{\"fraction\": 0.8}`. Старые имена какое-то время принимались с DeprecationWarning.\n\nПроверьте, что стоит у вас, одной командой:\n\n```bash\npython -c \"import inspect, langchain; from langchain.agents.middleware import SummarizationMiddleware; \\\nprint(langchain.__version__); print(inspect.signature(SummarizationMiddleware.__init__))\"\n```\n\n- Видите `trigger` / `keep` — код выше подходит как есть.\n- Видите `max_tokens_before_summary` / `messages_to_keep` — у вас более ранняя 1.x: либо `pip install -U langchain`, либо замените две строки на `max_tokens_before_summary=4000, messages_to_keep=20`.\n\nЕсли пришлёте вывод этой команды, подгоню код под вашу версию точно."
+              },
+              {
+                "name": "create-agent-import",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched from\\s+langchain\\.agents\\s+import[\\s\\S]{0,120}?create_agent",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "summarization-keep",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "summarization-trigger",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched trigger\\s*=\\s*[\\(\\[\\{]\\s*['\"]tokens['\"]\\s*[,:]\\s*4_?000",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 0.5,
+        "passRateWithout": 0,
+        "delta": 0.5
+      }
+    },
+    {
+      "name": "02-ai-sdk-stop-condition",
+      "dir": "evals/02-ai-sdk-stop-condition",
+      "source": "prose",
+      "promptMarkdown": "Обновляю проект на последнюю версию Vercel AI SDK (пакет `ai`). Как теперь ограничить число шагов агентного цикла с вызовом инструментов в `generateText` — раньше был `maxSteps`, а сейчас его нет. Назови актуальный хелпер точно как он называется в текущей документации и покажи короткий пример с импортом.",
+      "runsPerCase": 1,
+      "timeoutSeconds": 180,
+      "maxTurns": 8,
+      "graders": [
+        {
+          "name": "answer-quality",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Оцени финальный ответ на вопрос о том, как в актуальном Vercel AI SDK ограничить число шагов tool-calling цикла в `generateText`.\n\nPASS, если выполнены все условия:\n- ответ называет хелпер `isStepCount` и показывает его в параметре `stopWhen`;\n- в примере есть импорт из пакета `ai` (например, `import { generateText, isStepCount } from 'ai'`);\n- ответ не выдаёт `maxSteps` за актуальный способ (упоминать его как устаревший можно).\n\nFAIL, если ответ рекомендует `maxSteps` как текущий способ, называет хелпер иначе (например, только `stepCountIs`) или не содержит примера кода.",
+          "config": {
+            "criteria": "Оцени финальный ответ на вопрос о том, как в актуальном Vercel AI SDK ограничить число шагов tool-calling цикла в `generateText`.\n\nPASS, если выполнены все условия:\n- ответ называет хелпер `isStepCount` и показывает его в параметре `stopWhen`;\n- в примере есть импорт из пакета `ai` (например, `import { generateText, isStepCount } from 'ai'`);\n- ответ не выдаёт `maxSteps` за актуальный способ (упоминать его как устаревший можно).\n\nFAIL, если ответ рекомендует `maxSteps` как текущий способ, называет хелпер иначе (например, только `stepCountIs`) или не содержит примера кода.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "is-step-count",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "isStepCount\\s*\\(",
+            "flags": "i",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "stop-when",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "stopWhen\\s*:",
+            "flags": "i",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "uses-context7",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "mcp__plugin_context7_context7__query-docs",
+            "min": 1,
+            "arm": "with-only"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 6,
+            "costUsd": 0.18864349999999996,
+            "judgeCostUsd": 0.0022889999999999994,
+            "durationSeconds": 32,
+            "startedAt": "2026-09-15T09:43:46.795Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-1Pz654/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "answer-quality",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "`maxSteps` больше нет — вместо него единое условие остановки `stopWhen`, а число шагов задаётся хелпером **`isStepCount`** (импортируется из `ai`).\n\n```ts\nimport { generateText, isStepCount } from 'ai';\n\nconst result = await generateText({\n  model: yourModel,\n  tools: yourTools,\n  prompt: '...',\n  stopWhen: isStepCount(5), // максимум 5 шагов агентного цикла\n});\n```\n\nВажные детали из текущей документации:\n\n- Раньше (AI SDK 5/6) хелпер назывался `stepCountIs`; в 7.0 его переименовали в `isStepCount`. Если после обновления в проекте остался `stepCountIs` — это просто переименование, сигнатура та же. Проверьте версию `ai` в package.json, чтобы взять правильное имя.\n- Значение по умолчанию — 20 шагов, так что `stopWhen` нужен только если хотите другое ограничение.\n- Условия можно комбинировать массивом, сработает любое:\n\n```ts\nimport { generateText, isStepCount, hasToolCall } from 'ai';\n\nconst result = await generateText({\n  model: yourModel,\n  tools: yourTools,\n  stopWhen: [isStepCount(10), hasToolCall('finalAnswer')],\n});\n```\n\n- Условия проверяются только после шагов, содержащих результаты инструментов. То же самое работает и в `streamText`, и в `ToolLoopAgent`."
+              },
+              {
+                "name": "is-step-count",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched isStepCount\\s*\\(",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "stop-when",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched stopWhen\\s*:",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "uses-context7",
+                "passed": true,
+                "weight": 1,
+                "explanation": "mcp__plugin_context7_context7__query-docs called 2x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0.3333333333333333,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.135268,
+            "judgeCostUsd": 0.003353000000000002,
+            "durationSeconds": 35,
+            "startedAt": "2026-09-15T09:44:18.414Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-Ovvwvo/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "answer-quality",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "В рабочей директории нет `package.json`, так что версию проекта не проверил — отвечаю по API AI SDK 5 (пакет `ai@5`).\n\n## Актуальный хелпер: `stepCountIs`\n\n`maxSteps` убрали в AI SDK 5. Вместо него — параметр **`stopWhen`**, который принимает условие остановки; для ограничения по числу шагов используется хелпер **`stepCountIs(n)`**, экспортируемый из `ai`.\n\n```ts\nimport { generateText, stepCountIs, tool } from 'ai';\nimport { anthropic } from '@ai-sdk/anthropic';\nimport { z } from 'zod';\n\nconst { text, steps } = await generateText({\n  model: anthropic('claude-sonnet-5'),\n  stopWhen: stepCountIs(5), // было: maxSteps: 5\n  tools: {\n    weather: tool({\n      description: 'Get the weather in a location',\n      inputSchema: z.object({ location: z.string() }),\n      execute: async ({ location }) => ({ location, temperature: 72 }),\n    }),\n  },\n  prompt: 'What is the weather in San Francisco?',\n});\n```\n\nВажные нюансы:\n\n- **Семантика инвертирована.** `maxSteps` задавал разрешённый максимум, `stopWhen` — условие *остановки*: цикл продолжается, пока условие ложно. Проверяется оно только после шага, завершившегося вызовом инструментов, поэтому обычный текстовый ответ всегда заканчивает генерацию.\n- **По умолчанию — `stepCountIs(1)`**, то есть без явного `stopWhen` агентного цикла не будет вообще: модель вызовет инструмент, и генерация остановится. Это частая причина «сломавшихся» агентов после миграции.\n- Рядом живёт **`hasToolCall('toolName')`**, и можно передать массив — сработает первое выполнившееся условие:\n  ```ts\n  stopWhen: [stepCountIs(10), hasToolCall('finalAnswer')]\n  ```\n- Своё условие — это функция `({ steps }) => boolean | PromiseLike<boolean>`.\n- То же самое работает в `streamText`. А в `useChat` на клиенте `maxSteps` заменён не на `stopWhen`, а на `sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls` — если будете мигрировать и клиент, это отдельное изменение."
+              },
+              {
+                "name": "is-step-count",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "stop-when",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched stopWhen\\s*:",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 0.3333333333333333,
+        "passRateWithout": 0,
+        "delta": 0.6666666666666667
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 2,
+    "casesPassed": 2,
+    "overallScore": 1,
+    "overallPassRate": 1,
+    "meanDelta": 0.5833333333333334
+  }
+}

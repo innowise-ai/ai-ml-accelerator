@@ -1,0 +1,7 @@
+{
+  "name": "claude-api",
+  "description": "Claude API: models, SDK, migrations",
+  "author": {
+    "name": "ai-context-builder"
+  }
+}

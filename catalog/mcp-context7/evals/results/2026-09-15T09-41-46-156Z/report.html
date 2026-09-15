@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eval report — context7</title>
+</head>
+<body>
+<style>
+:root{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme:dark){:root{--plane:#0d0d0d;--surface:#1a1a19;--ink:#ffffff;--ink-2:#c3c2b7;--ink-3:#898781;--hairline:rgba(255,255,255,.10);--grid:#2c2c2a;--inset:rgba(255,255,255,.05);--accent:#3987e5;--base-fill:#898781;--delta-good:#0ca30c;--good:#0ca30c;--warning:#fab219;--critical:#e06c6c;color-scheme:dark}}
+:root[data-theme="dark"]{--plane:#0d0d0d;--surface:#1a1a19;--ink:#ffffff;--ink-2:#c3c2b7;--ink-3:#898781;--hairline:rgba(255,255,255,.10);--grid:#2c2c2a;--inset:rgba(255,255,255,.05);--accent:#3987e5;--base-fill:#898781;--delta-good:#0ca30c;--good:#0ca30c;--warning:#fab219;--critical:#e06c6c;color-scheme:dark}
+:root[data-theme="light"]{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--plane);color:var(--ink);
+  font:14px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-text-size-adjust:100%}
+.wrap{max-width:880px;margin:0 auto;padding:40px 24px 64px;display:flex;flex-direction:column;gap:20px}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+header h1{margin:2px 0 0;font-size:24px;font-weight:600;line-height:1.25;text-wrap:balance}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;color:var(--ink-2);font-size:13px}
+.meta .num{font-variant-numeric:tabular-nums lining-nums}
+.banner{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;
+  border:1px solid var(--hairline);background:var(--surface);font-size:13px}
+.banner .chip-warn{color:var(--warning);font-weight:600}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:14px 16px;
+  display:flex;flex-direction:column;gap:4px}
+.tile .label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.tile .value{font-size:26px;font-weight:600;font-variant-numeric:tabular-nums lining-nums;line-height:1.1}
+.tile.hero .value{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:48px}
+.tile .sub{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.tile .value.delta-pos{color:var(--delta-good)}
+.tile .value.delta-neg{color:var(--critical)}
+.toolbar{display:flex;gap:8px;justify-content:flex-end}
+.toolbar button{font:12px system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink-2);
+  background:var(--surface);border:1px solid var(--hairline);border-radius:6px;padding:4px 10px;cursor:pointer}
+.toolbar button:hover{color:var(--ink)}
+.toolbar button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.case{background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:18px 20px;
+  display:flex;flex-direction:column;gap:10px}
+.case-regressed{border-left:3px solid var(--critical)}
+.verdict{margin:6px 0 0;font-size:15px}
+.verdict .delta{font-size:15px}
+.flag{font-size:11px;font-weight:600;color:var(--warning);white-space:nowrap}
+.star{color:var(--warning);font-size:.45em;vertical-align:super;line-height:0;cursor:help}
+.legend summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2)}
+.legend-list{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--ink-2)}
+.case-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.case-head h2{margin:0;font-size:16px;font-weight:600}
+.case-head .spacer{flex:1}
+.case-score{font-size:15px;font-weight:600}
+.mono{font:12px "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.num{font-variant-numeric:tabular-nums lining-nums}
+.muted{color:var(--ink-3);font-size:12px}
+.meter{display:inline-block;position:relative;width:120px;height:6px;border-radius:4px;background:var(--grid);
+  vertical-align:middle}
+.meter>span{display:block;height:100%;border-radius:4px;max-width:100%}
+.meter .tick{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink-3);border-radius:1px}
+.m-accent>span{background:var(--accent)}
+.m-base>span{background:var(--base-fill)}
+.delta{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.delta-pos{color:var(--delta-good)}
+.delta-neg{color:var(--critical)}
+.delta-zero{color:var(--ink-3)}
+details.section{border-top:1px solid var(--grid);padding-top:10px}
+details.section>summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--ink-2);list-style-position:outside;margin-left:2px}
+details.section>summary:hover{color:var(--ink)}
+details.section[open]>summary{margin-bottom:8px}
+.md{display:flex;flex-direction:column;gap:8px;background:var(--inset);border-radius:8px;
+  padding:12px 14px;overflow-wrap:break-word}
+.md>:first-child{margin-top:0}
+.md h1,.md h2,.md h3,.md h4,.md h5,.md h6{margin:4px 0 0;font-size:1em;font-weight:600;line-height:1.3}
+.md p,.md ul,.md ol,.md blockquote,.md table,.md pre,.md hr{margin:0}
+.md ul,.md ol{display:flex;flex-direction:column;gap:4px;padding-left:20px}
+.md blockquote{border-left:2px solid var(--hairline);padding-left:10px;color:var(--ink-2)}
+.md :not(pre)>code{background:var(--inset);padding:1px 4px;border-radius:4px;
+  font:.92em "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.md pre{background:var(--inset);border:1px solid var(--hairline);padding:10px 12px;border-radius:6px;
+  overflow-x:auto;font:12px/1.5 "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.md pre code{background:none;padding:0;font:inherit}
+.md table{width:100%;border-collapse:collapse}
+.md th,.md td{padding:5px 8px;text-align:left;vertical-align:top;border-bottom:1px solid var(--grid)}
+.md th{font-weight:600;color:var(--ink-2)}
+.md a{color:var(--accent);text-decoration:none}
+.md a:hover{text-decoration:underline}
+.grader-def{display:flex;flex-direction:column;gap:6px;padding:8px 0}
+.grader-def+.grader-def{border-top:1px solid var(--grid)}
+.grader-def-head{display:flex;align-items:baseline;gap:8px}
+.grader-name{font:13px "SF Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:600}
+.badge{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2);
+  border:1px solid var(--hairline);border-radius:999px;padding:1px 8px}
+.config{display:flex;flex-direction:column;gap:2px;background:var(--inset);border-radius:8px;padding:10px 14px}
+.config code{font:12px "SF Mono",ui-monospace,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.arm{display:flex;flex-direction:column;gap:8px;padding:6px 0}
+.arm+.arm{border-top:1px dashed var(--grid);margin-top:4px;padding-top:12px}
+.arm-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.arm-label{font-size:13px;font-weight:600}
+.run{border:1px solid var(--grid);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.run-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.run-title{font-size:12px;font-weight:600;color:var(--ink-2)}
+.run-error .explanation{color:var(--ink-2)}
+.note{font-size:12px;color:var(--ink-2)}
+.graders{display:flex;flex-direction:column;gap:4px}
+details.grader{border-radius:6px}
+details.grader>summary{cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:3px 4px;
+  border-radius:6px;list-style:none}
+details.grader>summary::-webkit-details-marker{display:none}
+details.grader>summary::before{content:'▸';font-size:10px;color:var(--ink-3);flex:none;
+  transition:transform .12s ease}
+details.grader[open]>summary::before{transform:rotate(90deg)}
+details.grader>summary:hover{background:var(--inset)}
+details.grader>summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.grader-body{padding:6px 8px 8px 24px;display:flex;flex-direction:column;gap:6px}
+.chip{font-size:11px;font-weight:600;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.chip-pass{color:var(--good);border:1px solid currentColor}
+.chip-fail{color:var(--critical);border:1px solid currentColor}
+.chip.chip-warn{color:var(--warning);border:1px solid currentColor}
+.explanation{margin:0;font-size:13px;color:var(--ink-2);white-space:pre-wrap;overflow-wrap:break-word}
+.kv{display:flex;gap:8px;font-size:12px;color:var(--ink-3)}
+.votes{font-variant-numeric:tabular-nums;letter-spacing:.1em}
+pre.evidence{margin:0;background:var(--inset);border:1px solid var(--hairline);border-radius:6px;
+  padding:8px 10px;overflow-x:auto;max-height:320px;
+  font:12px/1.5 "SF Mono",ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:break-word}
+footer{color:var(--ink-3);font-size:12px;text-align:center;padding-top:8px}
+@media (prefers-reduced-motion:no-preference){
+  details.grader>summary,.toolbar button{transition:background .12s ease,color .12s ease}
+}
+@media (prefers-reduced-motion:reduce){
+  details.grader>summary::before{transition:none}
+}
+@media print{
+  :root,:root[data-theme="dark"],:root[data-theme="light"]{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;color-scheme:light}
+  body{background:#fff}
+  .toolbar{display:none}
+  .case,.run,.grader-def{break-inside:avoid}
+  pre.evidence{max-height:none}
+}
+</style>
+<div class="wrap">
+<header>
+<div class="eyebrow">Plugin eval report</div>
+<h1>context7</h1>
+<p class="verdict">Plugin effect: <span class="delta delta-pos">↑ +58.3 pts</span> vs baseline — improved 2 · flat 0 · regressed 0 of 2 cases.</p>
+<div class="meta">
+<span class="mono">.</span>
+<span>Claude Code v2.1.272</span>
+<span class="num">2026-09-15 09:41 UTC</span>
+<span class="num">3m 7s</span>
+<span class="num">$0.85</span>
+<span class="num">4 runs</span>
+
+
+
+<span>judge default</span>
+<span class="num">threshold 100%</span>
+
+</div>
+</header>
+
+<section class="tiles">
+<div class="tile hero"><span class="label">Suite score · with plugin</span><span class="value">100%</span><span class="sub">mean of per-case scores</span></div>
+<div class="tile"><span class="label">Ablation Δ</span><span class="value num delta-pos">↑ +58.3</span><span class="sub">score points vs baseline, 2 of 2 cases</span></div>
+<div class="tile"><span class="label">Baseline score</span><span class="value num">41.7%</span><span class="sub">without the plugin</span></div>
+<div class="tile"><span class="label">Cases</span><span class="value num">2</span><span class="sub">2 of 2 ≥ 100% threshold</span></div>
+<div class="tile"><span class="label">Perfect runs</span><span class="value num">100%</span><span class="sub">runs where every grader passed</span></div>
+</section>
+<details class="section legend">
+<summary>How to read this report</summary>
+<ul class="legend-list">
+<li>A run's score is the weighted fraction of its graders that passed; a "perfect" run passed every grader.</li>
+<li>A case's score is the mean of its runs; a case passes when its score is at or above the 100% threshold (the tick on each case bar).</li>
+<li>The suite score is the mean of the per-case scores.</li>
+<li>Judge votes are independent samples of the LLM judge; the majority decides pass or fail.</li>
+<li>"With plugin" and "Baseline" runs are identical except for the plugin being loaded; Δ is the with-plugin score minus the baseline score.</li>
+
+</ul>
+</details>
+<div class="toolbar"><button type="button" data-act="expand">Expand all</button><button type="button" data-act="collapse">Collapse all</button></div>
+<article class="case" id="case-1">
+<div class="case-head">
+<h2>01-langchain-create-agent</h2>
+<span class="muted mono">evals/01-langchain-create-agent</span>
+<span class="spacer"></span>
+
+<span class="delta delta-pos">↑ +50.0 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">100%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">8 turns · $0.26 · 09:41:46 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">answer-quality</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Запись файлов в этой сессии отключена, поэтому код ниже — инлайном.
+
+```python
+from langchain.agents import create_agent
+from langchain.agents.middleware import SummarizationMiddleware
+from langchain.tools import tool
+
+
+@tool
+def get_weather(city: str) -&gt; str:
+    &quot;&quot;&quot;Get the current weather for a city.
+
+    Args:
+        city: Name of the city, e.g. &quot;Berlin&quot;
+    &quot;&quot;&quot;
+    return f&quot;It&apos;s always sunny in {city}!&quot;
+
+
+agent = create_agent(
+    model=&quot;anthropic:claude-sonnet-5&quot;,
+    tools=[get_weather],
+    system_prompt=&quot;You are a helpful weather assistant. Be concise and accurate.&quot;,
+    middleware=[
+        SummarizationMiddleware(
+            model=&quot;anthropic:claude-haiku-4-5-20251001&quot;,
+            trigger=(&quot;tokens&quot;, 4000),   # сжимать, когда история превысит 4000 токенов
+            keep=(&quot;messages&quot;, 20),      # последние 20 сообщений оставить как есть
+        ),
+    ],
+)
+
+
+if __name__ == &quot;__main__&quot;:
+    result = agent.invoke({&quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Погода в Берлине?&quot;}]})
+    result[&quot;messages&quot;][-1].pretty_print()
+```
+
+**Параметры миддлвари** (сверено с текущей документацией LangChain через Context7):
+
+- `trigger=(&quot;tokens&quot;, 4000)` — порог срабатывания. Принимает кортеж или дикт: `{&quot;tokens&quot;: 4000}` эквивалентно. Кроме `&quot;tokens&quot;` поддерживается порог в долях контекстного окна модели.
+- `keep=(&quot;messages&quot;, 20)` — сколько последних сообщений сохранить дословно, тоже кортеж или дикт.
+- `model=...` — отдельная (обычно более дешёвая) модель для самого сжатия.
+
+Устаревшие имена, которые часто попадаются в старых примерах и туториалах — `max_tokens_before_summary` и `messages_to_keep`. В 1.x их заменила пара `trigger` / `keep`; если увидите их в чьём-то коде, это дореформенный API.
+
+**Откуда что импортируется:**
+
+- `create_agent` — из `langchain.agents`. Это основная точка входа 1.x вместо старого `AgentExecutor`/`create_react_agent`.
+- `SummarizationMiddleware` — из `langchain.agents.middleware`, где живут все встроенные миддлвари. (В deepagents есть одноимённый класс в `deepagents.middleware` с дополнительным параметром `backend` — не перепутайте, для обычного агента нужен именно `langchain.agents.middleware`.)
+- `tool` — из `langchain.tools`. Докстринг функции становится описанием инструмента для модели, аннотации типов — схемой аргументов, так что отдельный `args_schema` для такого простого случая не нужен.
+
+Пара практических замечаний: миддлварь пересчитывает историю на каждом шаге агента, но сжатие фактически происходит только при пересечении порога. Чтобы история вообще накапливалась между вызовами `invoke`, агенту нужен `checkpointer` (например `InMemorySaver` из `langgraph.checkpoint.memory`) и `thread_id` в конфиге — без него каждый вызов начинается с чистой истории и до 4000 токенов дело, скорее всего, не дойдёт.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">create-agent-import</span>  </summary>
+<div class="grader-body">
+<p class="explanation">matched from\s+langchain\.agents\s+import[\s\S]{0,120}?create_agent</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">summarization-keep</span>  </summary>
+<div class="grader-body">
+<p class="explanation">matched keep\s*=\s*\(\s*[&apos;&quot;]messages[&apos;&quot;]\s*,\s*20\s*\)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">summarization-trigger</span>  </summary>
+<div class="grader-body">
+<p class="explanation">matched trigger\s*=\s*[\(\[\{]\s*[&apos;&quot;]tokens[&apos;&quot;]\s*[,:]\s*4_?000</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">uses-context7</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">mcp__plugin_context7_context7__query-docs called 2x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:50.0%"></span></span>
+<span class="num">50%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:50.0%"></span></span>
+<span class="num">50%</span>
+<span class="muted num">7 turns · $0.26 · 09:42:37 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">answer-quality</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Сразу важная оговорка: в этой сессии у меня нет ни веб-доступа, ни установленного langchain (проверил — в проекте и в окружении пакета нет), так что подтвердить имена параметров по живой документации я не могу. Ниже — код по актуальному API `SummarizationMiddleware` плюс однострочник, которым вы за секунду проверите сигнатуру в своём venv.
+
+## Код
+
+```python
+# agent.py
+from langchain.agents import create_agent
+from langchain.agents.middleware import SummarizationMiddleware
+from langchain_core.tools import tool
+from langchain_anthropic import ChatAnthropic
+
+
+@tool
+def get_weather(city: str) -&gt; str:
+    &quot;&quot;&quot;Возвращает текущую погоду в указанном городе.&quot;&quot;&quot;
+    # здесь был бы реальный вызов погодного API
+    return f&quot;В городе {city}: +18°C, ясно, ветер 3 м/с.&quot;
+
+
+SYSTEM_PROMPT = (
+    &quot;Ты — лаконичный ассистент по погоде. &quot;
+    &quot;Если пользователь спрашивает про погоду, всегда вызывай инструмент get_weather &quot;
+    &quot;и отвечай одним-двумя предложениями. Не выдумывай данные.&quot;
+)
+
+agent = create_agent(
+    model=ChatAnthropic(model=&quot;claude-sonnet-5&quot;, max_tokens=4096),
+    tools=[get_weather],
+    system_prompt=SYSTEM_PROMPT,
+    middleware=[
+        SummarizationMiddleware(
+            # модель для самого сжатия — можно взять дешевле основной
+            model=ChatAnthropic(model=&quot;claude-haiku-4-5-20251001&quot;, max_tokens=2048),
+            trigger={&quot;tokens&quot;: 4000},   # сжать, когда история набрала 4000 токенов
+            keep={&quot;messages&quot;: 20},      # последние 20 сообщений оставить как есть
+        ),
+    ],
+)
+
+if __name__ == &quot;__main__&quot;:
+    result = agent.invoke(
+        {&quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Какая погода в Минске?&quot;}]}
+    )
+    print(result[&quot;messages&quot;][-1].content)
+```
+
+## Что откуда
+
+| Импорт | Пакет | Зачем |
+|---|---|---|
+| `create_agent` | `langchain.agents` | точка входа LangChain 1.x вместо старого `AgentExecutor` / `create_react_agent` |
+| `SummarizationMiddleware` | `langchain.agents.middleware` | встроенная миддлварь, живёт в основном пакете `langchain`, не в `langgraph` |
+| `tool` | `langchain_core.tools` | декоратор; docstring становится описанием инструмента, аннотации типов — схемой аргументов. `from langchain.tools import tool` — тот же объект через ре-экспорт |
+| `ChatAnthropic` | `langchain_anthropic` | отдельный пакет провайдера (`pip install langchain langchain-anthropic`). Можно заменить на строку `model=&quot;anthropic:claude-sonnet-5&quot;` |
+
+## Про имена параметров — главный риск
+
+`SummarizationMiddleware` переименовывали: раньше было `max_tokens_before_summary=4000` и `messages_to_keep=20` (именно так выглядит пример в старых версиях доков), сейчас — `trigger` и `keep`, принимающие «размер контекста» в виде дикта: `{&quot;tokens&quot;: N}`, `{&quot;messages&quot;: N}` или `{&quot;fraction&quot;: 0.8}`. Старые имена какое-то время принимались с DeprecationWarning.
+
+Проверьте, что стоит у вас, одной командой:
+
+```bash
+python -c &quot;import inspect, langchain; from langchain.agents.middleware import SummarizationMiddleware; \
+print(langchain.__version__); print(inspect.signature(SummarizationMiddleware.__init__))&quot;
+```
+
+- Видите `trigger` / `keep` — код выше подходит как есть.
+- Видите `max_tokens_before_summary` / `messages_to_keep` — у вас более ранняя 1.x: либо `pip install -U langchain`, либо замените две строки на `max_tokens_before_summary=4000, messages_to_keep=20`.
+
+Если пришлёте вывод этой команды, подгоню код под вашу версию точно.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">create-agent-import</span>  </summary>
+<div class="grader-body">
+<p class="explanation">matched from\s+langchain\.agents\s+import[\s\S]{0,120}?create_agent</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">summarization-keep</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern not found in last_message</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">summarization-trigger</span>  </summary>
+<div class="grader-body">
+<p class="explanation">matched trigger\s*=\s*[\(\[\{]\s*[&apos;&quot;]tokens[&apos;&quot;]\s*[,:]\s*4_?000</p>
+
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>Собери минимального агента с инструментами на LangChain 1.x (Python): один инструмент <code>get_weather(city)</code>, системный промпт, и подключи встроенную <code>SummarizationMiddleware</code>, чтобы история сжималась, когда в ней набирается 4000 токенов, а последние 20 сообщений оставались как есть. Мне нужны точные имена параметров конструктора миддлвари из текущей документации, а не устаревшие. Покажи код с импортами и коротко поясни, что откуда импортируется.</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">answer-quality</span><span class="badge">llm</span></div>
+<div class="md"><p>Оцени финальный ответ на просьбу собрать минимального агента с инструментами и SummarizationMiddleware на LangChain 1.x (Python).</p>
+<p>PASS, если выполнены все условия:</p>
+<ul>
+<li>основной пример использует <code>create_agent</code> из <code>langchain.agents</code>, инструмент <code>get_weather</code> передан в <code>tools=[...]</code>, системный промпт задан через <code>system_prompt=</code>;</li>
+<li><code>SummarizationMiddleware</code> импортируется из <code>langchain.agents.middleware</code> и передаётся в <code>middleware=[...]</code>;</li>
+<li>порог и объём сохраняемой истории заданы актуальными параметрами вида <code>trigger=(&quot;tokens&quot;, 4000)</code> и <code>keep=(&quot;messages&quot;, 20)</code>;</li>
+<li>есть краткое пояснение импортов.</li>
+</ul>
+<p>FAIL, если в качестве актуальных параметров миддлвари используются устаревшие <code>max_tokens_before_summary=</code> или <code>messages_to_keep=</code>, если пример построен на <code>create_react_agent</code>/<code>AgentExecutor</code>/<code>initialize_agent</code>, либо код отсутствует.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">create-agent-import</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;from\\s+langchain\\.agents\\s+import[\\s\\S]{0,120}?create_agent&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">summarization-keep</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;keep\\s*=\\s*\\(\\s*[&apos;\&quot;]messages[&apos;\&quot;]\\s*,\\s*20\\s*\\)&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">summarization-trigger</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;trigger\\s*=\\s*[\\(\\[\\{]\\s*[&apos;\&quot;]tokens[&apos;\&quot;]\\s*[,:]\\s*4_?000&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">uses-context7</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;mcp__plugin_context7_context7__query-docs&quot;</code></div><div class="kv"><span>min</span><code>1</code></div><div class="kv"><span>arm</span><code>&quot;with-only&quot;</code></div></div>
+</div>
+</details>
+</article>
+<article class="case" id="case-2">
+<div class="case-head">
+<h2>02-ai-sdk-stop-condition</h2>
+<span class="muted mono">evals/02-ai-sdk-stop-condition</span>
+<span class="spacer"></span>
+
+<span class="delta delta-pos">↑ +66.7 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">100%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">6 turns · $0.19 · 09:43:46 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">answer-quality</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">`maxSteps` больше нет — вместо него единое условие остановки `stopWhen`, а число шагов задаётся хелпером **`isStepCount`** (импортируется из `ai`).
+
+```ts
+import { generateText, isStepCount } from &apos;ai&apos;;
+
+const result = await generateText({
+  model: yourModel,
+  tools: yourTools,
+  prompt: &apos;...&apos;,
+  stopWhen: isStepCount(5), // максимум 5 шагов агентного цикла
+});
+```
+
+Важные детали из текущей документации:
+
+- Раньше (AI SDK 5/6) хелпер назывался `stepCountIs`; в 7.0 его переименовали в `isStepCount`. Если после обновления в проекте остался `stepCountIs` — это просто переименование, сигнатура та же. Проверьте версию `ai` в package.json, чтобы взять правильное имя.
+- Значение по умолчанию — 20 шагов, так что `stopWhen` нужен только если хотите другое ограничение.
+- Условия можно комбинировать массивом, сработает любое:
+
+```ts
+import { generateText, isStepCount, hasToolCall } from &apos;ai&apos;;
+
+const result = await generateText({
+  model: yourModel,
+  tools: yourTools,
+  stopWhen: [isStepCount(10), hasToolCall(&apos;finalAnswer&apos;)],
+});
+```
+
+- Условия проверяются только после шагов, содержащих результаты инструментов. То же самое работает и в `streamText`, и в `ToolLoopAgent`.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">is-step-count</span>  </summary>
+<div class="grader-body">
+<p class="explanation">matched isStepCount\s*\(</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">stop-when</span>  </summary>
+<div class="grader-body">
+<p class="explanation">matched stopWhen\s*:</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">uses-context7</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">mcp__plugin_context7_context7__query-docs called 2x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:33.3%"></span></span>
+<span class="num">33.3%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:33.3%"></span></span>
+<span class="num">33.3%</span>
+<span class="muted num">3 turns · $0.14 · 09:44:18 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">answer-quality</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">В рабочей директории нет `package.json`, так что версию проекта не проверил — отвечаю по API AI SDK 5 (пакет `ai@5`).
+
+## Актуальный хелпер: `stepCountIs`
+
+`maxSteps` убрали в AI SDK 5. Вместо него — параметр **`stopWhen`**, который принимает условие остановки; для ограничения по числу шагов используется хелпер **`stepCountIs(n)`**, экспортируемый из `ai`.
+
+```ts
+import { generateText, stepCountIs, tool } from &apos;ai&apos;;
+import { anthropic } from &apos;@ai-sdk/anthropic&apos;;
+import { z } from &apos;zod&apos;;
+
+const { text, steps } = await generateText({
+  model: anthropic(&apos;claude-sonnet-5&apos;),
+  stopWhen: stepCountIs(5), // было: maxSteps: 5
+  tools: {
+    weather: tool({
+      description: &apos;Get the weather in a location&apos;,
+      inputSchema: z.object({ location: z.string() }),
+      execute: async ({ location }) =&gt; ({ location, temperature: 72 }),
+    }),
+  },
+  prompt: &apos;What is the weather in San Francisco?&apos;,
+});
+```
+
+Важные нюансы:
+
+- **Семантика инвертирована.** `maxSteps` задавал разрешённый максимум, `stopWhen` — условие *остановки*: цикл продолжается, пока условие ложно. Проверяется оно только после шага, завершившегося вызовом инструментов, поэтому обычный текстовый ответ всегда заканчивает генерацию.
+- **По умолчанию — `stepCountIs(1)`**, то есть без явного `stopWhen` агентного цикла не будет вообще: модель вызовет инструмент, и генерация остановится. Это частая причина «сломавшихся» агентов после миграции.
+- Рядом живёт **`hasToolCall(&apos;toolName&apos;)`**, и можно передать массив — сработает первое выполнившееся условие:
+  ```ts
+  stopWhen: [stepCountIs(10), hasToolCall(&apos;finalAnswer&apos;)]
+  ```
+- Своё условие — это функция `({ steps }) =&gt; boolean | PromiseLike&lt;boolean&gt;`.
+- То же самое работает в `streamText`. А в `useChat` на клиенте `maxSteps` заменён не на `stopWhen`, а на `sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls` — если будете мигрировать и клиент, это отдельное изменение.</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">is-step-count</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern not found in last_message</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">stop-when</span>  </summary>
+<div class="grader-body">
+<p class="explanation">matched stopWhen\s*:</p>
+
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>Обновляю проект на последнюю версию Vercel AI SDK (пакет <code>ai</code>). Как теперь ограничить число шагов агентного цикла с вызовом инструментов в <code>generateText</code> — раньше был <code>maxSteps</code>, а сейчас его нет. Назови актуальный хелпер точно как он называется в текущей документации и покажи короткий пример с импортом.</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">answer-quality</span><span class="badge">llm</span></div>
+<div class="md"><p>Оцени финальный ответ на вопрос о том, как в актуальном Vercel AI SDK ограничить число шагов tool-calling цикла в <code>generateText</code>.</p>
+<p>PASS, если выполнены все условия:</p>
+<ul>
+<li>ответ называет хелпер <code>isStepCount</code> и показывает его в параметре <code>stopWhen</code>;</li>
+<li>в примере есть импорт из пакета <code>ai</code> (например, <code>import { generateText, isStepCount } from &#39;ai&#39;</code>);</li>
+<li>ответ не выдаёт <code>maxSteps</code> за актуальный способ (упоминать его как устаревший можно).</li>
+</ul>
+<p>FAIL, если ответ рекомендует <code>maxSteps</code> как текущий способ, называет хелпер иначе (например, только <code>stepCountIs</code>) или не содержит примера кода.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">is-step-count</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;isStepCount\\s*\\(&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">stop-when</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;stopWhen\\s*:&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">uses-context7</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;mcp__plugin_context7_context7__query-docs&quot;</code></div><div class="kv"><span>min</span><code>1</code></div><div class="kv"><span>arm</span><code>&quot;with-only&quot;</code></div></div>
+</div>
+</details>
+</article>
+<footer>Generated by <code>claude plugin eval</code> · schema v1 · scores are not comparable across different suites</footer>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var bar=document.querySelector('.toolbar');
+  if(!bar)return;
+  bar.addEventListener('click',function(e){
+    var b=e.target&&e.target.closest('button');
+    if(!b)return;
+    var open=b.dataset.act==='expand';
+    document.querySelectorAll('details.section, details.grader').forEach(function(d){d.open=open});
+  });
+});
+// Collapsed details vanish from print/PDF; these pages are share artifacts.
+window.addEventListener('beforeprint',function(){
+  document.querySelectorAll('details').forEach(function(d){
+    if(!d.open){d.dataset.printOpened='1';d.open=true}
+  });
+});
+window.addEventListener('afterprint',function(){
+  document.querySelectorAll('details[data-print-opened]').forEach(function(d){
+    d.open=false;delete d.dataset.printOpened;
+  });
+});
+</script>
+</body>
+</html>

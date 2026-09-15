@@ -1,0 +1,9 @@
+{
+  "type": "http",
+  "url": "https://api.githubcopilot.com/mcp/",
+  "headers": {
+    "Authorization": "Bearer ${GITHUB_PAT}"
+  },
+  "env_required": ["GITHUB_PAT"],
+  "source": "https://github.com/github/github-mcp-server"
+}

@@ -1,0 +1,7 @@
+{
+  "name": "github",
+  "description": "When the project is on GitHub: the agent opens PRs and issues itself, reads reviews and the logs of failed Actions",
+  "author": {
+    "name": "ai-context-builder"
+  }
+}

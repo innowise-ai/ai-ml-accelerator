@@ -1,0 +1,7 @@
+{
+  "name": "base",
+  "description": "plugin base (ai-context-builder)",
+  "author": {
+    "name": "ai-context-builder"
+  }
+}

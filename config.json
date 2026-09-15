@@ -1,0 +1,40 @@
+{
+  "marketplace": {
+    "name": "acb",
+    "owner": {
+      "name": "ai-context-builder"
+    },
+    "description": "Reviewed context for Claude Code: every plugin has a REVIEW.md and evals"
+  },
+  "repo_url": "https://github.com/innowise-ai/ai-ml-accelerator",
+  "session_model": {
+    "_": "The typical session the «Token cost» column is measured against: turns model calls, each with context_tokens of input and output_tokens of output. Δ% = (standing cost × turns + per-call cost × calls + behavioural effect) / (turns × (context + output)). MCP: if the tool schemas exceed mcp_defer_over_tokens, Claude Code loads them deferred and only the names stay in context (mcp_deferred_tokens_per_tool per tool).",
+    "turns": 40,
+    "context_tokens": 30000,
+    "output_tokens": 600,
+    "mcp_defer_over_tokens": 5000,
+    "mcp_deferred_tokens_per_tool": 15
+  },
+  "verdicts": {
+    "must-have": {
+      "label": "Must have",
+      "hint": "into any project by default: almost always pays off, no conditions"
+    },
+    "stack": {
+      "label": "For the stack",
+      "hint": "if the project uses the technology or service from the description"
+    },
+    "task": {
+      "label": "For a task",
+      "hint": "for the duration of a specific job, then remove; usually expensive on activation"
+    },
+    "taste": {
+      "label": "Taste",
+      "hint": "a person's working style, not the project's; install into ~/.claude"
+    },
+    "no": {
+      "label": "Don't install",
+      "hint": "rejected by the reviewer; the entry stays as a warning"
+    }
+  }
+}

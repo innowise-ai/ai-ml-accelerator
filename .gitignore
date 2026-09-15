@@ -1,0 +1,7 @@
+.DS_Store
+ui/.cache/
+# eval runs: only the summary and the report of the last one go into git, everything else stays local
+**/evals/results/*/*
+!**/evals/results/*/aggregate-result.json
+!**/evals/results/*/report.html
+__pycache__/
