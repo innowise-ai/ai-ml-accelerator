@@ -120,15 +120,24 @@
   p.line .sep { color: #c9c7bf; margin: 0 6px; }
   .bchip { display: inline-block; font-family: var(--mono); font-size: 11.5px; padding: 0 6px; border-radius: 4px; border: 1px solid #d6d0ee; color: #5a4ba0; background: #f6f4fc; cursor: pointer; white-space: nowrap; line-height: 18px; margin: 0 3px 0 0; }
   .bchip:hover { background: #ece9f7; }
-  .evh { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; font-size: 12.5px; margin-bottom: 4px; }
-  .evh b.sc { font-size: 17px; font-weight: 700; }
+  .evb { max-width: 560px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel); padding: 10px 12px 4px; }
+  .evb.none { padding-bottom: 10px; }
+  .evh { display: flex; gap: 9px; align-items: center; font-size: 12.5px; }
+  .evh b.sc { font-size: 21px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
   .evh b.sc.good { color: var(--ok); } .evh b.sc.mid { color: var(--warn); } .evh b.sc.low { color: var(--bad); }
-  table.evt { border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; margin: 4px 0 2px; }
-  .evt th { text-align: left; font-size: 11.5px; font-weight: 600; color: var(--muted); padding: 4px 18px 4px 0; border-bottom: 1px solid var(--line); }
-  .evt td { padding: 5px 18px 5px 0; border-bottom: 1px solid #eeece6; color: #3d3c39; }
+  .evh .scl { font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+  .evh .dl { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--soft); color: #3d3c39; font-variant-numeric: tabular-nums; }
+  .evh .dl.up { background: var(--ok-bg); color: var(--ok); } .evh .dl.down { background: var(--bad-bg); color: var(--bad); }
+  .evh .rep { margin-left: auto; font-size: 12px; color: var(--accent); text-decoration: none; white-space: nowrap; }
+  .evh .rep:hover { text-decoration: underline; }
+  .evm { margin: 5px 0 0; font-size: 11.5px; color: var(--muted); }
+  .evm code { font-size: 11.5px; }
+  table.evt { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; margin: 8px 0 0; }
+  .evt th { text-align: left; font-size: 10.5px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: var(--muted); padding: 6px 0 5px; border-bottom: 1px solid var(--line); }
+  .evt td { padding: 6px 0; border-bottom: 1px solid #eeece6; color: #3d3c39; }
+  .evt tr:last-child td { border-bottom: 0; }
   .evt td:first-child { font-family: var(--mono); font-size: 12px; color: var(--ink); }
-  .evt .num { text-align: right; padding-right: 0; }
-  .evt th.num { padding-left: 18px; } .evt td.num { padding-left: 18px; }
+  .evt .num { text-align: right; width: 76px; }
   ul.members { margin: 4px 0 0; padding-left: 0; list-style: none; }
   ul.members li { display: flex; gap: 8px; align-items: baseline; padding: 3px 0; flex-wrap: wrap; }
   ul.members .k { color: var(--muted); font-size: 11px; width: 38px; flex: none; }
@@ -277,7 +286,7 @@
       const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
       if (lines.every(l => /^- /.test(l))) return `<ul>${lines.map(l => `<li>${inline(l.slice(2))}</li>`).join('')}</ul>`;
       if (lines.length === 1 && /^## /.test(lines[0])) return `<h4>${inline(lines[0].slice(3))}</h4>`;
-      return `<p>${inline(lines.join(' '))}</p>`;
+      return `<p>${lines.map(inline).join('<br>')}</p>`;   // one line in REVIEW.md = one line on the page
     }).join('');
   }
 
@@ -419,11 +428,11 @@
   const chips = arr => `<div class="chips-line">${arr.filter(Boolean).map(x => `<span class="chip">${esc(x)}</span>`).join('')}</div>`;
   function evalHtml(it) {
     const L = it.eval.latest, n = it.eval.cases.length;
-    const head = L
-      ? `<b class="sc ${evClass(L.score)}">${fmtScore(L.score)}</b>${L.delta != null ? `<span class="${L.delta > 0 ? 'up' : L.delta < 0 ? 'down' : ''}">Δ ${fmtDelta(L.delta)} vs the run without the plugin</span>` : ''}<span class="mut">${cases(L.cases)} · ${esc(L.at)} · Claude Code ${esc(L.version || '?')}${L.cost_usd != null ? ` · $${L.cost_usd.toFixed(2)}` : ''}${L.partial ? ' · partial run' : ''}${n !== L.cases ? ` · ${n} cases now` : ''}</span>${L.report ? `<a href="../${esc(L.report)}" target="_blank" rel="noopener">report ↗</a>` : ''}`
-      : `<span class="mut">${n ? `${cases(n)} in <code>${esc(it.dir)}/evals/</code>, no run yet:` : 'no cases, create them:'}</span><code>${esc(it.eval.cmd)}${n ? '' : ' --init'}</code>`;
-    const rows = L?.per_case.length ? `<table class="evt"><tr><th>Case</th><th class="num">With plugin</th><th class="num">Without</th><th class="num">Δ</th></tr>${L.per_case.map(c => `<tr><td>${esc(c.name)}</td><td class="num">${fmtScore(c.score)}</td><td class="num mut">${c.without != null ? fmtScore(c.without) : '–'}</td><td class="num ${c.delta > 0 ? 'up' : c.delta < 0 ? 'down' : ''}">${fmtDelta(c.delta) || '–'}</td></tr>`).join('')}</table>` : '';
-    return `<h4>Eval</h4><div class="evh">${head}</div>${rows}`;
+    if (!L) return `<h4>Eval</h4><div class="evb none"><p class="evm">${n ? `${cases(n)} in <code>${esc(it.dir)}/evals/</code>, no run yet: ` : 'no cases, create them: '}<code>${esc(it.eval.cmd)}${n ? '' : ' --init'}</code></p></div>`;
+    const head = `<div class="evh"><b class="sc ${evClass(L.score)}" title="${esc(evalTip(it))}">${fmtScore(L.score)}</b><span class="scl">score</span>${L.delta != null ? `<span class="dl ${L.delta > 0 ? 'up' : L.delta < 0 ? 'down' : ''}">Δ ${fmtDelta(L.delta)}</span>` : ''}${L.report ? `<a class="rep" href="../${esc(L.report)}" target="_blank" rel="noopener">report ↗</a>` : ''}</div>`;
+    const meta = `<p class="evm">${L.delta != null ? 'vs the run without the plugin · ' : ''}${cases(L.cases)} · ${esc(L.at)} · Claude Code ${esc(L.version || '?')}${L.cost_usd != null ? ` · $${L.cost_usd.toFixed(2)}` : ''}${L.partial ? ' · partial run' : ''}${n !== L.cases ? ` · ${n} cases now` : ''}</p>`;
+    const rows = L.per_case.length ? `<table class="evt"><tr><th>Case</th><th class="num">With plugin</th><th class="num">Without</th><th class="num">Δ</th></tr>${L.per_case.map(c => `<tr><td>${esc(c.name)}</td><td class="num">${fmtScore(c.score)}</td><td class="num mut">${c.without != null ? fmtScore(c.without) : '–'}</td><td class="num ${c.delta > 0 ? 'up' : c.delta < 0 ? 'down' : ''}">${fmtDelta(c.delta) || '–'}</td></tr>`).join('')}</table>` : '';
+    return `<h4>Eval</h4><div class="evb">${head}${meta}${rows}</div>`;
   }
   function detailHtml(it, nCols) {
     const V = it.view, parts = [];
