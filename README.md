@@ -4,6 +4,8 @@ A catalog of vetted context for Claude Code (later for Codex too). Four kinds: s
 
 To install, it is enough to open `ui/index.html`: a table with verdict, rating, security, token cost and eval result; you tick the entries and get the install commands and the text for the agent window.
 
+![The catalog in ui/index.html: entries with verdict, rating, security, token cost and eval; the basket on the right builds the install commands](docs/catalog.png)
+
 ## Run
 
 ```bash

@@ -6,7 +6,8 @@
 #
 # Checks library parts, entry contents and REVIEW.md. In every catalog/<entry>/ it rebuilds the member copies,
 # hooks/hooks.json, .mcp.json and .claude-plugin/plugin.json (leaves REVIEW.md and evals/ alone). Writes
-# .claude-plugin/marketplace.json (an entry per folder with a finished REVIEW.md, except verdict no) and ui/catalog.js.
+# .claude-plugin/marketplace.json (an entry per folder with a finished REVIEW.md, except verdict no) and ui/catalog.js
+# (entries without a finished REVIEW.md are skipped — just a warning).
 
 import re, sys
 from datetime import datetime, timezone
@@ -90,7 +91,7 @@ def validate_entries(entries, comps):
             if m.get('missing'): err(e['where'], f"the library has no {m['kind']} \"{m['name']}\" (lib/)")
         if e['kind'] == 'plugin' and len(e['members']) == 1: warn(e['where'], f"bundle of a single part: a {e['members'][0]['kind']}-{e['members'][0]['name']} entry is simpler")
         validate_review(e)
-        if e['review'] and status_of(e) == 'draft': warn(e['where'], 'REVIEW.md with draft: true — does not reach the marketplace')
+        if status_of(e) == 'draft': warn(e['where'], 'no finished REVIEW.md (missing file or draft: true) — the entry reaches neither the catalog nor the marketplace')
 
 # ---- derived ----
 
@@ -197,7 +198,8 @@ def main():
 
     rebuilt = sum(1 for e in entries if materialize(e, cfg, dry=CHECK))
 
-    items = derive(entries, facts, cfg)
+    drafts = [e for e in entries if status_of(e) == 'draft']
+    items = derive([e for e in entries if status_of(e) != 'draft'], facts, cfg)
     mk = marketplace(items, cfg)
     mk_text = dumps(mk)
     gh = re.search(r'github\.com/([^/]+/[^/#?]+)', str(cfg.get('repo_url') or ''))
@@ -226,8 +228,7 @@ def main():
     print(f"build: {len(items)} entries → ui/catalog.js; entries rebuilt {rebuilt}; marketplace.json {'updated' if mk_changed else 'unchanged'} ({len(mk['plugins'])} plugins)"
           + ('' if payload['git'] else ' · repo is not in git: review dates are not computed'))
     kinds = ', '.join(f"{k} {n(lambda r, k=k: r['kind'] == k)}" for k in ENTRY_KINDS)
-    status = ', '.join(f"{st} {n(lambda r, st=st: r['status'] == st)}" for st in ('reviewed', 'draft', 'rejected'))
-    print(f"  kind: {kinds}; status: {status}")
+    print(f"  kind: {kinds}; rejected {n(lambda r: r['status'] == 'rejected')}; without a finished REVIEW.md (not in the catalog) {len(drafts)}")
     print(f"  evals: with cases {n(lambda r: r['eval']['cases'])}, with a run {n(lambda r: r['eval']['latest'])}")
 
 main()
