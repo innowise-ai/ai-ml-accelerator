@@ -1,0 +1,7 @@
+{
+  "name": "context7",
+  "description": "Pulls up the current documentation of libraries. Just RAG over current, continuously updated documentation. Almost always pays off.",
+  "author": {
+    "name": "ai-context-builder"
+  }
+}

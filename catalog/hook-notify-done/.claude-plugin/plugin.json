@@ -1,0 +1,7 @@
+{
+  "name": "notify-done",
+  "description": "When several sessions run in parallel: a system notification as soon as Claude has finished its turn and is waiting. Costs nothing.",
+  "author": {
+    "name": "ai-context-builder"
+  }
+}

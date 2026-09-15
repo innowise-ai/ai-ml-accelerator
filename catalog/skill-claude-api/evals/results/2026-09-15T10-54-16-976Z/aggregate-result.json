@@ -1,0 +1,218 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.272",
+  "startedAt": "2026-09-15T10:54:16.976Z",
+  "durationSeconds": 57,
+  "costUsd": 0.6227555,
+  "partial": false,
+  "suite": {
+    "root": "/Users/andrewkuncevich/vs_code_projects/experiments/ai-context-builder/catalog/skill-claude-api",
+    "ablation": "with-without",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "claude-api",
+        "path": "/Users/andrewkuncevich/vs_code_projects/experiments/ai-context-builder/catalog/skill-claude-api"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "01-web-search-server-tool",
+      "dir": "evals/01-web-search-server-tool",
+      "source": "prose",
+      "promptMarkdown": "Напиши минимальный Python-скрипт на официальном Anthropic SDK: один запрос к Claude Opus 5 с включённым серверным веб-поиском (server tool web search), не больше 3 поисков за запрос, вопрос «какая сегодня погода в Минске». Мне нужны точные актуальные значения: строка модели и `type` серверного инструмента как в текущем API, а не то, что помнится из старых примеров. Только код и пара строк пояснения.",
+      "runsPerCase": 1,
+      "timeoutSeconds": 240,
+      "maxTurns": 8,
+      "graders": [
+        {
+          "name": "answer-quality",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Оцени финальный ответ: минимальный Python-скрипт на официальном Anthropic SDK с серверным веб-поиском.\n\nPASS, если выполнены все условия:\n- используется пакет `anthropic` (клиент `Anthropic()` и `client.messages.create(...)` или stream);\n- модель задана строкой `claude-opus-5`;\n- в `tools` есть серверный инструмент с `type: \"web_search_20260209\"` и `max_uses: 3`;\n- ответ не рекомендует `web_search_20250305` как актуальный type для Opus 5 (упомянуть его как устаревший можно);\n- нет `budget_tokens` в параметрах thinking.\n\nFAIL, если код на `requests`/`httpx` вместо SDK, модель с датированным суффиксом, type старого веб-поиска выдан за актуальный, или кода нет.",
+          "config": {
+            "criteria": "Оцени финальный ответ: минимальный Python-скрипт на официальном Anthropic SDK с серверным веб-поиском.\n\nPASS, если выполнены все условия:\n- используется пакет `anthropic` (клиент `Anthropic()` и `client.messages.create(...)` или stream);\n- модель задана строкой `claude-opus-5`;\n- в `tools` есть серверный инструмент с `type: \"web_search_20260209\"` и `max_uses: 3`;\n- ответ не рекомендует `web_search_20250305` как актуальный type для Opus 5 (упомянуть его как устаревший можно);\n- нет `budget_tokens` в параметрах thinking.\n\nFAIL, если код на `requests`/`httpx` вместо SDK, модель с датированным суффиксом, type старого веб-поиска выдан за актуальный, или кода нет.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "max-uses",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "max_uses['\"]?\\s*[:=]\\s*3",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "model-id",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "['\"]claude-opus-5['\"]",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "tool-type",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "web_search_20260209",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "uses-skill",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "min": 1,
+            "arm": "with-only"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 5,
+            "costUsd": 0.48140150000000004,
+            "judgeCostUsd": 0.0026249999999999997,
+            "durationSeconds": 28,
+            "startedAt": "2026-09-15T10:54:16.997Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-D35F5K/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "answer-quality",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "```python\nimport anthropic\n\nclient = anthropic.Anthropic()  # ключ из ANTHROPIC_API_KEY\n\nresp = client.messages.create(\n    model=\"claude-opus-5\",\n    max_tokens=16000,\n    tools=[{\n        \"type\": \"web_search_20260209\",\n        \"name\": \"web_search\",\n        \"max_uses\": 3,\n    }],\n    messages=[{\"role\": \"user\", \"content\": \"Какая сегодня погода в Минске?\"}],\n)\n\nfor block in resp.content:\n    if block.type == \"text\":\n        print(block.text)\n```\n\nПояснения:\n- Модель — `claude-opus-5`; `type` серверного веб-поиска — `web_search_20260209` (вариант с dynamic filtering, доступен на Opus 5/4.8/4.7/4.6 и Sonnet 5/4.6). Старый `web_search_20250305` — это базовый вариант для более ранних моделей (и единственный доступный на Vertex AI). `name` всегда `web_search`, лимит задаётся через `max_uses: 3`.\n- Отдельно объявлять `code_execution` не нужно: в `_20260209` фильтрация результатов уже выполняется под капотом.\n- Результаты поиска приходят в том же ответе блоками `web_search_tool_result`; ошибки поиска не бросают исключение, а возвращаются как объект с `error_code` внутри такого блока (в минимальном примере я печатаю только текст).\n- Для краткости не добавил серверные refusal-fallback'и (`betas=[\"server-side-fallback-2026-07-01\"]` + `fallbacks=\"default\"` через `client.beta.messages`) — скажите, если нужно."
+              },
+              {
+                "name": "max-uses",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched max_uses['\"]?\\s*[:=]\\s*3",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "model-id",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ['\"]claude-opus-5['\"]",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "tool-type",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched web_search_20260209",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "uses-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0.5,
+            "passed": false,
+            "turns": 5,
+            "costUsd": 0.141354,
+            "judgeCostUsd": 0.0033060000000000008,
+            "durationSeconds": 29,
+            "startedAt": "2026-09-15T10:54:45.247Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-kUcJoH/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "answer-quality",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "Все инструменты в этой сессии заблокированы (`don't ask mode`), поэтому справочник `claude-api` открыть не удалось — значит, одну из двух величин, которые вы просили подтвердить, я **не смог сверить**. Разделяю явно:\n\n- `model=\"claude-opus-5\"` — это актуальный ID Opus 5, он задан в моём окружении, тут я уверен.\n- `\"type\": \"web_search_20250305\"` — **по памяти, не проверено.** Это версионированная строка серверного инструмента, и именно такие даты-суффиксы чаще всего и устаревают.\n\n```python\nimport anthropic\n\nclient = anthropic.Anthropic()  # ключ из ANTHROPIC_API_KEY\n\nresp = client.messages.create(\n    model=\"claude-opus-5\",\n    max_tokens=1024,\n    tools=[\n        {\n            \"type\": \"web_search_20250305\",  # ← сверьте с docs.claude.com/en/docs/agents-and-tools/tool-use/web-search-tool\n            \"name\": \"web_search\",\n            \"max_uses\": 3,\n        }\n    ],\n    messages=[{\"role\": \"user\", \"content\": \"Какая сегодня погода в Минске?\"}],\n)\n\nfor block in resp.content:\n    if block.type == \"text\":\n        print(block.text)\n```\n\nПояснения:\n- Поиск выполняется на стороне API: модель сама решает, искать ли, выполняет запросы и возвращает ответ в одном вызове `messages.create` — цикла с повторной отправкой `tool_result`, как для клиентских инструментов, не нужно.\n- `max_uses: 3` — жёсткий потолок поисков внутри одного запроса; при его исчерпании модель отвечает тем, что уже нашла.\n- В `resp.content` кроме `text` придут блоки `server_tool_use` и `web_search_tool_result` (запросы и найденные источники) — цикл выше их отфильтровывает, но для цитирования источников их стоит читать.\n\nКак проверить строку инструмента за минуту: `curl https://docs.claude.com/en/docs/agents-and-tools/tool-use/web-search-tool` либо просто запустить скрипт — при неверном `type` API вернёт `invalid_request_error` с перечнем допустимых значений. Если снимете ограничения на инструменты, я сверю это по справочнику сам."
+              },
+              {
+                "name": "max-uses",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched max_uses['\"]?\\s*[:=]\\s*3",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "model-id",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ['\"]claude-opus-5['\"]",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "tool-type",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 0.5,
+        "passRateWithout": 0,
+        "delta": 0.5
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1,
+    "meanDelta": 0.5
+  }
+}

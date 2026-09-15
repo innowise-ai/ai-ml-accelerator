@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ai-context-builder</title>
+<style>
+  :root {
+    --bg: #f6f5f1; --panel: #fff; --ink: #1c1c1a; --muted: #6b6a66; --line: #e2e0da; --soft: #f1efe9;
+    --accent: #1f5fbf; --ok: #0f7050; --ok-bg: #e3f2ea; --warn: #8a4b00; --warn-bg: #fdf1dc; --bad: #b3261e; --bad-bg: #fbe3e0;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 13.5px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  a { color: var(--accent); }
+  code { font-family: var(--mono); font-size: 12px; background: var(--soft); padding: 0 4px; border-radius: 3px; }
+  header { display: flex; align-items: baseline; gap: 14px; padding: 16px 20px 10px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 19px; font-weight: 650; letter-spacing: -0.01em; }
+  header .stats { color: var(--muted); }
+  header .stats b { color: var(--ink); font-weight: 600; }
+  header label.maint { margin-left: auto; color: var(--muted); display: flex; gap: 6px; align-items: center; font-size: 12.5px; cursor: pointer; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; padding: 0 16px 24px; }
+  @media (max-width: 1180px) { .layout { grid-template-columns: 1fr; } .right { position: static; max-height: none; } }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+
+  /* filter bar */
+  .toolbar { display: flex; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--line); align-items: center; flex-wrap: wrap; }
+  .search { position: relative; flex: 1 1 200px; max-width: 300px; }
+  .search input { width: 100%; font: inherit; padding: 6px 28px 6px 10px; border: 1px solid var(--line); border-radius: 7px; background: #fff; color: var(--ink); }
+  .search input:focus { outline: 2px solid #cfdcf3; border-color: var(--accent); }
+  .search button { position: absolute; right: 5px; top: 4px; border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 15px; }
+  .chips { display: flex; gap: 4px; flex-wrap: wrap; }
+  .chips button { font: inherit; font-size: 12.5px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); cursor: pointer; }
+  .chips button:hover { border-color: #bdbab2; }
+  .chips button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .colpick { position: relative; margin-left: auto; }
+  .colpick > button { font: inherit; font-size: 12.5px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 7px; background: #fff; color: var(--muted); cursor: pointer; }
+  .colpick > button:hover { color: var(--ink); border-color: #bdbab2; }
+  .colpick .pop { position: absolute; right: 0; top: 34px; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; box-shadow: 0 8px 24px rgba(0,0,0,.08); z-index: 5; display: grid; gap: 5px; min-width: 190px; }
+  .colpick .pop[hidden] { display: none; }
+  .colpick .pop label { display: flex; gap: 7px; align-items: center; font-size: 12.5px; white-space: nowrap; cursor: pointer; }
+  .colpick .pop .mut { color: var(--muted); font-size: 11.5px; margin-top: 4px; }
+
+  /* table */
+  .tablewrap { overflow-x: auto; }
+  table.grid { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 720px; }
+  .grid th { position: sticky; top: 0; background: #fbfaf7; z-index: 1; text-align: left; font-size: 11.5px; font-weight: 600; color: var(--muted); padding: 8px 6px; border-bottom: 1px solid var(--line); white-space: normal; line-height: 1.2; vertical-align: bottom; }
+  .grid th.num { text-align: center; }
+  .grid th.sortable { cursor: pointer; }
+  .grid th.sortable:hover, .grid th.sorted { color: var(--ink); }
+  .grid td { padding: 10px 10px; border-bottom: 1px solid #eeece6; vertical-align: top; }
+  tr.kind td { background: var(--soft); font-weight: 600; padding: 6px 12px; font-size: 12.5px; color: #3d3c39; }
+  tr.kind td .gm { color: var(--muted); font-weight: 400; margin-left: 8px; }
+  tr.row:hover td { background: #fcfbf8; }
+  tr.row.sel td { background: #f3f7fd; }
+  tr.row.open td { border-bottom-color: transparent; }
+  td.c-sel { text-align: center; padding-top: 12px; }
+  td.c-sel input { transform: scale(1.05); }
+  td.c-title .t { font-weight: 600; line-height: 1.35; font-family: var(--mono); font-size: 12.5px; overflow-wrap: anywhere; }
+  td.c-title .t [data-open] { cursor: pointer; }
+  td.c-title .t [data-open]:hover { color: var(--accent); }
+  a.src { color: var(--muted); text-decoration: none; font-size: 11px; margin-left: 5px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 400; white-space: nowrap; }
+  a.src:hover { color: var(--accent); }
+  td.c-title .n { color: #3d3c39; font-size: 12px; margin-top: 3px; line-height: 1.35; display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+  .badge { display: inline-block; font-size: 10.5px; padding: 0 5px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; line-height: 16px; }
+  .badge.official { color: #14549e; border-color: #c9d9f0; }
+  .badge.draft { color: #7a6a3a; background: #fbf5e3; border-color: #ecdcb0; }
+  .badge.rejected { color: var(--bad); border-color: #efc4bf; }
+  .badge.own { color: var(--ok); border-color: #bfe0cf; }
+  .badge.plugin { color: #5a4ba0; border-color: #d6d0ee; }
+  td.c-why .pitch { line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .verdict { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 4px; margin-right: 6px; vertical-align: 1px; letter-spacing: 0.01em; white-space: nowrap; }
+  .verdict.must-have { background: #1f5fbf; color: #fff; }
+  .verdict.stack { background: var(--ok-bg); color: var(--ok); }
+  .verdict.task { background: var(--warn-bg); color: var(--warn); }
+  .verdict.taste { background: #ece9f7; color: #5a4ba0; }
+  .verdict.no { background: var(--bad-bg); color: var(--bad); }
+  .verdict.none { background: none; color: var(--muted); border: 1px dashed var(--line); font-weight: 500; }
+  td.c-verdict { white-space: nowrap; padding-top: 12px; }
+  td.num { text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .score { display: inline-block; min-width: 26px; font-weight: 700; font-size: 15px; line-height: 24px; border-radius: 6px; padding: 0 6px; cursor: help; }
+  .score.s5, .score.s4 { color: var(--ok); background: var(--ok-bg); }
+  .score.s3 { color: var(--warn); background: var(--warn-bg); }
+  .score.s2, .score.s1, .score.s0 { color: var(--bad); background: var(--bad-bg); }
+  .score.none { color: #b8b6ae; background: none; font-weight: 400; font-size: 13px; }
+  .light { display: inline-flex; align-items: center; gap: 5px; cursor: help; font-weight: 600; }
+  .light i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .light.g i { background: #1d9a6c; } .light.y i { background: #e2a316; } .light.r i { background: #d4453b; } .light.n i { background: #d7d5ce; }
+  .light.n { color: #b8b6ae; font-weight: 400; }
+  .econ { font-weight: 600; cursor: help; }
+  .econ.save { color: var(--ok); } .econ.neutral { color: var(--ink); } .econ.cost { color: var(--warn); } .econ.heavy { color: var(--bad); } .econ.none { color: #b8b6ae; font-weight: 400; }
+  .econ small { color: var(--muted); font-weight: 400; margin-left: 3px; }
+  .size { font-variant-numeric: tabular-nums; cursor: help; color: var(--ink); }
+  .size.none { color: #b8b6ae; }
+  .ev { display: inline-flex; flex-direction: column; align-items: center; line-height: 1.2; cursor: help; }
+  .ev b { font-size: 14px; font-weight: 700; }
+  .ev.good b { color: var(--ok); } .ev.mid b { color: var(--warn); } .ev.low b { color: var(--bad); }
+  .ev small { font-size: 11px; color: var(--muted); }
+  .ev small.up { color: var(--ok); } .ev small.down { color: var(--bad); }
+  .ev.none { color: #b8b6ae; font-weight: 400; }
+  .ev a { text-decoration: none; font-size: 11px; color: var(--accent); }
+  td.c-rev { white-space: nowrap; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  td.c-rev .stale { color: var(--warn); }
+  td.c-rev .none { color: #b8b6ae; }
+  td.c-rev .bad { color: var(--bad); }
+  .empty { padding: 24px 12px; color: var(--muted); text-align: center; }
+
+  /* expanded row */
+  tr.detail > td { background: #fbfaf7; padding: 4px 16px 18px 46px; }
+  .dcol { max-width: 780px; }
+  .dcol h4 { margin: 14px 0 4px; font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .dcol p { margin: 0 0 6px; overflow-wrap: anywhere; }
+  .dcol ul { margin: 2px 0 8px; padding-left: 18px; }
+  .dcol li { margin: 2px 0; }
+  .dcol .mut { color: var(--muted); font-size: 12.5px; }
+  .dcol pre { margin: 0 0 6px; font: 12px/1.5 var(--mono); background: var(--soft); padding: 8px 10px; border-radius: 6px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .dcol p.lead { font-size: 15px; line-height: 1.5; margin: 10px 0 4px; }
+  .dcol .up { color: var(--ok); } .dcol .down { color: var(--bad); }
+  p.line { margin: 8px 0 0; font-size: 12.5px; color: #3d3c39; }
+  p.line .sep { color: #c9c7bf; margin: 0 6px; }
+  .bchip { display: inline-block; font-family: var(--mono); font-size: 11.5px; padding: 0 6px; border-radius: 4px; border: 1px solid #d6d0ee; color: #5a4ba0; background: #f6f4fc; cursor: pointer; white-space: nowrap; line-height: 18px; margin: 0 3px 0 0; }
+  .bchip:hover { background: #ece9f7; }
+  .evh { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; font-size: 12.5px; margin-bottom: 4px; }
+  .evh b.sc { font-size: 17px; font-weight: 700; }
+  .evh b.sc.good { color: var(--ok); } .evh b.sc.mid { color: var(--warn); } .evh b.sc.low { color: var(--bad); }
+  table.evt { border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; margin: 4px 0 2px; }
+  .evt th { text-align: left; font-size: 11.5px; font-weight: 600; color: var(--muted); padding: 4px 18px 4px 0; border-bottom: 1px solid var(--line); }
+  .evt td { padding: 5px 18px 5px 0; border-bottom: 1px solid #eeece6; color: #3d3c39; }
+  .evt td:first-child { font-family: var(--mono); font-size: 12px; color: var(--ink); }
+  .evt .num { text-align: right; padding-right: 0; }
+  .evt th.num { padding-left: 18px; } .evt td.num { padding-left: 18px; }
+  ul.members { margin: 4px 0 0; padding-left: 0; list-style: none; }
+  ul.members li { display: flex; gap: 8px; align-items: baseline; padding: 3px 0; flex-wrap: wrap; }
+  ul.members .k { color: var(--muted); font-size: 11px; width: 38px; flex: none; }
+  ul.members .name { font-family: var(--mono); font-size: 12.5px; }
+  ul.members .name[data-open] { cursor: pointer; }
+  ul.members .name[data-open]:hover { color: var(--accent); }
+  .chip { display: inline-block; font-size: 13px; padding: 4px 10px; border-radius: 6px; background: #fff; border: 1px solid var(--line); color: var(--ink); white-space: nowrap; }
+  .chips-line { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 0; }
+  .two { display: inline-flex; flex-direction: column; align-items: center; line-height: 1.2; cursor: help; font-variant-numeric: tabular-nums; }
+  .two small { font-size: 11px; color: var(--muted); }
+  .two.none { color: #b8b6ae; }
+  tr.kind.ph td { padding: 8px 12px; }
+  .ph-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .ph-row input { position: relative; top: 2px; }
+  .ph-name { font-family: var(--mono); font-size: 13px; cursor: pointer; }
+  .ph-name:hover { color: var(--accent); }
+  .ph-pitch { color: var(--muted); font-weight: 400; flex: 1 1 240px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* right column */
+  .right { display: flex; flex-direction: column; gap: 12px; position: sticky; top: 12px; align-self: start; max-height: calc(100vh - 24px); overflow: auto; }
+  .right .panel { padding: 12px 14px; }
+  .right h2 { margin: 0 0 8px; font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; gap: 10px; }
+  .hint { color: var(--muted); font-size: 12.5px; line-height: 1.45; }
+  .totals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 10px; margin-bottom: 6px; }
+  .totals .kpi { background: var(--soft); border-radius: 8px; padding: 8px 10px; }
+  .totals .kpi b { display: block; font-size: 18px; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1.2; }
+  .totals .kpi span { color: var(--muted); font-size: 12px; }
+  .totals .kpi.over b { color: var(--bad); }
+  .totals .kpi.save b { color: var(--ok); }
+  .totals .kpi.cost b { color: var(--warn); }
+  .bar { height: 5px; background: var(--soft); border-radius: 3px; margin: 4px 0 10px; overflow: hidden; }
+  .bar > div { height: 100%; background: var(--ok); transition: width .15s; }
+  .bar > div.over { background: var(--bad); }
+  .sel-list { list-style: none; margin: 0; padding: 0; max-height: 220px; overflow: auto; }
+  .sel-list li { display: flex; align-items: baseline; gap: 8px; padding: 3px 0; font-size: 12.5px; }
+  .sel-list .k { color: var(--muted); font-size: 11px; width: 42px; flex: none; }
+  .sel-list .name { font-family: var(--mono); font-size: 12px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sel-list .v { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .sel-list button { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 0 2px; }
+  .sel-list button:hover { color: var(--bad); }
+  .warn { margin-top: 8px; padding: 6px 9px; border-radius: 6px; background: var(--warn-bg); color: var(--warn); font-size: 12.5px; }
+  .warn code { background: #f7e7c8; }
+  .copy { font: inherit; font-size: 12.5px; padding: 3px 10px; border: 1px solid var(--accent); border-radius: 6px; background: var(--accent); color: #fff; cursor: pointer; margin-left: auto; text-transform: none; letter-spacing: 0; }
+  textarea#out { width: 100%; min-height: 220px; resize: vertical; font: 12px/1.45 var(--mono); padding: 8px; border: 1px solid var(--line); border-radius: 6px; background: #fbfaf7; color: var(--ink); }
+  .foot { color: var(--muted); font-size: 12px; padding: 0 20px 20px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<header>
+  <h1>ai-context-builder</h1>
+  <span class="stats" id="stats"></span>
+  <label class="maint"><input type="checkbox" id="f-maint"> maintainer mode</label>
+</header>
+
+<main class="layout">
+  <section class="panel left">
+    <div class="toolbar">
+      <div class="search"><input type="text" id="f-q" placeholder="search or @bundle"><button id="f-clear" title="clear" hidden>×</button></div>
+      <div class="chips" id="kinds"></div>
+      <div class="chips" id="verdicts"></div>
+      <div class="chips" id="group" title="group rows by kind or by bundle"></div>
+      <div class="colpick"><button id="cols-btn" title="which columns to show">Columns ▾</button><div class="pop" id="cols-pop" hidden></div></div>
+    </div>
+    <div class="tablewrap"><table class="grid"><colgroup id="cols"></colgroup><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
+  </section>
+
+  <aside class="right">
+    <div class="panel">
+      <h2>Install</h2>
+      <div class="hint" id="mode-hint"></div>
+    </div>
+    <div class="panel">
+      <h2>Basket</h2>
+      <div class="totals" id="totals"></div>
+      <div class="bar"><div id="bar-fill"></div></div>
+      <ul class="sel-list" id="sel"></ul>
+      <div id="warnings"></div>
+    </div>
+    <div class="panel">
+      <h2>Output — one block for the agent window <button class="copy" id="copy">copy</button></h2>
+      <textarea id="out" readonly spellcheck="false"></textarea>
+    </div>
+  </aside>
+</main>
+<div class="foot" id="foot"></div>
+
+<script src="catalog.js"></script>
+<script>
+(() => {
+  const C = window.CATALOG;
+  const $ = id => document.getElementById(id);
+  if (!C) { $('tbody').innerHTML = '<tr><td class="empty">No catalog.js — run <code>python3 ui/build.py</code></td></tr>'; return; }
+  const items = C.items, S = C.session_model, VER = C.verdicts, MK = C.marketplace;
+  const ADD = `claude plugin marketplace add ${MK.repo || '<path to your ai-context-builder clone>'}`;
+  const CAP_TOK = 1500;                      // recommended cap on the standing cost of the selection, tok in every prompt
+  const byName = new Map(items.map(i => [i.name, i]));
+  const VERDICT_ORDER = Object.fromEntries(Object.keys(VER).map((v, i) => [v, i]));
+  const OPTIONAL_COLS = ['verdict', 'why', 'rating', 'security', 'econ', 'eval', 'size', 'folder', 'rev'];
+  const DEFAULT_COLS = OPTIONAL_COLS.filter(k => k !== 'rev');
+
+  const ls = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  };
+  const state = {
+    selected: new Set(ls.get('acb.selected2', []).filter(n => byName.has(n))),
+    open: new Set(), maint: ls.get('acb.maint', false),
+    sort: ls.get('acb.sort2', { key: 'default', dir: -1 }), kind: 'all', verdicts: new Set(), q: '', group: ls.get('acb.group', 'kind'),
+    cols: new Set(ls.get('acb.cols5', DEFAULT_COLS).filter(k => OPTIONAL_COLS.includes(k))),
+  };
+  if (!['default', 'title', ...OPTIONAL_COLS].includes(state.sort.key)) state.sort = { key: 'default', dir: -1 };
+  const persist = () => { ls.set('acb.selected2', [...state.selected]); ls.set('acb.sort2', state.sort); ls.set('acb.maint', state.maint); ls.set('acb.cols5', [...state.cols]); ls.set('acb.group', state.group); };
+
+  // ---- utils ----
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const fmtK = n => n == null ? '–' : Math.abs(n) >= 10000 ? `${Math.round(n / 1000)}k` : Math.abs(n) >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(Math.round(n));
+  const fmtPct = p => p == null ? '–' : `${p > 0 ? '+' : p < 0 ? '−' : ''}${Math.abs(p) < 0.95 && p !== 0 ? Math.abs(p).toFixed(1) : Math.round(Math.abs(p))}%`;
+  const fmtScore = s => s == null ? '–' : (Math.round(s * 100) / 100).toFixed(2).replace(/\.?0+$/, '') || '0';
+  const fmtDelta = d => d == null ? '' : `${d > 0 ? '+' : d < 0 ? '−' : '±'}${fmtScore(Math.abs(d))}`;
+  const econClass = p => p == null ? 'none' : p <= -1 ? 'save' : p < 5 ? 'neutral' : p < 15 ? 'cost' : 'heavy';
+  const secClass = s => s == null ? 'n' : s >= 4 ? 'g' : s === 3 ? 'y' : 'r';
+  const SEC_TEXT = { g: 'install', y: 'read the risks', r: 'do not install' };
+  const owner = it => it.source?.repo ? it.source.repo.split('/')[0] : null;
+  const fullName = it => owner(it) ? `${owner(it)}/${it.name}` : it.name;
+  const verdictLabel = v => v ? (VER[v]?.label ?? v) : 'no verdict';
+  const kindLabel = Object.fromEntries(C.kinds.map(k => [k.kind, k.label]));
+  const isShown = it => state.maint || (it.status === 'reviewed' && !it.flags.review_stale);
+  // body size in tokens (chars ÷ 4): SKILL.md or the agent prompt; not counted for bundles, MCP servers and hooks
+  const sizeOf = it => it.size ?? null;
+  const folderOf = it => it.kind === 'skill' ? it.members[0].tokens_dir ?? null : null;
+  const plural = (n, a, b, c) => n === 1 ? a : c;
+  const cases = n => `${n} ${plural(n, 'case', 'cases', 'cases')}`;
+  function sizeTip(it) {
+    const m = it.members[0];
+    if (it.kind === 'skill') return `SKILL.md ≈ ${fmtK(m.tokens_body)} tok · whole folder, ${m.files} files ≈ ${fmtK(m.tokens_dir)} tok`;
+    if (it.kind === 'agent') return `agent system prompt ≈ ${fmtK(m.tokens_body)} tok`;
+    if (it.kind === 'mcp') return 'MCP tool schemas are not measured — see the review text';
+    if (it.kind === 'hook') return 'a hook never enters the context';
+    return 'size is not counted for a bundle — see its contents';
+  }
+  // minimal markdown for REVIEW.md: paragraphs, `- ` lists, `## headings`, **bold**, `code`
+  function md(text) {
+    if (!text) return '';
+    const inline = s => esc(s).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/`([^`]+)`/g, '<code>$1</code>');
+    return text.trim().split(/\n\s*\n/).map(block => {
+      const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+      if (lines.every(l => /^- /.test(l))) return `<ul>${lines.map(l => `<li>${inline(l.slice(2))}</li>`).join('')}</ul>`;
+      if (lines.length === 1 && /^## /.test(lines[0])) return `<h4>${inline(lines[0].slice(3))}</h4>`;
+      return `<p>${inline(lines.join(' '))}</p>`;
+    }).join('');
+  }
+
+  // ---- filters ----
+  const kindChips = [['all', 'All'], ...C.kinds.filter(k => items.some(i => i.kind === k.kind)).map(k => [k.kind, k.label])];
+  $('kinds').innerHTML = kindChips.map(([k, l]) => `<button data-kind="${k}" class="${state.kind === k ? 'on' : ''}">${esc(l)}</button>`).join('');
+  $('verdicts').innerHTML = Object.entries(VER).filter(([v]) => v !== 'no').map(([v, o]) => `<button data-verdict="${v}" title="${esc(o.hint)}">${esc(o.label)}</button>`).join('');
+  $('kinds').onclick = e => { const b = e.target.closest('[data-kind]'); if (!b) return; state.kind = b.dataset.kind; $('kinds').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); render(); };
+  $('verdicts').onclick = e => { const b = e.target.closest('[data-verdict]'); if (!b) return; const v = b.dataset.verdict; state.verdicts.has(v) ? state.verdicts.delete(v) : state.verdicts.add(v); b.classList.toggle('on'); render(); };
+  const GROUPS = [['kind', 'by kind'], ['plugin', 'by bundle']];
+  $('group').innerHTML = GROUPS.map(([g, l]) => `<button data-group="${g}" class="${state.group === g ? 'on' : ''}">${l}</button>`).join('');
+  $('group').onclick = e => { const b = e.target.closest('[data-group]'); if (!b) return; state.group = b.dataset.group; $('group').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); persist(); render(); };
+  $('f-q').oninput = e => { state.q = e.target.value.trim(); $('f-clear').hidden = !state.q; render(); };
+  $('f-clear').onclick = () => { state.q = ''; $('f-q').value = ''; $('f-clear').hidden = true; render(); };
+  $('f-maint').checked = state.maint;
+  $('f-maint').onchange = e => { state.maint = e.target.checked; persist(); render(); };
+
+  function visible(it) {
+    if (!isShown(it)) return false;
+    if (state.kind !== 'all' && it.kind !== state.kind) return false;
+    if (state.verdicts.size && !state.verdicts.has(it.view.verdict)) return false;
+    if (state.q) {
+      if (state.q.startsWith('@')) { const b = state.q.slice(1); return it.name === b || it.bundles.includes(b); }
+      const hay = `${it.name} ${it.view.title} ${it.view.pitch || ''} ${(it.view.sections || []).map(x => x.title + ' ' + x.text).join(' ')} ${it.view.description || ''} ${it.source?.label || ''} ${it.members.map(m => m.name).join(' ')} ${(it.view.tags || []).join(' ')}`.toLowerCase();
+      return hay.includes(state.q.toLowerCase());
+    }
+    return true;
+  }
+
+  // ---- columns ----
+  const evScore = it => it.eval.latest?.score ?? null;
+  const COLS = [
+    { key: 'sel', label: '', w: 34, fixed: true },
+    { key: 'title', label: 'Name', w: 200, sort: it => fullName(it).toLowerCase(), asc: true, fixed: true },
+    { key: 'verdict', label: 'When to install', tip: Object.values(VER).map(v => `${v.label} — ${v.hint}`).join('\n'), w: 106, sort: it => VERDICT_ORDER[it.view.verdict] ?? 9, asc: true },
+    { key: 'why', label: 'Why', tip: 'the "Summary" section of REVIEW.md' },
+    { key: 'rating', label: 'Rating', tip: 'how much it is worth installing once the verdict condition holds, 1–5 (REVIEW.md → rating)', num: true, w: 66, sort: it => it.rating ?? -1 },
+    { key: 'security', label: 'Security', tip: 'install and execution risk 0–5 (REVIEW.md → security): ≥4 install, 3 read the risks, ≤2 do not install', num: true, w: 98, sort: it => it.security ?? -1 },
+    { key: 'econ', label: 'Token cost', tip: `change in token spend over a typical session (${S.turns} turns × ${fmtK(S.context_tokens)} of context): minus saves, plus spends`, num: true, w: 108, sort: it => it.economy.pct ?? it.economy.idle_pct ?? 999 },
+    { key: 'eval', label: 'Eval', tip: 'latest claude plugin eval run: share of checks passed with the plugin 0–1 and Δ against the run without it; ↗ report', num: true, w: 76, sort: it => evScore(it) ?? -1 },
+    { key: 'size', label: 'Size', tip: 'what is read on activation, in tokens: SKILL.md or the agent prompt; for MCP servers and hooks — full-body from REVIEW.md', num: true, w: 66, sort: it => sizeOf(it) ?? -1 },
+    { key: 'folder', label: 'Folder', tip: 'the whole skill folder: tokens and files (chars ÷ 4)', num: true, w: 84, sort: it => folderOf(it) ?? -1 },
+    { key: 'rev', label: 'Reviewed', tip: 'date of the last REVIEW.md commit; ⟳ — the artifact changed after it', w: 104, sort: it => it.reviewed_at || '' },
+  ];
+  const cols = () => COLS.filter(c => c.fixed || state.cols.has(c.key));
+
+  function renderColPick() {
+    $('cols-pop').innerHTML = COLS.filter(c => OPTIONAL_COLS.includes(c.key)).map(c => `<label><input type="checkbox" data-col="${c.key}" ${state.cols.has(c.key) ? 'checked' : ''}> ${esc(c.label)}</label>`).join('')
+      + '<div class="mut">Name and the checkbox are always shown</div>';
+  }
+  $('cols-btn').onclick = e => { e.stopPropagation(); const p = $('cols-pop'); p.hidden = !p.hidden; if (!p.hidden) renderColPick(); };
+  $('cols-pop').addEventListener('click', e => e.stopPropagation());
+  $('cols-pop').addEventListener('change', e => { const k = e.target.dataset.col; if (!k) return; e.target.checked ? state.cols.add(k) : state.cols.delete(k); if (!cols().some(c => c.key === state.sort.key)) state.sort = { key: 'default', dir: -1 }; persist(); render(); });
+  document.addEventListener('click', () => { $('cols-pop').hidden = true; });
+
+  function sorted(list) {
+    if (state.sort.key === 'default') return [...list].sort((a, b) => (VERDICT_ORDER[a.view.verdict] ?? 9) - (VERDICT_ORDER[b.view.verdict] ?? 9) || (b.rating ?? -1) - (a.rating ?? -1) || a.name.localeCompare(b.name));
+    const col = cols().find(c => c.key === state.sort.key && c.sort);
+    if (!col) return list;
+    return [...list].sort((a, b) => { const x = col.sort(a), y = col.sort(b); const r = typeof x === 'number' ? x - y : String(x).localeCompare(String(y)); return (r || a.name.localeCompare(b.name)) * state.sort.dir; });
+  }
+
+  function renderHead() {
+    const cs = cols();
+    $('cols').innerHTML = cs.map(c => `<col ${c.w ? `style="width:${c.w}px"` : ''}>`).join('');
+    $('thead').innerHTML = '<tr>' + cs.map(c => {
+      const on = state.sort.key === c.key, arrow = on ? (state.sort.dir < 0 ? ' ▾' : ' ▴') : '';
+      return `<th class="${c.sort ? 'sortable' : ''} ${on ? 'sorted' : ''} ${c.num ? 'num' : ''}" ${c.sort ? `data-sort="${c.key}"` : ''} ${c.tip ? `title="${esc(c.tip)}"` : ''}>${esc(c.label)}${arrow}</th>`;
+    }).join('') + '</tr>';
+  }
+
+  // ---- tips and cells ----
+  function econTip(it) {
+    const E = it.economy;
+    const always = E.always_on != null ? `standing ${E.always_on} tok in every prompt${E.partial ? ', MCP not counted' : ''} (${fmtPct(E.idle_pct)} per session)` : 'standing cost not measured';
+    if (E.from === 'human') return `reviewer estimate: ${fmtPct(E.pct)} per session · ${always}`;
+    if (E.from === 'members') return `sum of the estimates for the solo entries in its contents: ${fmtPct(E.pct)} per session · ${always}`;
+    if (E.pct === 0) return 'never enters the prompt, no standing cost';
+    return `${always}; economy is not set in REVIEW.md — the column shows only the standing part`;
+  }
+  const ratingTip = it => it.rating == null ? 'not rated' : `${it.rating}/5 — reviewer estimate (REVIEW.md)`;
+  const secTip = it => it.security == null ? 'not rated' : `${it.security}/5 — ${SEC_TEXT[secClass(it.security)]} (${it.review?.security != null ? 'REVIEW.md' : 'lowest across its contents'})`;
+  const evClass = s => s == null ? 'none' : s >= 0.8 ? 'good' : s >= 0.5 ? 'mid' : 'low';
+  function evalTip(it) {
+    const L = it.eval.latest;
+    if (!L) return it.eval.cases.length ? `${cases(it.eval.cases.length)}, no run yet: ${it.eval.cmd}` : `no cases: put them in ${it.dir}/evals/`;
+    return `with the plugin ${fmtScore(L.score)}${L.delta != null ? `, without it ${fmtScore(L.score - L.delta)}, Δ ${fmtDelta(L.delta)}` : ''} · ${cases(L.cases)} · ${L.at} · Claude Code ${L.version || '?'}${L.cost_usd != null ? ` · $${L.cost_usd.toFixed(2)}` : ''}${L.partial ? ' · partial run' : ''}`;
+  }
+  function evalCell(it) {
+    const L = it.eval.latest;
+    if (!L) return `<td class="num"><span class="ev none" title="${esc(evalTip(it))}">${it.eval.cases.length ? `${it.eval.cases.length}<small>${plural(it.eval.cases.length, 'case', 'cases', 'cases')}</small>` : '–'}</span></td>`;
+    const link = L.report ? ` <a href="../${esc(L.report)}" target="_blank" rel="noopener" title="run report ${esc(L.at)}">↗</a>` : '';
+    return `<td class="num"><span class="ev ${evClass(L.score)}" title="${esc(evalTip(it))}"><b>${fmtScore(L.score)}${link}</b>${L.delta != null ? `<small class="${L.delta > 0 ? 'up' : L.delta < 0 ? 'down' : ''}">Δ ${fmtDelta(L.delta)}</small>` : ''}</span></td>`;
+  }
+  function revCell(it) {
+    if (it.status === 'rejected') return `<td class="c-rev"><span class="bad" title="rejected by the reviewer (verdict no)">rejected</span></td>`;
+    if (it.status !== 'reviewed') return `<td class="c-rev"><span class="none" title="no REVIEW.md yet">none</span></td>`;
+    if (!it.reviewed_at) return `<td class="c-rev"><span class="none" title="${C.git ? 'REVIEW.md not committed yet' : 'repo is not in git — date unknown'}">yes</span></td>`;
+    return `<td class="c-rev" title="last REVIEW.md commit ${esc(it.reviewed_at)}${it.flags.review_stale ? '; the artifact changed after it' : ''}">${esc(it.reviewed_at)}${it.flags.review_stale ? ' <span class="stale" title="artifact changed after the review">⟳</span>' : ''}</td>`;
+  }
+  const bundleChip = n => `<span class="bchip" data-bundle="${esc(n)}" title="${esc(byName.get(n)?.view.pitch || n)}">${esc(n)}</span>`;
+  const srcLink = it => `<a class="src" href="${esc(it.source.url)}" target="_blank" rel="noopener" title="${esc(it.source.own ? 'file in this repo: ' + it.source.label : 'source: ' + it.source.label)}">↗</a>`;
+
+  function rowHtml(it, nCols) {
+    const n = esc(it.name), V = it.view, sel = state.selected.has(it.name), open = state.open.has(it.name);
+    const badges = [];
+    if (it.kind === 'plugin') badges.push(`<span class="badge plugin" title="bundle of ${it.members.length} parts">bundle · ${it.members.length}</span>`);
+    if (it.flags.own && it.kind !== 'plugin') badges.push('<span class="badge own" title="artifact of this repo">own</span>');
+    if (it.status === 'rejected') badges.push('<span class="badge rejected">rejected</span>');
+    else if (it.status === 'draft') badges.push('<span class="badge draft" title="no REVIEW.md yet">draft</span>');
+    const sz = sizeOf(it), E = it.economy;
+    const CELL = {
+      sel: () => `<td class="c-sel"><input type="checkbox" data-sel="${n}" ${sel ? 'checked' : ''}></td>`,
+      title: () => `<td class="c-title"><div class="t"><span data-open="${n}" title="${esc(it.source.label)}">${esc(fullName(it))}</span>${srcLink(it)}</div><div class="n">${esc(V.title)}${badges.join('')}</div></td>`,
+      verdict: () => `<td class="c-verdict"><span class="verdict ${V.verdict || 'none'}" title="${esc(V.verdict ? VER[V.verdict].hint : 'no verdict')}">${esc(verdictLabel(V.verdict))}</span></td>`,
+      why: () => `<td class="c-why"><div class="pitch" title="${esc(V.pitch || V.description || '')}">${esc(V.pitch || V.description || '')}</div></td>`,
+      rating: () => `<td class="num"><span class="score ${it.rating == null ? 'none' : 's' + it.rating}" title="${esc(ratingTip(it))}">${it.rating ?? '–'}</span></td>`,
+      security: () => `<td class="num"><span class="light ${secClass(it.security)}" title="${esc(secTip(it))}"><i></i>${it.security ?? '–'}</span></td>`,
+      econ: () => `<td class="num"><span class="econ ${econClass(E.pct ?? E.idle_pct ?? null)}" title="${esc(econTip(it))}">${E.pct != null ? fmtPct(E.pct) : E.idle_pct != null ? `<small>≥</small>${fmtPct(E.idle_pct)}` : '–'}</span></td>`,
+      eval: () => evalCell(it),
+      size: () => `<td class="num"><span class="size ${sz == null ? 'none' : ''}" title="${esc(sizeTip(it))}">${sz == null ? '–' : '≈ ' + fmtK(sz)}</span></td>`,
+      folder: () => { const f = folderOf(it), m = it.members[0]; return `<td class="num">${f == null ? '<span class="two none" title="counted for skills only">–</span>' : `<span class="two" title="whole folder ${esc(m.path)}: ${m.files} files ≈ ${fmtK(f)} tok${m.has_scripts ? ', has scripts/' : ''}">≈ ${fmtK(f)}<small>${m.files} ${plural(m.files, 'file', 'files', 'files')}</small></span>`}</td>`; },
+      rev: () => revCell(it),
+    };
+    let html = `<tr class="row ${sel ? 'sel' : ''} ${open ? 'open' : ''}" data-row="${n}">${cols().map(c => CELL[c.key]()).join('')}</tr>`;
+    if (open) html += detailHtml(it, nCols);
+    return html;
+  }
+
+  // one member of the contents on a single line: what it is and what it costs
+  function memberChips(m) {
+    switch (m.kind) {
+      case 'skill': return [`SKILL.md ≈ ${fmtK(m.tokens_body)} tok`, `${m.files} files ≈ ${fmtK(m.tokens_dir)} tok`, m.has_scripts ? 'has scripts/' : null, `${m.tokens_meta} tok in every prompt`];
+      case 'agent': return [`model ${m.model || 'inherit'}`, m.tools ? `tools: ${m.tools.join(', ')}` : 'all parent tools', `prompt ≈ ${fmtK(m.tokens_body)} tok`, `${m.tokens_meta} tok in every prompt`];
+      case 'mcp': return [`${m.type} ${m.url || m.command}`, ...(m.env_required || []).map(e => `env ${e}`)];
+      case 'hook': return [`event ${(m.events || []).join(', ')}`, ...(m.scripts || []).map(s => `script ${s}`), 'never enters the prompt'];
+    }
+  }
+  const chips = arr => `<div class="chips-line">${arr.filter(Boolean).map(x => `<span class="chip">${esc(x)}</span>`).join('')}</div>`;
+  function evalHtml(it) {
+    const L = it.eval.latest, n = it.eval.cases.length;
+    const head = L
+      ? `<b class="sc ${evClass(L.score)}">${fmtScore(L.score)}</b>${L.delta != null ? `<span class="${L.delta > 0 ? 'up' : L.delta < 0 ? 'down' : ''}">Δ ${fmtDelta(L.delta)} vs the run without the plugin</span>` : ''}<span class="mut">${cases(L.cases)} · ${esc(L.at)} · Claude Code ${esc(L.version || '?')}${L.cost_usd != null ? ` · $${L.cost_usd.toFixed(2)}` : ''}${L.partial ? ' · partial run' : ''}${n !== L.cases ? ` · ${n} cases now` : ''}</span>${L.report ? `<a href="../${esc(L.report)}" target="_blank" rel="noopener">report ↗</a>` : ''}`
+      : `<span class="mut">${n ? `${cases(n)} in <code>${esc(it.dir)}/evals/</code>, no run yet:` : 'no cases, create them:'}</span><code>${esc(it.eval.cmd)}${n ? '' : ' --init'}</code>`;
+    const rows = L?.per_case.length ? `<table class="evt"><tr><th>Case</th><th class="num">With plugin</th><th class="num">Without</th><th class="num">Δ</th></tr>${L.per_case.map(c => `<tr><td>${esc(c.name)}</td><td class="num">${fmtScore(c.score)}</td><td class="num mut">${c.without != null ? fmtScore(c.without) : '–'}</td><td class="num ${c.delta > 0 ? 'up' : c.delta < 0 ? 'down' : ''}">${fmtDelta(c.delta) || '–'}</td></tr>`).join('')}</table>` : '';
+    return `<h4>Eval</h4><div class="evh">${head}</div>${rows}`;
+  }
+  function detailHtml(it, nCols) {
+    const V = it.view, parts = [];
+    parts.push(md(V.pitch || V.description || '').replace('<p>', '<p class="lead">'));
+    for (const x of V.sections || []) parts.push(`${x.title ? `<h4>${esc(x.title)}</h4>` : ''}${md(x.text)}`);
+    parts.push(evalHtml(it));
+    if (it.kind === 'plugin') parts.push(`<h4>Contents</h4><ul class="members">${it.members.map(m => { const solo = items.find(x => x.members.length === 1 && x.members[0].kind === m.kind && x.members[0].name === m.name && isShown(x)); return `<li><span class="k">${esc(m.kind)}</span><span class="name" ${solo ? `data-open="${esc(solo.name)}"` : ''} title="${esc(m.path)}">${esc(m.name)}</span>${solo ? `<span class="verdict ${solo.view.verdict || 'none'}">${esc(verdictLabel(solo.view.verdict))}</span>` : ''}${chips(memberChips(m))}</li>`; }).join('')}</ul>`);
+    else parts.push(`<h4>What's inside</h4>${chips(memberChips(it.members[0]))}`);
+    const line = [`${it.source.own ? 'Own: ' : 'Source: '}<a href="${esc(it.source.url)}" target="_blank" rel="noopener">${esc(it.source.label)}</a>`];
+    if (it.bundles.length) line.push(`part of ${it.bundles.map(bundleChip).join('')}`);
+    if (V.category) line.push(`category ${esc(V.category)}`);
+    if (V.tags?.length) line.push(V.tags.map(esc).join(', '));
+    if (it.reviewed_at) line.push(`reviewed ${esc(it.reviewed_at)}${it.flags.review_stale ? ', the artifact changed after it' : ''}`);
+    if (state.maint) line.push(`<code>${esc(it.dir)}/</code>`);
+    parts.push(`<p class="line" style="margin-top:14px">${line.join('<span class="sep">·</span>')}</p>`);
+    return `<tr class="detail"><td colspan="${nCols}"><div class="dcol">${parts.join('')}</div></td></tr>`;
+  }
+  // bundle header in "by bundle" mode: the checkbox selects the whole bundle
+  function pluginHead(p, nRows, nAll, nCols) {
+    const sel = state.selected.has(p.name);
+    return `<tr class="kind ph"><td colspan="${nCols}"><div class="ph-row"><input type="checkbox" data-sel="${esc(p.name)}" ${sel ? 'checked' : ''} title="${sel ? 'clear the bundle' : 'select the whole bundle'}"><span class="ph-name" data-open="${esc(p.name)}">${esc(p.name)}</span><span class="verdict ${p.view.verdict || 'none'}">${esc(verdictLabel(p.view.verdict))}</span><span class="ph-pitch" title="${esc(p.view.pitch || '')}">${esc(p.view.pitch || '')}</span><span class="gm">${p.members.length} ${plural(p.members.length, 'part', 'parts', 'parts')}${nRows !== nAll ? ` · ${nRows} shown` : ''}</span></div></td></tr>`;
+  }
+  const soloOf = (m, list) => list.find(i => i.kind !== 'plugin' && i.members.length === 1 && i.members[0].kind === m.kind && i.members[0].name === m.name);
+
+  function renderTable() {
+    renderHead();
+    const nCols = cols().length;
+    let html = '', shown = 0;
+    const emptyRow = `<tr><td colspan="${nCols}" class="empty" style="padding:8px">nothing matches the filter</td></tr>`;
+    if (state.group === 'plugin') {
+      const shownItems = items.filter(isShown), inSome = new Set();
+      for (const p of shownItems.filter(i => i.kind === 'plugin')) {
+        const ms = p.members.map(m => soloOf(m, shownItems)).filter(Boolean);
+        ms.forEach(i => inSome.add(i.name));
+        const rows = sorted(ms.filter(visible));
+        if (!rows.length && !visible(p)) continue;
+        shown += rows.length;
+        html += pluginHead(p, rows.length, ms.length, nCols) + (state.open.has(p.name) ? detailHtml(p, nCols) : '') + rows.map(it => rowHtml(it, nCols)).join('');
+      }
+      const rest = sorted(shownItems.filter(i => i.kind !== 'plugin' && !inSome.has(i.name) && visible(i)));
+      if (rest.length) { shown += rest.length; html += `<tr class="kind"><td colspan="${nCols}">Not in a bundle<span class="gm">${rest.length}</span></td></tr>` + rest.map(it => rowHtml(it, nCols)).join(''); }
+    } else {
+    const groups = state.kind === 'all' ? C.kinds : C.kinds.filter(k => k.kind === state.kind);
+    for (const { kind, label } of groups) {
+      const all = items.filter(i => i.kind === kind && isShown(i));
+      if (!all.length) continue;
+      const rows = sorted(all.filter(visible));
+      shown += rows.length;
+      if (state.kind === 'all') html += `<tr class="kind"><td colspan="${nCols}">${esc(label)}<span class="gm">${rows.length}${rows.length !== all.length ? ' of ' + all.length : ''}</span></td></tr>`;
+      html += rows.length ? rows.map(it => rowHtml(it, nCols)).join('') : emptyRow;
+    }
+    }
+    $('tbody').innerHTML = html || `<tr><td colspan="${nCols}" class="empty">empty</td></tr>`;
+    const total = items.filter(isShown).length, withEval = items.filter(i => isShown(i) && i.eval.latest).length;
+    $('stats').innerHTML = `<b>${total}</b> entries · <b>${items.filter(i => i.status === 'reviewed').length}</b> reviewed · <b>${withEval}</b> with eval${shown !== total ? ` · ${shown} shown` : ''}`;
+  }
+
+  $('thead').addEventListener('click', e => {
+    const th = e.target.closest('[data-sort]'); if (!th) return;
+    const k = th.dataset.sort;
+    if (state.sort.key === k) state.sort.dir = -state.sort.dir; else state.sort = { key: k, dir: cols().find(c => c.key === k)?.asc ? 1 : -1 };
+    persist(); renderTable();
+  });
+  $('tbody').addEventListener('click', e => {
+    if (e.target.matches('input[data-sel]')) { const n = e.target.dataset.sel; e.target.checked ? state.selected.add(n) : state.selected.delete(n); persist(); render(); return; }
+    const bc = e.target.closest('[data-bundle]');
+    if (bc) { state.q = '@' + bc.dataset.bundle; $('f-q').value = state.q; $('f-clear').hidden = false; render(); return; }
+    if (e.target.closest('a')) return;
+    const o = e.target.closest('[data-open]');
+    if (o) { const n = o.dataset.open; state.open.has(n) ? state.open.delete(n) : state.open.add(n); renderTable(); }
+  });
+
+  // ---- basket ----
+  const selectedItems = () => [...state.selected].map(n => byName.get(n)).filter(Boolean);
+  const envOf = it => it.members.flatMap(m => m.env_required || []);
+  function warnings(sel) {
+    const w = [];
+    const sumTok = sel.reduce((s, i) => s + (i.economy.always_on || 0), 0);
+    if (sumTok > CAP_TOK) w.push(`standing cost ${sumTok} tok in every prompt is above the recommended ${CAP_TOK}: every extra entry is paid on every turn`);
+    for (const it of sel.filter(i => i.security != null && i.security <= 2)) w.push(`<code>${esc(it.name)}</code>: security ${it.security}/5 — do not install without checking`);
+    for (const it of sel.filter(i => envOf(i).length)) w.push(`<code>${esc(it.name)}</code> expects in the environment: ${envOf(it).map(v => `<code>${esc(v)}</code>`).join(', ')}`);
+    for (const it of sel.filter(i => i.economy.pct == null)) w.push(`<code>${esc(it.name)}</code>: economy is not set in REVIEW.md, the total counts only the standing part`);
+    for (const it of sel.filter(i => i.kind !== 'plugin' && i.bundles.some(b => state.selected.has(b)))) w.push(`<code>${esc(it.name)}</code> is already part of the selected bundle ${it.bundles.filter(b => state.selected.has(b)).map(b => `<code>${esc(b)}</code>`).join(', ')} — it will be installed twice`);
+    for (const it of sel.filter(i => i.flags.review_stale)) w.push(`<code>${esc(it.name)}</code>: the artifact changed after the review`);
+    return w;
+  }
+  function renderBasket() {
+    const sel = selectedItems();
+    const sumTok = sel.reduce((s, i) => s + (i.economy.always_on || 0), 0);
+    const sumPct = sel.reduce((s, i) => s + (i.economy.pct ?? i.economy.idle_pct ?? 0), 0);
+    const partial = sel.filter(i => i.economy.pct == null).length;
+    const over = sumTok > CAP_TOK;
+    $('totals').innerHTML = `
+      <div class="kpi"><b>${sel.length}</b><span>${sel.length === 1 ? 'plugin' : 'plugins'}</span></div>
+      <div class="kpi ${over ? 'over' : ''}" title="skill and agent descriptions ride along in every prompt; recommended cap ${CAP_TOK}"><b>${sumTok}</b><span>tok in every prompt</span></div>
+      <div class="kpi ${sumPct <= -1 ? 'save' : sumPct >= 5 ? 'cost' : ''}" title="sum of the entry estimates over a typical session (${S.turns} turns × ${fmtK(S.context_tokens)} tok)${partial ? `; ${partial} entries have only the standing part` : ''}"><b>${sel.length ? (partial ? '≥ ' : '≈ ') + fmtPct(sumPct) : '–'}</b><span>tokens per session</span></div>`;
+    const fill = $('bar-fill');
+    fill.style.width = Math.min(100, sumTok / CAP_TOK * 100) + '%';
+    fill.className = over ? 'over' : '';
+    $('sel').innerHTML = sel.map(it => `<li><span class="k">${esc(it.kind)}</span><span class="name" title="${esc(it.view.title)}">${esc(it.name)}</span><span class="v">${it.economy.always_on ? it.economy.always_on + ' tok' : ''}${it.economy.pct != null ? ` · ${fmtPct(it.economy.pct)}` : ''}</span><button data-rm="${esc(it.name)}" title="remove">×</button></li>`).join('')
+      || '<li style="color:var(--muted)">empty — tick entries in the table</li>';
+    $('warnings').innerHTML = warnings(sel).map(w => `<div class="warn">⚠ ${w}</div>`).join('');
+    renderOutput(sel);
+  }
+  $('sel').addEventListener('click', e => { const b = e.target.closest('[data-rm]'); if (!b) return; state.selected.delete(b.dataset.rm); persist(); render(); });
+
+  // ---- output ----
+  function renderOutput(sel) {
+    const out = $('out');
+    if (!sel.length) { out.value = ''; out.placeholder = 'Select entries — the block to paste into the agent window will appear here.'; return; }
+    const order = { skill: 0, agent: 1, mcp: 2, hook: 3, plugin: 4 };
+    const s = [...sel].sort((a, b) => order[a.kind] - order[b.kind] || a.name.localeCompare(b.name));
+    const lines = ['Set up the context for this project.', ''];
+    lines.push('1. Run in the project root (the marketplace is added once):');
+    lines.push(`   ${ADD}`);
+    for (const it of s) lines.push(`   ${it.install.cmd}`);
+    const envs = [...new Set(s.flatMap(envOf))];
+    if (envs.length) lines.push(`   Before that, the environment must have: ${envs.join(', ')}.`);
+    lines.push('', '2. Add a "When to use" section to the project CLAUDE.md:');
+    for (const it of s.filter(i => i.kind !== 'hook')) lines.push(`   - ${it.name} (${it.kind === 'plugin' ? 'bundle: ' + it.members.map(m => m.name).join(', ') : it.kind}) — ${it.view.pitch || it.view.description || ''}`);
+    lines.push('', '3. Restart the Claude Code session: plugins, hooks and MCP servers take effect after a restart.');
+    out.value = lines.join('\n');
+  }
+  $('copy').onclick = async () => {
+    const out = $('out'); if (!out.value) return;
+    try { await navigator.clipboard.writeText(out.value); } catch { out.select(); document.execCommand('copy'); }
+    const b = $('copy'), t = b.textContent; b.textContent = 'copied ✓'; setTimeout(() => b.textContent = t, 1200);
+  };
+
+  $('mode-hint').innerHTML = `The unit of installation is a plugin from the <code>${esc(MK.name)}</code> marketplace: once <code>${esc(ADD)}</code>, then <code>claude plugin install &lt;name&gt;@${esc(MK.name)}</code> for every ticked entry. A skill installs as its own folder, a bundle installs whole (skills, agents, hooks, MCP servers). The version is pinned to a commit of this repo; to update — <code>claude plugin update</code>.`;
+  $('foot').innerHTML = `Entries with a REVIEW.md are shown; maintainer mode also shows drafts. Eval is the latest run of <code>python3 ui/eval.py &lt;path in lib&gt;</code>, results in <code>catalog/&lt;entry&gt;/evals/results/</code>. Token cost is measured against a typical session: ${S.turns} turns × ${fmtK(S.context_tokens)} tok of context and ${S.output_tokens} tok of output (config.json → session_model).${C.git ? '' : ' The repo is not in git: review dates and staleness are not computed.'} Catalog built ${esc(C.generated_at)}.`;
+
+  function render() { renderTable(); renderBasket(); }
+  render();
+})();
+</script>
+</body>
+</html>
