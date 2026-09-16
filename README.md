@@ -27,90 +27,94 @@ claude plugin install <name>@acb
 
 | Category | Name | Eval | Review |
 |---|---|---|---|
-| skill | caveman | — | done · taste |
-| skill | claude-api | 1 case · Δ +0.50 | done · stack |
-| skill | docx | — | done · task |
-| skill | mcp-builder | — | missing |
-| skill | skill-creator | — | done · task |
-| mcp | context7 | 2 cases · Δ +0.58 | done · must-have |
-| mcp | github | — | done · must-have |
-| hook | notify-done | — | done · taste |
-| agent | — | — | — |
-| plugin | base | — | missing · empty placeholder |
-| plugin | evals | 32 cases · last run incomplete (16 of 32) | missing |
-| plugin | langchain | — | missing |
-| plugin | qdrant | — | missing |
+| skill | caveman | – | ✅ |
+| skill | claude-api | 1 case · Δ +0.50 | ✅ |
+| skill | docx | – | ✅ |
+| skill | mcp-builder | – |  |
+| skill | skill-creator | – | ✅ |
+| mcp | context7 | 2 cases · Δ +0.58 | ✅ |
+| mcp | github | – | ✅ |
+| hook | notify-done | – | ✅ |
+| agent | – | – |  |
+| plugin | base | – |  |
+| plugin | evals | 32 cases · last run incomplete (16 of 32) |  |
+| plugin | langchain | – |  |
+| plugin | qdrant | – |  |
 
-A plugin is a bundle of parts from `lib/`, so its members are not repeated as rows of their own. Only an entry with a finished `REVIEW.md` (no `draft: true`) reaches `ui/index.html` and the marketplace; the rest are listed here as work in progress.
+A plugin is a bundle of parts from `lib/`, so its members are not repeated as rows of their own. ✅ means a finished `REVIEW.md`; only those entries reach `ui/index.html` and the marketplace.
 
 <details>
-<summary><b>plugin/base</b> — empty for now</summary>
+<summary><b>plugin/base</b> – empty for now</summary>
 
 A placeholder for the bundle every project starts from. Nothing in it yet.
 
 </details>
 
 <details>
-<summary><b>plugin/evals</b> — 8 skills from <a href="https://github.com/ai-evals-course/evals-skills">ai-evals-course/evals-skills</a></summary>
+<summary><b>plugin/evals</b> – 8 skills from <a href="https://github.com/ai-evals-course/evals-skills">ai-evals-course/evals-skills</a></summary>
 
-- `evals-start`
-- `eval-audit`
-- `error-discovery`
-- `write-judge-prompt`
-- `validate-evaluator`
-- `generate-synthetic-data`
-- `evaluate-rag`
-- `build-review-interface`
-
-</details>
-
-<details>
-<summary><b>plugin/langchain</b> — 22 skills from <a href="https://github.com/langchain-ai/langchain-skills">langchain-ai/langchain-skills</a></summary>
-
-- `deep-agents-core`
-- `deep-agents-memory`
-- `deep-agents-orchestration`
-- `deepagents-python-quickstart`
-- `deepagents-typescript-quickstart`
-- `ecosystem-primer`
-- `eval-engineering`
-- `langchain-dependencies`
-- `langchain-fundamentals`
-- `langchain-middleware`
-- `langchain-python-quickstart`
-- `langchain-rag`
-- `langchain-typescript-quickstart`
-- `langgraph-cli`
-- `langgraph-fundamentals`
-- `langgraph-human-in-the-loop`
-- `langgraph-persistence`
-- `langgraph-python-quickstart`
-- `langgraph-typescript-quickstart`
-- `langsmith-online-eval-engineering`
-- `managed-deep-agents`
-- `swarm`
+| Category | Name | Eval | Review |
+|---|---|---|---|
+| skill | evals-start | – |  |
+| skill | eval-audit | – |  |
+| skill | error-discovery | – |  |
+| skill | write-judge-prompt | – |  |
+| skill | validate-evaluator | – |  |
+| skill | generate-synthetic-data | – |  |
+| skill | evaluate-rag | – |  |
+| skill | build-review-interface | – |  |
 
 </details>
 
 <details>
-<summary><b>plugin/qdrant</b> — 12 skills from <a href="https://github.com/qdrant/skills">qdrant/skills</a></summary>
+<summary><b>plugin/langchain</b> – 22 skills from <a href="https://github.com/langchain-ai/langchain-skills">langchain-ai/langchain-skills</a></summary>
 
-- `qdrant-clients-sdk`
-- `qdrant-deployment-options`
-- `qdrant-edge`
-- `qdrant-migration-tool`
-- `qdrant-model-migration`
-- `qdrant-monitoring`
-- `qdrant-multitenancy`
-- `qdrant-performance-optimization`
-- `qdrant-scaling`
-- `qdrant-search-quality`
-- `qdrant-sizing`
-- `qdrant-version-upgrade`
+| Category | Name | Eval | Review |
+|---|---|---|---|
+| skill | deep-agents-core | – |  |
+| skill | deep-agents-memory | – |  |
+| skill | deep-agents-orchestration | – |  |
+| skill | deepagents-python-quickstart | – |  |
+| skill | deepagents-typescript-quickstart | – |  |
+| skill | ecosystem-primer | – |  |
+| skill | eval-engineering | – |  |
+| skill | langchain-dependencies | – |  |
+| skill | langchain-fundamentals | – |  |
+| skill | langchain-middleware | – |  |
+| skill | langchain-python-quickstart | – |  |
+| skill | langchain-rag | – |  |
+| skill | langchain-typescript-quickstart | – |  |
+| skill | langgraph-cli | – |  |
+| skill | langgraph-fundamentals | – |  |
+| skill | langgraph-human-in-the-loop | – |  |
+| skill | langgraph-persistence | – |  |
+| skill | langgraph-python-quickstart | – |  |
+| skill | langgraph-typescript-quickstart | – |  |
+| skill | langsmith-online-eval-engineering | – |  |
+| skill | managed-deep-agents | – |  |
+| skill | swarm | – |  |
 
 </details>
 
+<details>
+<summary><b>plugin/qdrant</b> – 12 skills from <a href="https://github.com/qdrant/skills">qdrant/skills</a></summary>
 
+| Category | Name | Eval | Review |
+|---|---|---|---|
+| skill | qdrant-clients-sdk | – |  |
+| skill | qdrant-deployment-options | – |  |
+| skill | qdrant-edge | – |  |
+| skill | qdrant-migration-tool | – |  |
+| skill | qdrant-model-migration | – |  |
+| skill | qdrant-monitoring | – |  |
+| skill | qdrant-multitenancy | – |  |
+| skill | qdrant-performance-optimization | – |  |
+| skill | qdrant-scaling | – |  |
+| skill | qdrant-search-quality | – |  |
+| skill | qdrant-sizing | – |  |
+| skill | qdrant-version-upgrade | – |  |
+
+</details>
 
 ## Layout
 
