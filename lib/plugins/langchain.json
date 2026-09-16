@@ -1,0 +1,26 @@
+{
+  "skills": [
+    "deep-agents-core",
+    "deep-agents-memory",
+    "deep-agents-orchestration",
+    "deepagents-python-quickstart",
+    "deepagents-typescript-quickstart",
+    "ecosystem-primer",
+    "eval-engineering",
+    "langchain-dependencies",
+    "langchain-fundamentals",
+    "langchain-middleware",
+    "langchain-python-quickstart",
+    "langchain-rag",
+    "langchain-typescript-quickstart",
+    "langgraph-cli",
+    "langgraph-fundamentals",
+    "langgraph-human-in-the-loop",
+    "langgraph-persistence",
+    "langgraph-python-quickstart",
+    "langgraph-typescript-quickstart",
+    "langsmith-online-eval-engineering",
+    "managed-deep-agents",
+    "swarm"
+  ]
+}
