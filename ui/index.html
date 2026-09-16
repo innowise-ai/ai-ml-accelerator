@@ -18,7 +18,6 @@
   header h1 { margin: 0; font-size: 19px; font-weight: 650; letter-spacing: -0.01em; }
   header .stats { color: var(--muted); }
   header .stats b { color: var(--ink); font-weight: 600; }
-  header label.maint { margin-left: auto; color: var(--muted); display: flex; gap: 6px; align-items: center; font-size: 12.5px; cursor: pointer; }
   .layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; padding: 0 16px 24px; }
   @media (max-width: 1180px) { .layout { grid-template-columns: 1fr; } .right { position: static; max-height: none; } }
   .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
@@ -64,7 +63,6 @@
   td.c-title .n { color: #3d3c39; font-size: 12px; margin-top: 3px; line-height: 1.35; display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
   .badge { display: inline-block; font-size: 10.5px; padding: 0 5px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; line-height: 16px; }
   .badge.official { color: #14549e; border-color: #c9d9f0; }
-  .badge.draft { color: #7a6a3a; background: #fbf5e3; border-color: #ecdcb0; }
   .badge.rejected { color: var(--bad); border-color: #efc4bf; }
   .badge.own { color: var(--ok); border-color: #bfe0cf; }
   .badge.plugin { color: #5a4ba0; border-color: #d6d0ee; }
@@ -120,15 +118,24 @@
   p.line .sep { color: #c9c7bf; margin: 0 6px; }
   .bchip { display: inline-block; font-family: var(--mono); font-size: 11.5px; padding: 0 6px; border-radius: 4px; border: 1px solid #d6d0ee; color: #5a4ba0; background: #f6f4fc; cursor: pointer; white-space: nowrap; line-height: 18px; margin: 0 3px 0 0; }
   .bchip:hover { background: #ece9f7; }
-  .evh { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; font-size: 12.5px; margin-bottom: 4px; }
-  .evh b.sc { font-size: 17px; font-weight: 700; }
+  .evb { max-width: 560px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel); padding: 10px 12px 4px; }
+  .evb.none { padding-bottom: 10px; }
+  .evh { display: flex; gap: 9px; align-items: center; font-size: 12.5px; }
+  .evh b.sc { font-size: 21px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
   .evh b.sc.good { color: var(--ok); } .evh b.sc.mid { color: var(--warn); } .evh b.sc.low { color: var(--bad); }
-  table.evt { border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; margin: 4px 0 2px; }
-  .evt th { text-align: left; font-size: 11.5px; font-weight: 600; color: var(--muted); padding: 4px 18px 4px 0; border-bottom: 1px solid var(--line); }
-  .evt td { padding: 5px 18px 5px 0; border-bottom: 1px solid #eeece6; color: #3d3c39; }
+  .evh .scl { font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+  .evh .dl { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--soft); color: #3d3c39; font-variant-numeric: tabular-nums; }
+  .evh .dl.up { background: var(--ok-bg); color: var(--ok); } .evh .dl.down { background: var(--bad-bg); color: var(--bad); }
+  .evh .rep { margin-left: auto; font-size: 12px; color: var(--accent); text-decoration: none; white-space: nowrap; }
+  .evh .rep:hover { text-decoration: underline; }
+  .evm { margin: 5px 0 0; font-size: 11.5px; color: var(--muted); }
+  .evm code { font-size: 11.5px; }
+  table.evt { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; margin: 8px 0 0; }
+  .evt th { text-align: left; font-size: 10.5px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: var(--muted); padding: 6px 0 5px; border-bottom: 1px solid var(--line); }
+  .evt td { padding: 6px 0; border-bottom: 1px solid #eeece6; color: #3d3c39; }
+  .evt tr:last-child td { border-bottom: 0; }
   .evt td:first-child { font-family: var(--mono); font-size: 12px; color: var(--ink); }
-  .evt .num { text-align: right; padding-right: 0; }
-  .evt th.num { padding-left: 18px; } .evt td.num { padding-left: 18px; }
+  .evt .num { text-align: right; width: 76px; }
   ul.members { margin: 4px 0 0; padding-left: 0; list-style: none; }
   ul.members li { display: flex; gap: 8px; align-items: baseline; padding: 3px 0; flex-wrap: wrap; }
   ul.members .k { color: var(--muted); font-size: 11px; width: 38px; flex: none; }
@@ -180,7 +187,6 @@
 <header>
   <h1>ai-context-builder</h1>
   <span class="stats" id="stats"></span>
-  <label class="maint"><input type="checkbox" id="f-maint"> maintainer mode</label>
 </header>
 
 <main class="layout">
@@ -198,6 +204,7 @@
   <aside class="right">
     <div class="panel">
       <h2>Install</h2>
+      <div class="chips" id="scope" title="where the plugins go: user — all your projects, project — this repo only (.claude/settings.json)"></div>
       <div class="hint" id="mode-hint"></div>
     </div>
     <div class="panel">
@@ -222,7 +229,9 @@
   const $ = id => document.getElementById(id);
   if (!C) { $('tbody').innerHTML = '<tr><td class="empty">No catalog.js — run <code>python3 ui/build.py</code></td></tr>'; return; }
   const items = C.items, S = C.session_model, VER = C.verdicts, MK = C.marketplace;
-  const ADD = `claude plugin marketplace add ${MK.repo || '<path to your ai-context-builder clone>'}`;
+  const ADD_BASE = `claude plugin marketplace add ${MK.repo || '<path to your ai-context-builder clone>'}`;
+  const scopeFlag = () => state.scope === 'user' ? '' : ` --scope ${state.scope}`;
+  const ADD = () => ADD_BASE + scopeFlag();
   const CAP_TOK = 1500;                      // recommended cap on the standing cost of the selection, tok in every prompt
   const byName = new Map(items.map(i => [i.name, i]));
   const VERDICT_ORDER = Object.fromEntries(Object.keys(VER).map((v, i) => [v, i]));
@@ -235,12 +244,12 @@
   };
   const state = {
     selected: new Set(ls.get('acb.selected2', []).filter(n => byName.has(n))),
-    open: new Set(), maint: ls.get('acb.maint', false),
+    open: new Set(), scope: ls.get('acb.scope', 'user'),
     sort: ls.get('acb.sort2', { key: 'default', dir: -1 }), kind: 'all', verdicts: new Set(), q: '', group: ls.get('acb.group', 'kind'),
     cols: new Set(ls.get('acb.cols5', DEFAULT_COLS).filter(k => OPTIONAL_COLS.includes(k))),
   };
   if (!['default', 'title', ...OPTIONAL_COLS].includes(state.sort.key)) state.sort = { key: 'default', dir: -1 };
-  const persist = () => { ls.set('acb.selected2', [...state.selected]); ls.set('acb.sort2', state.sort); ls.set('acb.maint', state.maint); ls.set('acb.cols5', [...state.cols]); ls.set('acb.group', state.group); };
+  const persist = () => { ls.set('acb.selected2', [...state.selected]); ls.set('acb.sort2', state.sort); ls.set('acb.scope', state.scope); ls.set('acb.cols5', [...state.cols]); ls.set('acb.group', state.group); };
 
   // ---- utils ----
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -255,7 +264,6 @@
   const fullName = it => owner(it) ? `${owner(it)}/${it.name}` : it.name;
   const verdictLabel = v => v ? (VER[v]?.label ?? v) : 'no verdict';
   const kindLabel = Object.fromEntries(C.kinds.map(k => [k.kind, k.label]));
-  const isShown = it => state.maint || (it.status === 'reviewed' && !it.flags.review_stale);
   // body size in tokens (chars ÷ 4): SKILL.md or the agent prompt; not counted for bundles, MCP servers and hooks
   const sizeOf = it => it.size ?? null;
   const folderOf = it => it.kind === 'skill' ? it.members[0].tokens_dir ?? null : null;
@@ -277,7 +285,7 @@
       const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
       if (lines.every(l => /^- /.test(l))) return `<ul>${lines.map(l => `<li>${inline(l.slice(2))}</li>`).join('')}</ul>`;
       if (lines.length === 1 && /^## /.test(lines[0])) return `<h4>${inline(lines[0].slice(3))}</h4>`;
-      return `<p>${inline(lines.join(' '))}</p>`;
+      return `<p>${lines.map(inline).join('<br>')}</p>`;   // one line in REVIEW.md = one line on the page
     }).join('');
   }
 
@@ -290,13 +298,13 @@
   const GROUPS = [['kind', 'by kind'], ['plugin', 'by bundle']];
   $('group').innerHTML = GROUPS.map(([g, l]) => `<button data-group="${g}" class="${state.group === g ? 'on' : ''}">${l}</button>`).join('');
   $('group').onclick = e => { const b = e.target.closest('[data-group]'); if (!b) return; state.group = b.dataset.group; $('group').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); persist(); render(); };
+  const SCOPES = [['user', 'globally (user)'], ['project', 'this project']];
+  $('scope').innerHTML = SCOPES.map(([v, l]) => `<button data-scope="${v}" class="${state.scope === v ? 'on' : ''}">${l}</button>`).join('');
+  $('scope').onclick = e => { const b = e.target.closest('[data-scope]'); if (!b) return; state.scope = b.dataset.scope; $('scope').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); persist(); render(); };
   $('f-q').oninput = e => { state.q = e.target.value.trim(); $('f-clear').hidden = !state.q; render(); };
   $('f-clear').onclick = () => { state.q = ''; $('f-q').value = ''; $('f-clear').hidden = true; render(); };
-  $('f-maint').checked = state.maint;
-  $('f-maint').onchange = e => { state.maint = e.target.checked; persist(); render(); };
 
   function visible(it) {
-    if (!isShown(it)) return false;
     if (state.kind !== 'all' && it.kind !== state.kind) return false;
     if (state.verdicts.size && !state.verdicts.has(it.view.verdict)) return false;
     if (state.q) {
@@ -374,7 +382,6 @@
   }
   function revCell(it) {
     if (it.status === 'rejected') return `<td class="c-rev"><span class="bad" title="rejected by the reviewer (verdict no)">rejected</span></td>`;
-    if (it.status !== 'reviewed') return `<td class="c-rev"><span class="none" title="no REVIEW.md yet">none</span></td>`;
     if (!it.reviewed_at) return `<td class="c-rev"><span class="none" title="${C.git ? 'REVIEW.md not committed yet' : 'repo is not in git — date unknown'}">yes</span></td>`;
     return `<td class="c-rev" title="last REVIEW.md commit ${esc(it.reviewed_at)}${it.flags.review_stale ? '; the artifact changed after it' : ''}">${esc(it.reviewed_at)}${it.flags.review_stale ? ' <span class="stale" title="artifact changed after the review">⟳</span>' : ''}</td>`;
   }
@@ -387,7 +394,6 @@
     if (it.kind === 'plugin') badges.push(`<span class="badge plugin" title="bundle of ${it.members.length} parts">bundle · ${it.members.length}</span>`);
     if (it.flags.own && it.kind !== 'plugin') badges.push('<span class="badge own" title="artifact of this repo">own</span>');
     if (it.status === 'rejected') badges.push('<span class="badge rejected">rejected</span>');
-    else if (it.status === 'draft') badges.push('<span class="badge draft" title="no REVIEW.md yet">draft</span>');
     const sz = sizeOf(it), E = it.economy;
     const CELL = {
       sel: () => `<td class="c-sel"><input type="checkbox" data-sel="${n}" ${sel ? 'checked' : ''}></td>`,
@@ -419,25 +425,24 @@
   const chips = arr => `<div class="chips-line">${arr.filter(Boolean).map(x => `<span class="chip">${esc(x)}</span>`).join('')}</div>`;
   function evalHtml(it) {
     const L = it.eval.latest, n = it.eval.cases.length;
-    const head = L
-      ? `<b class="sc ${evClass(L.score)}">${fmtScore(L.score)}</b>${L.delta != null ? `<span class="${L.delta > 0 ? 'up' : L.delta < 0 ? 'down' : ''}">Δ ${fmtDelta(L.delta)} vs the run without the plugin</span>` : ''}<span class="mut">${cases(L.cases)} · ${esc(L.at)} · Claude Code ${esc(L.version || '?')}${L.cost_usd != null ? ` · $${L.cost_usd.toFixed(2)}` : ''}${L.partial ? ' · partial run' : ''}${n !== L.cases ? ` · ${n} cases now` : ''}</span>${L.report ? `<a href="../${esc(L.report)}" target="_blank" rel="noopener">report ↗</a>` : ''}`
-      : `<span class="mut">${n ? `${cases(n)} in <code>${esc(it.dir)}/evals/</code>, no run yet:` : 'no cases, create them:'}</span><code>${esc(it.eval.cmd)}${n ? '' : ' --init'}</code>`;
-    const rows = L?.per_case.length ? `<table class="evt"><tr><th>Case</th><th class="num">With plugin</th><th class="num">Without</th><th class="num">Δ</th></tr>${L.per_case.map(c => `<tr><td>${esc(c.name)}</td><td class="num">${fmtScore(c.score)}</td><td class="num mut">${c.without != null ? fmtScore(c.without) : '–'}</td><td class="num ${c.delta > 0 ? 'up' : c.delta < 0 ? 'down' : ''}">${fmtDelta(c.delta) || '–'}</td></tr>`).join('')}</table>` : '';
-    return `<h4>Eval</h4><div class="evh">${head}</div>${rows}`;
+    if (!L) return `<h4>Eval</h4><div class="evb none"><p class="evm">${n ? `${cases(n)} in <code>${esc(it.dir)}/evals/</code>, no run yet: ` : 'no cases, create them: '}<code>${esc(it.eval.cmd)}${n ? '' : ' --init'}</code></p></div>`;
+    const head = `<div class="evh"><b class="sc ${evClass(L.score)}" title="${esc(evalTip(it))}">${fmtScore(L.score)}</b><span class="scl">score</span>${L.delta != null ? `<span class="dl ${L.delta > 0 ? 'up' : L.delta < 0 ? 'down' : ''}">Δ ${fmtDelta(L.delta)}</span>` : ''}${L.report ? `<a class="rep" href="../${esc(L.report)}" target="_blank" rel="noopener">report ↗</a>` : ''}</div>`;
+    const meta = `<p class="evm">${L.delta != null ? 'vs the run without the plugin · ' : ''}${cases(L.cases)} · ${esc(L.at)} · Claude Code ${esc(L.version || '?')}${L.cost_usd != null ? ` · $${L.cost_usd.toFixed(2)}` : ''}${L.partial ? ' · partial run' : ''}${n !== L.cases ? ` · ${n} cases now` : ''}</p>`;
+    const rows = L.per_case.length ? `<table class="evt"><tr><th>Case</th><th class="num">With plugin</th><th class="num">Without</th><th class="num">Δ</th></tr>${L.per_case.map(c => `<tr><td>${esc(c.name)}</td><td class="num">${fmtScore(c.score)}</td><td class="num mut">${c.without != null ? fmtScore(c.without) : '–'}</td><td class="num ${c.delta > 0 ? 'up' : c.delta < 0 ? 'down' : ''}">${fmtDelta(c.delta) || '–'}</td></tr>`).join('')}</table>` : '';
+    return `<h4>Eval</h4><div class="evb">${head}${meta}${rows}</div>`;
   }
   function detailHtml(it, nCols) {
     const V = it.view, parts = [];
     parts.push(md(V.pitch || V.description || '').replace('<p>', '<p class="lead">'));
     for (const x of V.sections || []) parts.push(`${x.title ? `<h4>${esc(x.title)}</h4>` : ''}${md(x.text)}`);
     parts.push(evalHtml(it));
-    if (it.kind === 'plugin') parts.push(`<h4>Contents</h4><ul class="members">${it.members.map(m => { const solo = items.find(x => x.members.length === 1 && x.members[0].kind === m.kind && x.members[0].name === m.name && isShown(x)); return `<li><span class="k">${esc(m.kind)}</span><span class="name" ${solo ? `data-open="${esc(solo.name)}"` : ''} title="${esc(m.path)}">${esc(m.name)}</span>${solo ? `<span class="verdict ${solo.view.verdict || 'none'}">${esc(verdictLabel(solo.view.verdict))}</span>` : ''}${chips(memberChips(m))}</li>`; }).join('')}</ul>`);
+    if (it.kind === 'plugin') parts.push(`<h4>Contents</h4><ul class="members">${it.members.map(m => { const solo = items.find(x => x.members.length === 1 && x.members[0].kind === m.kind && x.members[0].name === m.name); return `<li><span class="k">${esc(m.kind)}</span><span class="name" ${solo ? `data-open="${esc(solo.name)}"` : ''} title="${esc(m.path)}">${esc(m.name)}</span>${solo ? `<span class="verdict ${solo.view.verdict || 'none'}">${esc(verdictLabel(solo.view.verdict))}</span>` : ''}${chips(memberChips(m))}</li>`; }).join('')}</ul>`);
     else parts.push(`<h4>What's inside</h4>${chips(memberChips(it.members[0]))}`);
     const line = [`${it.source.own ? 'Own: ' : 'Source: '}<a href="${esc(it.source.url)}" target="_blank" rel="noopener">${esc(it.source.label)}</a>`];
     if (it.bundles.length) line.push(`part of ${it.bundles.map(bundleChip).join('')}`);
     if (V.category) line.push(`category ${esc(V.category)}`);
     if (V.tags?.length) line.push(V.tags.map(esc).join(', '));
     if (it.reviewed_at) line.push(`reviewed ${esc(it.reviewed_at)}${it.flags.review_stale ? ', the artifact changed after it' : ''}`);
-    if (state.maint) line.push(`<code>${esc(it.dir)}/</code>`);
     parts.push(`<p class="line" style="margin-top:14px">${line.join('<span class="sep">·</span>')}</p>`);
     return `<tr class="detail"><td colspan="${nCols}"><div class="dcol">${parts.join('')}</div></td></tr>`;
   }
@@ -454,21 +459,21 @@
     let html = '', shown = 0;
     const emptyRow = `<tr><td colspan="${nCols}" class="empty" style="padding:8px">nothing matches the filter</td></tr>`;
     if (state.group === 'plugin') {
-      const shownItems = items.filter(isShown), inSome = new Set();
-      for (const p of shownItems.filter(i => i.kind === 'plugin')) {
-        const ms = p.members.map(m => soloOf(m, shownItems)).filter(Boolean);
+      const inSome = new Set();
+      for (const p of items.filter(i => i.kind === 'plugin')) {
+        const ms = p.members.map(m => soloOf(m, items)).filter(Boolean);
         ms.forEach(i => inSome.add(i.name));
         const rows = sorted(ms.filter(visible));
         if (!rows.length && !visible(p)) continue;
         shown += rows.length;
         html += pluginHead(p, rows.length, ms.length, nCols) + (state.open.has(p.name) ? detailHtml(p, nCols) : '') + rows.map(it => rowHtml(it, nCols)).join('');
       }
-      const rest = sorted(shownItems.filter(i => i.kind !== 'plugin' && !inSome.has(i.name) && visible(i)));
+      const rest = sorted(items.filter(i => i.kind !== 'plugin' && !inSome.has(i.name) && visible(i)));
       if (rest.length) { shown += rest.length; html += `<tr class="kind"><td colspan="${nCols}">Not in a bundle<span class="gm">${rest.length}</span></td></tr>` + rest.map(it => rowHtml(it, nCols)).join(''); }
     } else {
     const groups = state.kind === 'all' ? C.kinds : C.kinds.filter(k => k.kind === state.kind);
     for (const { kind, label } of groups) {
-      const all = items.filter(i => i.kind === kind && isShown(i));
+      const all = items.filter(i => i.kind === kind);
       if (!all.length) continue;
       const rows = sorted(all.filter(visible));
       shown += rows.length;
@@ -477,8 +482,8 @@
     }
     }
     $('tbody').innerHTML = html || `<tr><td colspan="${nCols}" class="empty">empty</td></tr>`;
-    const total = items.filter(isShown).length, withEval = items.filter(i => isShown(i) && i.eval.latest).length;
-    $('stats').innerHTML = `<b>${total}</b> entries · <b>${items.filter(i => i.status === 'reviewed').length}</b> reviewed · <b>${withEval}</b> with eval${shown !== total ? ` · ${shown} shown` : ''}`;
+    const total = items.length, withEval = items.filter(i => i.eval.latest).length;
+    $('stats').innerHTML = `<b>${total}</b> entries · <b>${withEval}</b> with eval${shown !== total ? ` · ${shown} shown` : ''}`;
   }
 
   $('thead').addEventListener('click', e => {
@@ -538,8 +543,8 @@
     const s = [...sel].sort((a, b) => order[a.kind] - order[b.kind] || a.name.localeCompare(b.name));
     const lines = ['Set up the context for this project.', ''];
     lines.push('1. Run in the project root (the marketplace is added once):');
-    lines.push(`   ${ADD}`);
-    for (const it of s) lines.push(`   ${it.install.cmd}`);
+    lines.push(`   ${ADD()}`);
+    for (const it of s) lines.push(`   ${it.install.cmd}${scopeFlag()}`);
     const envs = [...new Set(s.flatMap(envOf))];
     if (envs.length) lines.push(`   Before that, the environment must have: ${envs.join(', ')}.`);
     lines.push('', '2. Add a "When to use" section to the project CLAUDE.md:');
@@ -553,10 +558,10 @@
     const b = $('copy'), t = b.textContent; b.textContent = 'copied ✓'; setTimeout(() => b.textContent = t, 1200);
   };
 
-  $('mode-hint').innerHTML = `The unit of installation is a plugin from the <code>${esc(MK.name)}</code> marketplace: once <code>${esc(ADD)}</code>, then <code>claude plugin install &lt;name&gt;@${esc(MK.name)}</code> for every ticked entry. A skill installs as its own folder, a bundle installs whole (skills, agents, hooks, MCP servers). The version is pinned to a commit of this repo; to update — <code>claude plugin update</code>.`;
-  $('foot').innerHTML = `Entries with a REVIEW.md are shown; maintainer mode also shows drafts. Eval is the latest run of <code>python3 ui/eval.py &lt;path in lib&gt;</code>, results in <code>catalog/&lt;entry&gt;/evals/results/</code>. Token cost is measured against a typical session: ${S.turns} turns × ${fmtK(S.context_tokens)} tok of context and ${S.output_tokens} tok of output (config.json → session_model).${C.git ? '' : ' The repo is not in git: review dates and staleness are not computed.'} Catalog built ${esc(C.generated_at)}.`;
+  const renderHint = () => $('mode-hint').innerHTML = `The unit of installation is a plugin from the <code>${esc(MK.name)}</code> marketplace: once <code>${esc(ADD())}</code>, then <code>claude plugin install &lt;name&gt;@${esc(MK.name)}${esc(scopeFlag())}</code> for every ticked entry. ${state.scope === 'user' ? 'User scope: the plugins are available in all your projects.' : 'Project scope: the plugins are declared in <code>.claude/settings.json</code> of this repo and travel with it.'} A skill installs as its own folder, a bundle installs whole (skills, agents, hooks, MCP servers). The version is pinned to a commit of this repo; to update — <code>claude plugin update</code>.`;
+  $('foot').innerHTML = `The catalog holds entries with a finished REVIEW.md; drafts never reach it — <code>python3 ui/build.py</code> lists them. Eval is the latest run of <code>python3 ui/eval.py &lt;path in lib&gt;</code>, results in <code>catalog/&lt;entry&gt;/evals/results/</code>. Token cost is measured against a typical session: ${S.turns} turns × ${fmtK(S.context_tokens)} tok of context and ${S.output_tokens} tok of output (config.json → session_model).${C.git ? '' : ' The repo is not in git: review dates and staleness are not computed.'} Catalog built ${esc(C.generated_at)}.`;
 
-  function render() { renderTable(); renderBasket(); }
+  function render() { renderTable(); renderBasket(); renderHint(); }
   render();
 })();
 </script>
