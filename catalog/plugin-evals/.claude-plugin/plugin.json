@@ -1,6 +1,6 @@
 {
   "name": "evals",
-  "description": "When to install and what it gives, one or two sentences. This is the \"Why\" column in the table and the plugin description.",
+  "description": "plugin evals (ai-context-builder)",
   "author": {
     "name": "ai-context-builder"
   }

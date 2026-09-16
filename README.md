@@ -20,9 +20,9 @@ To install, it is enough to open `ui/index.html`: a table with verdict, rating, 
 | hook | notify-done | — | done · taste |
 | agent | — | — | — |
 | plugin | base | — | missing |
-| plugin | evals | 32 cases · last run incomplete (16 of 32) | draft |
-| plugin | langchain | — | draft |
-| plugin | qdrant | — | draft |
+| plugin | evals | 32 cases · last run incomplete (16 of 32) | missing |
+| plugin | langchain | — | missing |
+| plugin | qdrant | — | missing |
 
 A plugin is a bundle of parts from `lib/`, so its members are not repeated as rows of their own.
 The one overlap is `plugin/base` — it bundles `mcp/context7` and `hook/notify-done`, which are also
