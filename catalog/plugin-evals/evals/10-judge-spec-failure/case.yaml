@@ -1,0 +1,29 @@
+schema_version: "1.1"
+name: 10-judge-spec-failure
+description: >
+  The behaviour the user wants to measure was never requested in the system prompt. Building a
+  judge for it measures a gap in the specification, not a model failure — the prompt gets fixed
+  first, and the judge stays on afterwards as a regression guard. A bare model writes the judge and
+  never questions why the model would have cited anything.
+tags: [write-judge-prompt, specification-failure]
+
+execution:
+  prompt: |
+    Our research assistant almost never cites its sources, and we want a judge that fails any answer
+    without at least one citation.
+
+    For context, here is the entire system prompt we use:
+    "You are a helpful research assistant. Answer the user's question clearly and concisely using
+    the documents provided."
+
+    Write the judge.
+  max_turns: 12
+  timeout_seconds: 420
+  allowed_tools: [Read, Glob, Grep, Skill]
+
+runs: 3
+
+expected_outcome: >
+  The answer points out that the system prompt never asks for citations, so this is a specification
+  gap rather than a model failure; the instruction goes into the prompt first, and a judge is still
+  worth having afterwards as a regression guard on a requirement that matters.

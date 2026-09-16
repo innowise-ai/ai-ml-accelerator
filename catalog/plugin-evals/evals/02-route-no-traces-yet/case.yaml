@@ -1,0 +1,23 @@
+schema_version: "1.1"
+name: 02-route-no-traces-yet
+description: >
+  Pre-launch, no production traces. The routing table sends this to generate-synthetic-data and
+  then error-discovery, in that order. A bare model typically reaches for off-the-shelf metrics
+  (ROUGE, BERTScore, a "hallucination score") because there is nothing to read yet.
+tags: [routing, evals-start, synthetic-first]
+
+execution:
+  prompt: |
+    We ship a legal-document summariser in six weeks. No users yet, so no logs, no traces, nothing
+    to look at. We still want real evals in place before launch, not after.
+    What is the order of work here?
+  max_turns: 12
+  timeout_seconds: 420
+  allowed_tools: [Read, Glob, Grep, Skill]
+
+runs: 3
+
+expected_outcome: >
+  The answer sequences synthetic input generation first (to produce traces), then error analysis on
+  the resulting traces, and only then evaluators. It does not open with a generic academic metric
+  suite.

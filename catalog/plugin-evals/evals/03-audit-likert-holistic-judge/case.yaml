@@ -1,0 +1,25 @@
+schema_version: "1.1"
+name: 03-audit-likert-holistic-judge
+description: >
+  A real eval setup with three compounding defects: a 1-5 Likert scale, one holistic "helpfulness"
+  criterion covering four dimensions at once, and no error analysis anywhere behind it. A bare model
+  reviews this as a prompt-engineering exercise and suggests sharpening the rubric wording.
+tags: [eval-audit, likert, holistic-judge]
+
+context:
+  scaffold_script: scaffold.sh
+
+execution:
+  prompt: |
+    Audit the eval setup in this directory. Tell me what is wrong with it, most important first,
+    and what to do about each thing.
+  max_turns: 25
+  timeout_seconds: 700
+  allowed_tools: [Read, Glob, Grep, Skill]
+
+runs: 3
+
+expected_outcome: >
+  A prioritised list of findings grounded in the actual files: the 1-5 scale should be binary
+  pass/fail, the single holistic criterion should be split into per-failure-mode judges, and no
+  error analysis was ever done so the judge measures a generic quality rather than a real failure.

@@ -1,0 +1,25 @@
+schema_version: "1.1"
+name: 11-judge-fewshot-source
+description: >
+  Which of 100 labelled traces may be pasted into the judge prompt, and what happens to the rest.
+  The answer is a three-way split with a specific job per part, and a hard rule that anything used
+  as a few-shot example is disqualified from measurement. A bare model usually says "pick a few
+  representative ones" with no notion of a disqualified pool.
+tags: [write-judge-prompt, splits, leakage]
+
+execution:
+  prompt: |
+    We have 100 traces labelled Pass/Fail by our clinical lead for one failure mode.
+    I want to pick few-shot examples for the judge prompt.
+
+    Which ones do I use for that, and what do I do with the rest?
+  max_turns: 12
+  timeout_seconds: 420
+  allowed_tools: [Read, Glob, Grep, Skill]
+
+runs: 3
+
+expected_outcome: >
+  Few-shot examples come only from a small training slice (roughly 10-20 of the 100); the remaining
+  traces are split into a dev set for iteration and a held-out test set for the final number, and
+  nothing used in the prompt may appear in either.

@@ -1,0 +1,7 @@
+{
+  "name": "qdrant",
+  "description": "plugin qdrant (ai-context-builder)",
+  "author": {
+    "name": "ai-context-builder"
+  }
+}

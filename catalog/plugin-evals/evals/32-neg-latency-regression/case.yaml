@@ -1,0 +1,24 @@
+schema_version: "1.1"
+name: 32-neg-latency-regression
+description: >
+  A production latency regression over LLM gateway logs. Production monitoring and cost work are
+  named in the plugin's own README as outside what these skills cover, but the setting is an LLM
+  system and the data is called traces, so the pull to fire is real.
+tags: [negative, over-trigger, performance]
+
+execution:
+  prompt: |
+    Our LLM gateway's p95 latency jumped from 900ms to 2.4s right after last week's deploy.
+    I have request logs with route, model, prompt_tokens, completion_tokens and duration_ms.
+
+    How do I find which route regressed?
+  max_turns: 12
+  timeout_seconds: 420
+  allowed_tools: [Read, Glob, Grep, Skill]
+
+runs: 3
+
+expected_outcome: >
+  A latency-regression analysis: segment by route and model, compare the before and after windows
+  per segment at p50/p95/p99, check whether token counts or traffic mix shifted, and isolate the
+  routes carrying the change. No quality-evaluation methodology.

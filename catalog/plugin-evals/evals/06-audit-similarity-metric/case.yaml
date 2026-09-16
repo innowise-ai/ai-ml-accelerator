@@ -1,0 +1,26 @@
+schema_version: "1.1"
+name: 06-audit-similarity-metric
+description: >
+  ROUGE-L is the release gate for an incident summariser and the number went up, so the team
+  declared a win. Surface overlap with a reference is not correctness — a summary can score well
+  while inventing the root cause. A bare model usually treats the metric as valid and suggests
+  adding more reference summaries or switching to ROUGE-2.
+tags: [eval-audit, similarity-metrics]
+
+context:
+  scaffold_script: scaffold.sh
+
+execution:
+  prompt: |
+    We gate releases of our incident summariser on ROUGE-L and track BERTScore alongside it.
+    The score went up 4 points last release. Audit whether this is a quality signal we can rely on.
+  max_turns: 25
+  timeout_seconds: 700
+  allowed_tools: [Read, Glob, Grep, Skill]
+
+runs: 3
+
+expected_outcome: >
+  The answer says surface-overlap metrics measure wording similarity rather than correctness, that
+  a 4-point ROUGE move is not evidence of a quality improvement, and that the gate should be
+  replaced by binary evaluators grounded in failure modes found by reading real traces.

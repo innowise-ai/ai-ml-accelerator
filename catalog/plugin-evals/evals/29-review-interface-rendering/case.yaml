@@ -1,0 +1,27 @@
+schema_version: "1.1"
+name: 29-review-interface-rendering
+description: >
+  An annotation tool for traces that contain markdown, a unified diff, a verbose JSON tool result,
+  and a system prompt repeated verbatim in all 24 records. Reviewers who spend their attention
+  parsing raw JSON have none left for judging quality. A bare model dumps every field into a <pre>
+  block and calls it done.
+tags: [build-review-interface, rendering, annotation]
+
+context:
+  scaffold_script: scaffold.sh
+
+execution:
+  prompt: |
+    Build an annotation UI over traces.json so our staff engineer can label these Pass/Fail.
+    They will be going through all 24 in one sitting.
+  max_turns: 40
+  timeout_seconds: 900
+  allowed_tools: [Read, Glob, Grep, Bash, Write, Edit, Skill]
+
+runs: 3
+
+expected_outcome: >
+  A working interface that renders markdown as markdown, the diff with syntax highlighting and
+  add/remove colouring, and the JSON tool result pretty-printed and collapsible; the repeated system
+  prompt collapsed behind a toggle but still reachable; trace-level Pass/Fail with a free-text note,
+  navigation and automatic saving.

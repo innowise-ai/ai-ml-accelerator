@@ -1,0 +1,23 @@
+schema_version: "1.1"
+name: 01-route-traces-in-hand
+description: >
+  The user has raw traces and no failure taxonomy — the textbook error-discovery row in the
+  routing table. A bare model answers with a generic eval program: pick metrics, build a judge,
+  stand up a dashboard. The plugin's rule is that nothing gets built before error analysis.
+tags: [routing, evals-start, no-premature-evaluators]
+
+execution:
+  prompt: |
+    We run a support copilot. About 800 conversations are sitting in a log file and nobody has
+    ever looked at them systematically. Leadership wants "evals" by end of quarter.
+    Where do we actually start? Give me the first concrete step, not a roadmap.
+  max_turns: 12
+  timeout_seconds: 420
+  allowed_tools: [Read, Glob, Grep, Skill]
+
+runs: 3
+
+expected_outcome: >
+  The answer names error analysis over the existing traces as the first step, explains why that row
+  fits (traces in hand, no taxonomy yet), and does not propose building judges, scorers, metric
+  suites or dashboards before failure modes are known.

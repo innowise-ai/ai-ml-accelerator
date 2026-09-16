@@ -1,0 +1,7 @@
+{
+  "name": "langchain",
+  "description": "plugin langchain (ai-context-builder)",
+  "author": {
+    "name": "ai-context-builder"
+  }
+}

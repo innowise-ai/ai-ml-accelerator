@@ -1,0 +1,26 @@
+schema_version: "1.1"
+name: 08-judge-four-components
+description: >
+  A well-posed judge request with a real failure mode and labelled data behind it. The plugin's
+  shape is fixed: one failure mode, binary verdict, few-shot examples, and a schema where the
+  critique is emitted before the verdict. A bare model tends to produce a 1-5 rubric, or a binary
+  one whose schema puts the verdict first, which lets the judge decide before it reasons.
+tags: [write-judge-prompt, binary, critique-first]
+
+execution:
+  prompt: |
+    Our meeting-notes assistant sometimes writes action items nobody actually agreed to in the call.
+    We reviewed 120 transcripts with our chief of staff and labelled this failure mode
+    "unagreed action item": 61 clean, 59 with at least one invented commitment.
+
+    Write the LLM-as-Judge prompt we should use for it. Give me the prompt itself, ready to paste.
+  max_turns: 14
+  timeout_seconds: 480
+  allowed_tools: [Read, Glob, Grep, Skill]
+
+runs: 3
+
+expected_outcome: >
+  A judge prompt covering exactly the unagreed-action-item failure mode, with an explicit binary
+  Pass/Fail definition, labelled few-shot examples, and an output schema in which a detailed
+  critique field precedes the verdict field.

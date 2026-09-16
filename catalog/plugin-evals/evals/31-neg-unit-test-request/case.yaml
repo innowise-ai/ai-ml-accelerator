@@ -1,0 +1,35 @@
+schema_version: "1.1"
+name: 31-neg-unit-test-request
+description: >
+  A deterministic function over a chunking data structure, with the words "chunk" and "test" in the
+  request — vocabulary shared with the RAG and evaluator skills. The correct output is ordinary
+  pytest, not an eval programme.
+tags: [negative, over-trigger, unit-tests]
+
+execution:
+  prompt: |
+    Write pytest tests for this function. Give me the test file contents in your reply.
+
+        def merge_overlapping(spans: list[dict]) -> list[dict]:
+            """Merge overlapping [start, end) spans. Input may be unsorted."""
+            if not spans:
+                return []
+            ordered = sorted(spans, key=lambda s: s["start"])
+            merged = [dict(ordered[0])]
+            for s in ordered[1:]:
+                if s["start"] <= merged[-1]["end"]:
+                    merged[-1]["end"] = max(merged[-1]["end"], s["end"])
+                else:
+                    merged.append(dict(s))
+            return merged
+
+    Cover the edge cases properly.
+  max_turns: 12
+  timeout_seconds: 420
+  allowed_tools: [Read, Glob, Grep, Skill]
+
+runs: 3
+
+expected_outcome: >
+  A pytest module covering empty input, a single span, touching and non-touching boundaries, fully
+  contained spans, unsorted input and identical spans — and nothing about LLM evaluation.

@@ -1,0 +1,23 @@
+schema_version: "1.1"
+name: 30-neg-foundation-benchmark
+description: >
+  Foundation-model benchmarking, which these skills explicitly are not for — they cover
+  product-specific evals. The word "eval" in the request is the bait. Over-firing here costs the
+  user a straight answer and buries them in error-analysis methodology that does not apply to a
+  public benchmark with fixed ground truth.
+tags: [negative, over-trigger, foundation-benchmark]
+
+execution:
+  prompt: |
+    I need to compare Llama 4 and Qwen 3 on MMLU and HumanEval for a model-selection memo.
+    How do I set the benchmark run up, and which numbers should I put in the memo?
+  max_turns: 12
+  timeout_seconds: 420
+  allowed_tools: [Read, Glob, Grep, Skill]
+
+runs: 3
+
+expected_outcome: >
+  A direct answer about running standard benchmarks — harness, task configuration, decoding
+  settings held constant across models, pass@k for HumanEval, reporting with variance — and no
+  detour into trace review, failure-mode taxonomies or judge calibration.

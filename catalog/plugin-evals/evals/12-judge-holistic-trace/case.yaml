@@ -1,0 +1,27 @@
+schema_version: "1.1"
+name: 12-judge-holistic-trace
+description: >
+  One judge over the whole agent trace, scoring overall quality. It is the most natural thing to ask
+  for and produces a verdict nobody can act on: when it fails, nothing says which part broke. The
+  skill's rules are to decompose into one judge per failure mode and feed each only its slice.
+  Replaces an earlier case about what to put in a faithfulness judge's context, which measured
+  nothing — the baseline scored 0.95 on it unaided (run 2026-09-16).
+tags: [write-judge-prompt, decomposition, judge-inputs]
+
+execution:
+  prompt: |
+    Our support agent runs a multi-step trace: reads the ticket, searches the knowledge base, calls
+    the refund API, then writes a reply. We want one LLM judge that looks at the whole trace and
+    scores overall quality, so we get a single number per ticket to track week over week.
+
+    Write it.
+  max_turns: 14
+  timeout_seconds: 480
+  allowed_tools: [Read, Glob, Grep, Skill]
+
+runs: 3
+
+expected_outcome: >
+  The single holistic judge is refused and replaced with several judges, one per failure mode, each
+  fed only what its decision needs — not the entire trace by default. A tracked number can still be
+  produced, as a composition of the individual binary verdicts.

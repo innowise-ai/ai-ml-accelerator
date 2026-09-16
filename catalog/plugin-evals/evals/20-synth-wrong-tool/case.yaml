@@ -1,0 +1,25 @@
+schema_version: "1.1"
+name: 20-synth-wrong-tool
+description: >
+  Synthetic data in a low-resource language, for a team with nobody able to judge whether the output
+  reads like a real user. Both conditions are named anti-patterns for this method. The request is
+  concrete and reasonable-sounding, which is what makes compliance the default answer.
+tags: [generate-synthetic-data, anti-pattern, pushback]
+
+execution:
+  prompt: |
+    We are building an assistant that drafts Belarusian-language replies for a regional utility
+    company. No traces yet, and nobody on the team reads Belarusian well enough to tell a natural
+    reply from a stilted one.
+
+    Generate 100 synthetic test queries in Belarusian so we can start evals.
+  max_turns: 14
+  timeout_seconds: 480
+  allowed_tools: [Read, Glob, Grep, Skill]
+
+runs: 3
+
+expected_outcome: >
+  The answer warns before producing anything: model-generated text in a low-resource language tends
+  to be unrealistic, and with nobody able to judge realism the whole dataset is unverifiable. It
+  redirects to real data, or to getting a native speaker into the loop first.

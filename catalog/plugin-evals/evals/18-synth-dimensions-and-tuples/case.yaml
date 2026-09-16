@@ -1,0 +1,24 @@
+schema_version: "1.1"
+name: 18-synth-dimensions-and-tuples
+description: >
+  An open request for test inputs. Asked plainly, a model produces twenty variations of the same
+  happy path. The plugin's method is structural: name the axes of variation, compose tuples, put
+  the tuples in front of the user, then turn each into a query in a separate step.
+tags: [generate-synthetic-data, dimensions, two-step]
+
+execution:
+  prompt: |
+    We need test inputs for our restaurant-booking assistant so we have something to run through
+    the pipeline and review.
+
+    Put together a set of realistic user queries for us.
+  max_turns: 14
+  timeout_seconds: 480
+  allowed_tools: [Read, Glob, Grep, Skill]
+
+runs: 3
+
+expected_outcome: >
+  The answer defines a small number of named dimensions with explicit value lists, composes tuples
+  from them, presents the tuples for the user to confirm before any queries are written, and keeps
+  tuple generation and query wording as separate steps.
