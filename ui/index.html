@@ -446,7 +446,6 @@
     if (it.flags.own && it.kind !== 'plugin') badges.push('<span class="badge own" title="artifact of this repo">own</span>');
     if (it.status === 'rejected') badges.push('<span class="badge rejected">rejected</span>');
     if (it.status === 'draft' && !it.part) badges.push('<span class="badge draft" title="no finished REVIEW.md: not reviewed and not in the marketplace">unverified</span>');
-    if (it.part) badges.push(`<span class="badge part" title="part of plugin ${esc(it.parent)}: installs by copying the folder, not from the marketplace">part of ${esc(it.parent)}</span>`);
     const sz = sizeOf(it), E = it.economy;
     const CELL = {
       sel: () => `<td class="c-sel"><input type="checkbox" data-sel="${n}" ${sel ? 'checked' : ''}></td>`,
