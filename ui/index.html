@@ -271,11 +271,11 @@
   const state = {
     selected: new Set(ls.get('acb.selected2', []).filter(n => byKey.has(n))),
     open: new Set(), scope: ls.get('acb.scope', 'user'),
-    sort: ls.get('acb.sort2', { key: 'default', dir: -1 }), kind: 'all', verdicts: new Set(), q: '', group: ls.get('acb.group', 'kind'), verified: ls.get('acb.verified', true), collapsed: new Set(ls.get('acb.collapsed', [])),
+    sort: ls.get('acb.sort2', { key: 'default', dir: -1 }), kind: 'all', verdicts: new Set(), q: '', group: ls.get('acb.group', 'kind'), verified: ls.get('acb.verified2', true), collapsed: new Set(ls.get('acb.collapsed', [])),
     cols: new Set(ls.get('acb.cols5', DEFAULT_COLS).filter(k => OPTIONAL_COLS.includes(k))),
   };
   if (!['default', 'title', ...OPTIONAL_COLS].includes(state.sort.key)) state.sort = { key: 'default', dir: -1 };
-  const persist = () => { ls.set('acb.selected2', [...state.selected]); ls.set('acb.sort2', state.sort); ls.set('acb.scope', state.scope); ls.set('acb.cols5', [...state.cols]); ls.set('acb.group', state.group); ls.set('acb.verified', state.verified); ls.set('acb.collapsed', [...state.collapsed]); };
+  const persist = () => { ls.set('acb.selected2', [...state.selected]); ls.set('acb.sort2', state.sort); ls.set('acb.scope', state.scope); ls.set('acb.cols5', [...state.cols]); ls.set('acb.group', state.group); ls.set('acb.verified2', state.verified); ls.set('acb.collapsed', [...state.collapsed]); };
 
   // ---- utils ----
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
