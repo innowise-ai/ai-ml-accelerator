@@ -47,7 +47,7 @@
   .grid th.num { text-align: center; }
   .grid th.sortable { cursor: pointer; }
   .grid th.sortable:hover, .grid th.sorted { color: var(--ink); }
-  .grid td { padding: 10px 10px; border-bottom: 1px solid #eeece6; vertical-align: top; }
+  .grid td { padding: 7px 10px; border-bottom: 1px solid #eeece6; vertical-align: top; }
   tr.kind td { background: var(--soft); font-weight: 600; padding: 6px 12px; font-size: 12.5px; color: #3d3c39; }
   tr.kind td .gm { color: var(--muted); font-weight: 400; margin-left: 8px; }
   tr.row:hover td { background: #fcfbf8; }
@@ -60,7 +60,7 @@
   td.c-title .t [data-open]:hover { color: var(--accent); }
   a.src { color: var(--muted); text-decoration: none; font-size: 11px; margin-left: 5px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 400; white-space: nowrap; }
   a.src:hover { color: var(--accent); }
-  td.c-title .n { color: #3d3c39; font-size: 12px; margin-top: 3px; line-height: 1.35; display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+  td.c-title .n { color: #3d3c39; font-size: 12px; margin-top: 2px; line-height: 1.35; display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
   .badge { display: inline-block; font-size: 10.5px; padding: 0 5px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; line-height: 16px; }
   .badge.official { color: #14549e; border-color: #c9d9f0; }
   .badge.rejected { color: var(--bad); border-color: #efc4bf; }
@@ -70,7 +70,7 @@
   .ph-row .fold { background: none; border: 0; cursor: pointer; color: var(--ink); font: inherit; font-size: 13px; line-height: 1; width: 18px; padding: 3px 0; border-radius: 4px; text-align: center; }
   .ph-row .fold:hover { background: var(--line); color: var(--ink); }
   .badge.draft { color: #8a6d1f; border-color: #e8d9a8; background: #fdf8e8; }
-  td.c-why .pitch { line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  td.c-why .pitch { line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .verdict { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 4px; margin-right: 6px; vertical-align: 1px; letter-spacing: 0.01em; white-space: nowrap; }
   .verdict.must-have { background: #1f5fbf; color: #fff; }
   .verdict.stack { background: var(--ok-bg); color: var(--ok); }
@@ -367,7 +367,7 @@
   const evScore = it => it.eval.latest?.score ?? null;
   const COLS = [
     { key: 'sel', label: '', w: 34, fixed: true },
-    { key: 'title', label: 'Name', w: 200, sort: it => fullName(it).toLowerCase(), asc: true, fixed: true },
+    { key: 'title', label: 'Name', w: 220, sort: it => fullName(it).toLowerCase(), asc: true, fixed: true },
     { key: 'verdict', label: 'When to install', tip: Object.values(VER).map(v => `${v.label} — ${v.hint}`).join('\n'), w: 106, sort: it => VERDICT_ORDER[it.view.verdict] ?? 9, asc: true },
     { key: 'why', label: 'Why', tip: 'the "Summary" section of REVIEW.md' },
     { key: 'rating', label: 'Rating', tip: 'how much it is worth installing once the verdict condition holds, 1–5 (REVIEW.md → rating)', num: true, w: 66, sort: it => it.rating ?? -1 },
@@ -450,7 +450,7 @@
     const sz = sizeOf(it), E = it.economy;
     const CELL = {
       sel: () => `<td class="c-sel"><input type="checkbox" data-sel="${n}" ${sel ? 'checked' : ''}></td>`,
-      title: () => `<td class="c-title"><div class="t"><span data-open="${n}" title="${esc(it.source.label)}">${esc(fullName(it))}</span>${srcLink(it)}</div><div class="n">${esc(V.title)}${badges.join('')}</div></td>`,
+      title: () => { const sub = V.title && V.title !== it.name ? esc(V.title) : ''; return `<td class="c-title"><div class="t"><span data-open="${n}" title="${esc(it.source.label)}">${esc(fullName(it))}</span>${srcLink(it)}</div>${sub || badges.length ? `<div class="n">${sub}${badges.join('')}</div>` : ''}</td>`; },
       verdict: () => `<td class="c-verdict"><span class="verdict ${V.verdict || 'none'}" title="${esc(V.verdict ? VER[V.verdict].hint : 'no verdict')}">${esc(verdictLabel(V.verdict))}</span></td>`,
       why: () => `<td class="c-why"><div class="pitch" title="${esc(V.pitch || V.description || '')}">${esc(V.pitch || V.description || '')}</div></td>`,
       rating: () => `<td class="num"><span class="score ${it.rating == null ? 'none' : 's' + it.rating}" title="${esc(ratingTip(it))}">${it.rating ?? '–'}</span></td>`,
@@ -633,7 +633,7 @@
     const b = $('copy'), t = b.textContent; b.textContent = 'copied ✓'; setTimeout(() => b.textContent = t, 1200);
   };
 
-  const renderHint = () => $('mode-hint').innerHTML = `The unit of installation is a plugin from the <code>${esc(MK.name)}</code> marketplace: once <code>${esc(ADD())}</code>, then <code>claude plugin install &lt;name&gt;@${esc(MK.name)}${esc(scopeFlag())}</code> for every ticked entry. ${state.scope === 'user' ? 'User scope: the plugins are available in all your projects.' : 'Project scope: the plugins are declared in <code>.claude/settings.json</code> of this repo and travel with it.'} A skill installs as its own folder, a plugin installs whole (skills, agents, hooks, MCP servers). A skill that lives inside a plugin is listed on its own and can be ticked on its own: it has no marketplace entry, so the output block copies its folder from the repo instead. A whole plugin is ticked from its header in the <b>by plugin</b> view. The version is pinned to a commit of this repo; to update — <code>claude plugin update</code>.`;
+  const renderHint = () => $('mode-hint').innerHTML = `Once: <code>${esc(ADD())}</code>. Then <code>claude plugin install &lt;name&gt;@${esc(MK.name)}${esc(scopeFlag())}</code> per ticked plugin; a ticked part of a plugin is copied by the output block instead. ${state.scope === 'user' ? 'User scope: every project of yours.' : 'Project scope: <code>.claude/settings.json</code> of this repo.'}`;
   $('foot').innerHTML = `The catalog holds every entry; the ones without a finished REVIEW.md show as unverified and stay out of the marketplace. The table lists parts, not plugins: a plugin is a grouping, ticked from its header in the <b>by plugin</b> view. Eval is the latest run of <code>python3 ui/eval.py &lt;path in lib&gt;</code>, results in <code>catalog/&lt;entry&gt;/evals/results/</code>. Token cost is measured against a typical session: ${S.turns} turns × ${fmtK(S.context_tokens)} tok of context and ${S.output_tokens} tok of output (config.json → session_model).${C.git ? '' : ' The repo is not in git: review dates and staleness are not computed.'} Catalog built ${esc(C.generated_at)}.`;
 
   function render() { renderFoldAll(); renderTable(); renderBasket(); renderHint(); }
