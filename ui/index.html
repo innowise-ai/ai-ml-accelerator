@@ -181,8 +181,6 @@
   .sel-list .v { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .sel-list button { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 0 2px; }
   .sel-list button:hover { color: var(--bad); }
-  .warn { margin-top: 8px; padding: 6px 9px; border-radius: 6px; background: var(--warn-bg); color: var(--warn); font-size: 12.5px; }
-  .warn code { background: #f7e7c8; }
   .copy { font: inherit; font-size: 12.5px; padding: 3px 10px; border: 1px solid var(--accent); border-radius: 6px; background: var(--accent); color: #fff; cursor: pointer; margin-left: auto; text-transform: none; letter-spacing: 0; }
   textarea#out { width: 100%; min-height: 220px; resize: vertical; font: 12px/1.45 var(--mono); padding: 8px; border: 1px solid var(--line); border-radius: 6px; background: #fbfaf7; color: var(--ink); }
   .foot { color: var(--muted); font-size: 12px; padding: 0 20px 20px; line-height: 1.5; }
@@ -219,7 +217,6 @@
       <div class="totals" id="totals"></div>
       <div class="bar"><div id="bar-fill"></div></div>
       <ul class="sel-list" id="sel"></ul>
-      <div id="warnings"></div>
     </div>
     <div class="panel">
       <h2>Output — one block for the agent window <button class="copy" id="copy">copy</button></h2>
@@ -563,20 +560,6 @@
   // ---- basket ----
   const selectedItems = () => [...state.selected].map(n => byKey.get(n)).filter(Boolean);
   const envOf = it => it.members.flatMap(m => m.env_required || []);
-  function warnings(sel) {
-    const w = [];
-    const sumTok = sel.reduce((s, i) => s + (i.economy.always_on || 0), 0);
-    if (sumTok > CAP_TOK) w.push(`standing cost ${sumTok} tok in every prompt is above the recommended ${CAP_TOK}: every extra entry is paid on every turn`);
-    for (const it of sel.filter(i => i.security != null && i.security <= 2)) w.push(`<code>${esc(it.name)}</code>: security ${it.security}/5 — do not install without checking`);
-    for (const it of sel.filter(i => envOf(i).length)) w.push(`<code>${esc(it.name)}</code> expects in the environment: ${envOf(it).map(v => `<code>${esc(v)}</code>`).join(', ')}`);
-    for (const it of sel.filter(i => i.economy.pct == null && !i.part)) w.push(`<code>${esc(it.name)}</code>: economy is not set in REVIEW.md, the total counts only the standing part`);
-    for (const it of sel.filter(i => i.kind !== 'plugin' && i.bundles.some(b => state.selected.has(b)))) w.push(`<code>${esc(it.name)}</code> is already part of the selected plugin ${it.bundles.filter(b => state.selected.has(b)).map(b => `<code>${esc(b)}</code>`).join(', ')} — it will be installed twice`);
-    for (const it of sel.filter(i => i.status === 'draft' && !i.part)) w.push(`<code>${esc(it.name)}</code> has no finished REVIEW.md: it is not in the marketplace, so <code>claude plugin install</code> will not find it`);
-    const prts = sel.filter(i => i.part);
-    if (prts.length) w.push(`${prts.length} ${plural(prts.length, 'entry is a part', 'parts', 'entries are parts')} of a plugin: no review and no marketplace entry of their own, the output block copies the folders from the repo`);
-    for (const it of sel.filter(i => i.flags.review_stale)) w.push(`<code>${esc(it.name)}</code>: the artifact changed after the review`);
-    return w;
-  }
   function renderBasket() {
     const sel = selectedItems();
     const sumTok = sel.reduce((s, i) => s + (i.economy.always_on || 0), 0);
@@ -592,7 +575,6 @@
     fill.className = over ? 'over' : '';
     $('sel').innerHTML = sel.map(it => `<li><span class="k">${esc(it.kind)}</span><span class="name" title="${esc(it.view.title)}">${esc(it.name)}</span><span class="v">${it.economy.always_on ? it.economy.always_on + ' tok' : ''}${it.economy.pct != null ? ` · ${fmtPct(it.economy.pct)}` : ''}</span><button data-rm="${esc(it.name)}" title="remove">×</button></li>`).join('')
       || '<li style="color:var(--muted)">empty — tick entries in the table</li>';
-    $('warnings').innerHTML = warnings(sel).map(w => `<div class="warn">⚠ ${w}</div>`).join('');
     renderOutput(sel);
   }
   $('sel').addEventListener('click', e => { const b = e.target.closest('[data-rm]'); if (!b) return; state.selected.delete(b.dataset.rm); persist(); render(); });
