@@ -91,7 +91,7 @@ def validate_entries(entries, comps):
             if m.get('missing'): err(e['where'], f"the library has no {m['kind']} \"{m['name']}\" (lib/)")
         if e['kind'] == 'plugin' and len(e['members']) == 1: warn(e['where'], f"bundle of a single part: a {e['members'][0]['kind']}-{e['members'][0]['name']} entry is simpler")
         validate_review(e)
-        if status_of(e) == 'draft': warn(e['where'], 'no finished REVIEW.md (missing file or draft: true) — the entry reaches neither the catalog nor the marketplace')
+        if status_of(e) == 'draft': warn(e['where'], 'no finished REVIEW.md (missing file or draft: true): the entry shows in the catalog as unverified and stays out of the marketplace')
 
 # ---- derived ----
 
@@ -199,7 +199,7 @@ def main():
     rebuilt = sum(1 for e in entries if materialize(e, cfg, dry=CHECK))
 
     drafts = [e for e in entries if status_of(e) == 'draft']
-    items = derive([e for e in entries if status_of(e) != 'draft'], facts, cfg)
+    items = derive(entries, facts, cfg)
     mk = marketplace(items, cfg)
     mk_text = dumps(mk)
     gh = re.search(r'github\.com/([^/]+/[^/#?]+)', str(cfg.get('repo_url') or ''))
@@ -228,7 +228,7 @@ def main():
     print(f"build: {len(items)} entries → ui/catalog.js; entries rebuilt {rebuilt}; marketplace.json {'updated' if mk_changed else 'unchanged'} ({len(mk['plugins'])} plugins)"
           + ('' if payload['git'] else ' · repo is not in git: review dates are not computed'))
     kinds = ', '.join(f"{k} {n(lambda r, k=k: r['kind'] == k)}" for k in ENTRY_KINDS)
-    print(f"  kind: {kinds}; rejected {n(lambda r: r['status'] == 'rejected')}; without a finished REVIEW.md (not in the catalog) {len(drafts)}")
+    print(f"  kind: {kinds}; rejected {n(lambda r: r['status'] == 'rejected')}; without a finished REVIEW.md (unverified) {len(drafts)}")
     print(f"  evals: with cases {n(lambda r: r['eval']['cases'])}, with a run {n(lambda r: r['eval']['latest'])}")
 
 main()

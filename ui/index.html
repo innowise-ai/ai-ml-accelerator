@@ -66,6 +66,7 @@
   .badge.rejected { color: var(--bad); border-color: #efc4bf; }
   .badge.own { color: var(--ok); border-color: #bfe0cf; }
   .badge.plugin { color: #5a4ba0; border-color: #d6d0ee; }
+  .badge.draft { color: #8a6d1f; border-color: #e8d9a8; background: #fdf8e8; }
   td.c-why .pitch { line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   .verdict { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 4px; margin-right: 6px; vertical-align: 1px; letter-spacing: 0.01em; white-space: nowrap; }
   .verdict.must-have { background: #1f5fbf; color: #fff; }
@@ -192,10 +193,11 @@
 <main class="layout">
   <section class="panel left">
     <div class="toolbar">
-      <div class="search"><input type="text" id="f-q" placeholder="search or @bundle"><button id="f-clear" title="clear" hidden>×</button></div>
+      <div class="search"><input type="text" id="f-q" placeholder="search or @plugin"><button id="f-clear" title="clear" hidden>×</button></div>
       <div class="chips" id="kinds"></div>
       <div class="chips" id="verdicts"></div>
-      <div class="chips" id="group" title="group rows by kind or by bundle"></div>
+      <div class="chips" id="verified"></div>
+      <div class="chips" id="group" title="group rows by kind or by plugin"></div>
       <div class="colpick"><button id="cols-btn" title="which columns to show">Columns ▾</button><div class="pop" id="cols-pop" hidden></div></div>
     </div>
     <div class="tablewrap"><table class="grid"><colgroup id="cols"></colgroup><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
@@ -245,11 +247,11 @@
   const state = {
     selected: new Set(ls.get('acb.selected2', []).filter(n => byName.has(n))),
     open: new Set(), scope: ls.get('acb.scope', 'user'),
-    sort: ls.get('acb.sort2', { key: 'default', dir: -1 }), kind: 'all', verdicts: new Set(), q: '', group: ls.get('acb.group', 'kind'),
+    sort: ls.get('acb.sort2', { key: 'default', dir: -1 }), kind: 'all', verdicts: new Set(), q: '', group: ls.get('acb.group', 'kind'), verified: ls.get('acb.verified', true),
     cols: new Set(ls.get('acb.cols5', DEFAULT_COLS).filter(k => OPTIONAL_COLS.includes(k))),
   };
   if (!['default', 'title', ...OPTIONAL_COLS].includes(state.sort.key)) state.sort = { key: 'default', dir: -1 };
-  const persist = () => { ls.set('acb.selected2', [...state.selected]); ls.set('acb.sort2', state.sort); ls.set('acb.scope', state.scope); ls.set('acb.cols5', [...state.cols]); ls.set('acb.group', state.group); };
+  const persist = () => { ls.set('acb.selected2', [...state.selected]); ls.set('acb.sort2', state.sort); ls.set('acb.scope', state.scope); ls.set('acb.cols5', [...state.cols]); ls.set('acb.group', state.group); ls.set('acb.verified', state.verified); };
 
   // ---- utils ----
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -275,7 +277,7 @@
     if (it.kind === 'agent') return `agent system prompt ≈ ${fmtK(m.tokens_body)} tok`;
     if (it.kind === 'mcp') return 'MCP tool schemas are not measured — see the review text';
     if (it.kind === 'hook') return 'a hook never enters the context';
-    return 'size is not counted for a bundle — see its contents';
+    return 'size is not counted for a plugin: see its contents';
   }
   // minimal markdown for REVIEW.md: paragraphs, `- ` lists, `## headings`, **bold**, `code`
   function md(text) {
@@ -295,7 +297,10 @@
   $('verdicts').innerHTML = Object.entries(VER).filter(([v]) => v !== 'no').map(([v, o]) => `<button data-verdict="${v}" title="${esc(o.hint)}">${esc(o.label)}</button>`).join('');
   $('kinds').onclick = e => { const b = e.target.closest('[data-kind]'); if (!b) return; state.kind = b.dataset.kind; $('kinds').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); render(); };
   $('verdicts').onclick = e => { const b = e.target.closest('[data-verdict]'); if (!b) return; const v = b.dataset.verdict; state.verdicts.has(v) ? state.verdicts.delete(v) : state.verdicts.add(v); b.classList.toggle('on'); render(); };
-  const GROUPS = [['kind', 'by kind'], ['plugin', 'by bundle']];
+  const renderVerified = () => $('verified').innerHTML = `<button data-verified class="${state.verified ? 'on' : ''}" title="show only entries with a finished REVIEW.md">✅ verified</button>`;
+  renderVerified();
+  $('verified').onclick = e => { if (!e.target.closest('[data-verified]')) return; state.verified = !state.verified; renderVerified(); persist(); render(); };
+  const GROUPS = [['kind', 'by kind'], ['plugin', 'by plugin']];
   $('group').innerHTML = GROUPS.map(([g, l]) => `<button data-group="${g}" class="${state.group === g ? 'on' : ''}">${l}</button>`).join('');
   $('group').onclick = e => { const b = e.target.closest('[data-group]'); if (!b) return; state.group = b.dataset.group; $('group').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); persist(); render(); };
   const SCOPES = [['user', 'globally (user)'], ['project', 'this project']];
@@ -305,6 +310,7 @@
   $('f-clear').onclick = () => { state.q = ''; $('f-q').value = ''; $('f-clear').hidden = true; render(); };
 
   function visible(it) {
+    if (state.verified && it.status !== 'reviewed') return false;
     if (state.kind !== 'all' && it.kind !== state.kind) return false;
     if (state.verdicts.size && !state.verdicts.has(it.view.verdict)) return false;
     if (state.q) {
@@ -391,9 +397,10 @@
   function rowHtml(it, nCols) {
     const n = esc(it.name), V = it.view, sel = state.selected.has(it.name), open = state.open.has(it.name);
     const badges = [];
-    if (it.kind === 'plugin') badges.push(`<span class="badge plugin" title="bundle of ${it.members.length} parts">bundle · ${it.members.length}</span>`);
+    if (it.kind === 'plugin') badges.push(`<span class="badge plugin" title="plugin of ${it.members.length} parts">plugin · ${it.members.length}</span>`);
     if (it.flags.own && it.kind !== 'plugin') badges.push('<span class="badge own" title="artifact of this repo">own</span>');
     if (it.status === 'rejected') badges.push('<span class="badge rejected">rejected</span>');
+    if (it.status === 'draft') badges.push('<span class="badge draft" title="no finished REVIEW.md: not reviewed and not in the marketplace">unverified</span>');
     const sz = sizeOf(it), E = it.economy;
     const CELL = {
       sel: () => `<td class="c-sel"><input type="checkbox" data-sel="${n}" ${sel ? 'checked' : ''}></td>`,
@@ -446,10 +453,10 @@
     parts.push(`<p class="line" style="margin-top:14px">${line.join('<span class="sep">·</span>')}</p>`);
     return `<tr class="detail"><td colspan="${nCols}"><div class="dcol">${parts.join('')}</div></td></tr>`;
   }
-  // bundle header in "by bundle" mode: the checkbox selects the whole bundle
+  // plugin header in "by plugin" mode: the checkbox selects the whole plugin
   function pluginHead(p, nRows, nAll, nCols) {
     const sel = state.selected.has(p.name);
-    return `<tr class="kind ph"><td colspan="${nCols}"><div class="ph-row"><input type="checkbox" data-sel="${esc(p.name)}" ${sel ? 'checked' : ''} title="${sel ? 'clear the bundle' : 'select the whole bundle'}"><span class="ph-name" data-open="${esc(p.name)}">${esc(p.name)}</span><span class="verdict ${p.view.verdict || 'none'}">${esc(verdictLabel(p.view.verdict))}</span><span class="ph-pitch" title="${esc(p.view.pitch || '')}">${esc(p.view.pitch || '')}</span><span class="gm">${p.members.length} ${plural(p.members.length, 'part', 'parts', 'parts')}${nRows !== nAll ? ` · ${nRows} shown` : ''}</span></div></td></tr>`;
+    return `<tr class="kind ph"><td colspan="${nCols}"><div class="ph-row"><input type="checkbox" data-sel="${esc(p.name)}" ${sel ? 'checked' : ''} title="${sel ? 'clear the plugin' : 'select the whole plugin'}"><span class="ph-name" data-open="${esc(p.name)}">${esc(p.name)}</span><span class="verdict ${p.view.verdict || 'none'}">${esc(verdictLabel(p.view.verdict))}</span><span class="ph-pitch" title="${esc(p.view.pitch || '')}">${esc(p.view.pitch || '')}</span><span class="gm">${p.members.length} ${plural(p.members.length, 'part', 'parts', 'parts')}${nRows !== nAll ? ` · ${nRows} shown` : ''}</span></div></td></tr>`;
   }
   const soloOf = (m, list) => list.find(i => i.kind !== 'plugin' && i.members.length === 1 && i.members[0].kind === m.kind && i.members[0].name === m.name);
 
@@ -469,7 +476,7 @@
         html += pluginHead(p, rows.length, ms.length, nCols) + (state.open.has(p.name) ? detailHtml(p, nCols) : '') + rows.map(it => rowHtml(it, nCols)).join('');
       }
       const rest = sorted(items.filter(i => i.kind !== 'plugin' && !inSome.has(i.name) && visible(i)));
-      if (rest.length) { shown += rest.length; html += `<tr class="kind"><td colspan="${nCols}">Not in a bundle<span class="gm">${rest.length}</span></td></tr>` + rest.map(it => rowHtml(it, nCols)).join(''); }
+      if (rest.length) { shown += rest.length; html += `<tr class="kind"><td colspan="${nCols}">Not in a plugin<span class="gm">${rest.length}</span></td></tr>` + rest.map(it => rowHtml(it, nCols)).join(''); }
     } else {
     const groups = state.kind === 'all' ? C.kinds : C.kinds.filter(k => k.kind === state.kind);
     for (const { kind, label } of groups) {
@@ -511,7 +518,8 @@
     for (const it of sel.filter(i => i.security != null && i.security <= 2)) w.push(`<code>${esc(it.name)}</code>: security ${it.security}/5 — do not install without checking`);
     for (const it of sel.filter(i => envOf(i).length)) w.push(`<code>${esc(it.name)}</code> expects in the environment: ${envOf(it).map(v => `<code>${esc(v)}</code>`).join(', ')}`);
     for (const it of sel.filter(i => i.economy.pct == null)) w.push(`<code>${esc(it.name)}</code>: economy is not set in REVIEW.md, the total counts only the standing part`);
-    for (const it of sel.filter(i => i.kind !== 'plugin' && i.bundles.some(b => state.selected.has(b)))) w.push(`<code>${esc(it.name)}</code> is already part of the selected bundle ${it.bundles.filter(b => state.selected.has(b)).map(b => `<code>${esc(b)}</code>`).join(', ')} — it will be installed twice`);
+    for (const it of sel.filter(i => i.kind !== 'plugin' && i.bundles.some(b => state.selected.has(b)))) w.push(`<code>${esc(it.name)}</code> is already part of the selected plugin ${it.bundles.filter(b => state.selected.has(b)).map(b => `<code>${esc(b)}</code>`).join(', ')} — it will be installed twice`);
+    for (const it of sel.filter(i => i.status === 'draft')) w.push(`<code>${esc(it.name)}</code> has no finished REVIEW.md: it is not in the marketplace, so <code>claude plugin install</code> will not find it`);
     for (const it of sel.filter(i => i.flags.review_stale)) w.push(`<code>${esc(it.name)}</code>: the artifact changed after the review`);
     return w;
   }
@@ -548,7 +556,7 @@
     const envs = [...new Set(s.flatMap(envOf))];
     if (envs.length) lines.push(`   Before that, the environment must have: ${envs.join(', ')}.`);
     lines.push('', '2. Add a "When to use" section to the project CLAUDE.md:');
-    for (const it of s.filter(i => i.kind !== 'hook')) lines.push(`   - ${it.name} (${it.kind === 'plugin' ? 'bundle: ' + it.members.map(m => m.name).join(', ') : it.kind}) — ${it.view.pitch || it.view.description || ''}`);
+    for (const it of s.filter(i => i.kind !== 'hook')) lines.push(`   - ${it.name} (${it.kind === 'plugin' ? 'plugin: ' + it.members.map(m => m.name).join(', ') : it.kind}) — ${it.view.pitch || it.view.description || ''}`);
     lines.push('', '3. Restart the Claude Code session: plugins, hooks and MCP servers take effect after a restart.');
     out.value = lines.join('\n');
   }
@@ -558,7 +566,7 @@
     const b = $('copy'), t = b.textContent; b.textContent = 'copied ✓'; setTimeout(() => b.textContent = t, 1200);
   };
 
-  const renderHint = () => $('mode-hint').innerHTML = `The unit of installation is a plugin from the <code>${esc(MK.name)}</code> marketplace: once <code>${esc(ADD())}</code>, then <code>claude plugin install &lt;name&gt;@${esc(MK.name)}${esc(scopeFlag())}</code> for every ticked entry. ${state.scope === 'user' ? 'User scope: the plugins are available in all your projects.' : 'Project scope: the plugins are declared in <code>.claude/settings.json</code> of this repo and travel with it.'} A skill installs as its own folder, a bundle installs whole (skills, agents, hooks, MCP servers). The version is pinned to a commit of this repo; to update — <code>claude plugin update</code>.`;
+  const renderHint = () => $('mode-hint').innerHTML = `The unit of installation is a plugin from the <code>${esc(MK.name)}</code> marketplace: once <code>${esc(ADD())}</code>, then <code>claude plugin install &lt;name&gt;@${esc(MK.name)}${esc(scopeFlag())}</code> for every ticked entry. ${state.scope === 'user' ? 'User scope: the plugins are available in all your projects.' : 'Project scope: the plugins are declared in <code>.claude/settings.json</code> of this repo and travel with it.'} A skill installs as its own folder, a plugin installs whole (skills, agents, hooks, MCP servers). The version is pinned to a commit of this repo; to update — <code>claude plugin update</code>.`;
   $('foot').innerHTML = `The catalog holds entries with a finished REVIEW.md; drafts never reach it — <code>python3 ui/build.py</code> lists them. Eval is the latest run of <code>python3 ui/eval.py &lt;path in lib&gt;</code>, results in <code>catalog/&lt;entry&gt;/evals/results/</code>. Token cost is measured against a typical session: ${S.turns} turns × ${fmtK(S.context_tokens)} tok of context and ${S.output_tokens} tok of output (config.json → session_model).${C.git ? '' : ' The repo is not in git: review dates and staleness are not computed.'} Catalog built ${esc(C.generated_at)}.`;
 
   function render() { renderTable(); renderBasket(); renderHint(); }
