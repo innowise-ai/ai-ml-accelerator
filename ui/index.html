@@ -66,6 +66,9 @@
   .badge.rejected { color: var(--bad); border-color: #efc4bf; }
   .badge.own { color: var(--ok); border-color: #bfe0cf; }
   .badge.plugin { color: #5a4ba0; border-color: #d6d0ee; }
+  .badge.part { color: var(--muted); border-color: var(--line); }
+  .ph-row .fold { background: none; border: 0; cursor: pointer; color: var(--ink); font: inherit; font-size: 13px; line-height: 1; width: 18px; padding: 3px 0; border-radius: 4px; text-align: center; }
+  .ph-row .fold:hover { background: var(--line); color: var(--ink); }
   .badge.draft { color: #8a6d1f; border-color: #e8d9a8; background: #fdf8e8; }
   td.c-why .pitch { line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   .verdict { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 4px; margin-right: 6px; vertical-align: 1px; letter-spacing: 0.01em; white-space: nowrap; }
@@ -236,6 +239,26 @@
   const ADD = () => ADD_BASE + scopeFlag();
   const CAP_TOK = 1500;                      // recommended cap on the standing cost of the selection, tok in every prompt
   const byName = new Map(items.map(i => [i.name, i]));
+  // a plugin member with no catalog entry of its own becomes a "part" row: it can be ticked on its own
+  const soloOf = (m, list) => list.find(i => i.kind !== 'plugin' && i.members.length === 1 && i.members[0].kind === m.kind && i.members[0].name === m.name);
+  const partKey = (kind, name) => `part:${kind}/${name}`;
+  const partItems = new Map();
+  for (const p of items.filter(i => i.kind === 'plugin')) for (const m of p.members) {
+    const k = partKey(m.kind, m.name);
+    if (soloOf(m, items) || partItems.has(k)) continue;
+    partItems.set(k, {
+      id: k, kind: m.kind, name: m.name, dir: m.path, part: true, parent: p.name, status: p.status,
+      members: [m], bundles: [p.name], review: null,
+      view: { title: m.name, verdict: null, pitch: null, sections: [], description: m.description, category: null, tags: [] },
+      rating: null, size: m.tokens_body ?? null, security: null,
+      economy: { pct: null, idle_pct: null, always_on: m.tokens_meta ?? 0 },
+      eval: { cases: [], runs: [], latest: null, cmd: '' },
+      flags: { official: false, own: false, review_stale: false, in_git: false },
+      reviewed_at: null, source: p.source, install: { id: null, cmd: null, try: null }, artifact: null,
+    });
+  }
+  const byKey = new Map([...items.map(i => [i.name, i]), ...partItems]);
+  const selKey = it => it.part ? partKey(it.kind, it.name) : it.name;
   const VERDICT_ORDER = Object.fromEntries(Object.keys(VER).map((v, i) => [v, i]));
   const OPTIONAL_COLS = ['verdict', 'why', 'rating', 'security', 'econ', 'eval', 'size', 'folder', 'rev'];
   const DEFAULT_COLS = OPTIONAL_COLS.filter(k => k !== 'rev');
@@ -245,13 +268,13 @@
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
   };
   const state = {
-    selected: new Set(ls.get('acb.selected2', []).filter(n => byName.has(n))),
+    selected: new Set(ls.get('acb.selected2', []).filter(n => byKey.has(n))),
     open: new Set(), scope: ls.get('acb.scope', 'user'),
-    sort: ls.get('acb.sort2', { key: 'default', dir: -1 }), kind: 'all', verdicts: new Set(), q: '', group: ls.get('acb.group', 'kind'), verified: ls.get('acb.verified', true),
+    sort: ls.get('acb.sort2', { key: 'default', dir: -1 }), kind: 'all', verdicts: new Set(), q: '', group: ls.get('acb.group', 'kind'), verified: ls.get('acb.verified', true), collapsed: new Set(ls.get('acb.collapsed', [])),
     cols: new Set(ls.get('acb.cols5', DEFAULT_COLS).filter(k => OPTIONAL_COLS.includes(k))),
   };
   if (!['default', 'title', ...OPTIONAL_COLS].includes(state.sort.key)) state.sort = { key: 'default', dir: -1 };
-  const persist = () => { ls.set('acb.selected2', [...state.selected]); ls.set('acb.sort2', state.sort); ls.set('acb.scope', state.scope); ls.set('acb.cols5', [...state.cols]); ls.set('acb.group', state.group); ls.set('acb.verified', state.verified); };
+  const persist = () => { ls.set('acb.selected2', [...state.selected]); ls.set('acb.sort2', state.sort); ls.set('acb.scope', state.scope); ls.set('acb.cols5', [...state.cols]); ls.set('acb.group', state.group); ls.set('acb.verified', state.verified); ls.set('acb.collapsed', [...state.collapsed]); };
 
   // ---- utils ----
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -388,19 +411,22 @@
   }
   function revCell(it) {
     if (it.status === 'rejected') return `<td class="c-rev"><span class="bad" title="rejected by the reviewer (verdict no)">rejected</span></td>`;
-    if (!it.reviewed_at) return `<td class="c-rev"><span class="none" title="${C.git ? 'REVIEW.md not committed yet' : 'repo is not in git — date unknown'}">yes</span></td>`;
+    if (it.part) return `<td class="c-rev"><span class="none" title="a part is reviewed together with its plugin">–</span></td>`;
+    if (it.status === 'draft') return `<td class="c-rev"><span class="none" title="no finished REVIEW.md">no</span></td>`;
+    if (!it.reviewed_at) return `<td class="c-rev"><span class="none" title="${C.git ? 'REVIEW.md not committed yet' : 'repo is not in git: date unknown'}">yes</span></td>`;
     return `<td class="c-rev" title="last REVIEW.md commit ${esc(it.reviewed_at)}${it.flags.review_stale ? '; the artifact changed after it' : ''}">${esc(it.reviewed_at)}${it.flags.review_stale ? ' <span class="stale" title="artifact changed after the review">⟳</span>' : ''}</td>`;
   }
   const bundleChip = n => `<span class="bchip" data-bundle="${esc(n)}" title="${esc(byName.get(n)?.view.pitch || n)}">${esc(n)}</span>`;
   const srcLink = it => `<a class="src" href="${esc(it.source.url)}" target="_blank" rel="noopener" title="${esc(it.source.own ? 'file in this repo: ' + it.source.label : 'source: ' + it.source.label)}">↗</a>`;
 
   function rowHtml(it, nCols) {
-    const n = esc(it.name), V = it.view, sel = state.selected.has(it.name), open = state.open.has(it.name);
+    const key = selKey(it), n = esc(key), V = it.view, sel = state.selected.has(key), open = state.open.has(key);
     const badges = [];
     if (it.kind === 'plugin') badges.push(`<span class="badge plugin" title="plugin of ${it.members.length} parts">plugin · ${it.members.length}</span>`);
     if (it.flags.own && it.kind !== 'plugin') badges.push('<span class="badge own" title="artifact of this repo">own</span>');
     if (it.status === 'rejected') badges.push('<span class="badge rejected">rejected</span>');
-    if (it.status === 'draft') badges.push('<span class="badge draft" title="no finished REVIEW.md: not reviewed and not in the marketplace">unverified</span>');
+    if (it.status === 'draft' && !it.part) badges.push('<span class="badge draft" title="no finished REVIEW.md: not reviewed and not in the marketplace">unverified</span>');
+    if (it.part) badges.push(`<span class="badge part" title="part of plugin ${esc(it.parent)}: installs by copying the folder, not from the marketplace">part of ${esc(it.parent)}</span>`);
     const sz = sizeOf(it), E = it.economy;
     const CELL = {
       sel: () => `<td class="c-sel"><input type="checkbox" data-sel="${n}" ${sel ? 'checked' : ''}></td>`,
@@ -442,7 +468,7 @@
     const V = it.view, parts = [];
     parts.push(md(V.pitch || V.description || '').replace('<p>', '<p class="lead">'));
     for (const x of V.sections || []) parts.push(`${x.title ? `<h4>${esc(x.title)}</h4>` : ''}${md(x.text)}`);
-    parts.push(evalHtml(it));
+    if (!it.part) parts.push(evalHtml(it));
     if (it.kind === 'plugin') parts.push(`<h4>Contents</h4><ul class="members">${it.members.map(m => { const solo = items.find(x => x.members.length === 1 && x.members[0].kind === m.kind && x.members[0].name === m.name); return `<li><span class="k">${esc(m.kind)}</span><span class="name" ${solo ? `data-open="${esc(solo.name)}"` : ''} title="${esc(m.path)}">${esc(m.name)}</span>${solo ? `<span class="verdict ${solo.view.verdict || 'none'}">${esc(verdictLabel(solo.view.verdict))}</span>` : ''}${chips(memberChips(m))}</li>`; }).join('')}</ul>`);
     else parts.push(`<h4>What's inside</h4>${chips(memberChips(it.members[0]))}`);
     const line = [`${it.source.own ? 'Own: ' : 'Source: '}<a href="${esc(it.source.url)}" target="_blank" rel="noopener">${esc(it.source.label)}</a>`];
@@ -455,11 +481,9 @@
   }
   // plugin header in "by plugin" mode: the checkbox selects the whole plugin
   function pluginHead(p, nRows, nAll, nCols) {
-    const sel = state.selected.has(p.name);
-    return `<tr class="kind ph"><td colspan="${nCols}"><div class="ph-row"><input type="checkbox" data-sel="${esc(p.name)}" ${sel ? 'checked' : ''} title="${sel ? 'clear the plugin' : 'select the whole plugin'}"><span class="ph-name" data-open="${esc(p.name)}">${esc(p.name)}</span><span class="verdict ${p.view.verdict || 'none'}">${esc(verdictLabel(p.view.verdict))}</span><span class="ph-pitch" title="${esc(p.view.pitch || '')}">${esc(p.view.pitch || '')}</span><span class="gm">${p.members.length} ${plural(p.members.length, 'part', 'parts', 'parts')}${nRows !== nAll ? ` · ${nRows} shown` : ''}</span></div></td></tr>`;
+    const sel = state.selected.has(p.name), fold = state.collapsed.has(p.name);
+    return `<tr class="kind ph"><td colspan="${nCols}"><div class="ph-row"><input type="checkbox" data-sel="${esc(p.name)}" ${sel ? 'checked' : ''} title="${sel ? 'clear the plugin' : 'select the whole plugin'}"><button class="fold" data-fold="${esc(p.name)}" title="${fold ? 'expand the plugin' : 'collapse the plugin'}">${fold ? '▸' : '▾'}</button><span class="ph-name" data-open="${esc(p.name)}">${esc(p.name)}</span><span class="verdict ${p.view.verdict || 'none'}">${esc(verdictLabel(p.view.verdict))}</span><span class="ph-pitch" title="${esc(p.view.pitch || '')}">${esc(p.view.pitch || '')}</span><span class="gm">${p.members.length} ${plural(p.members.length, 'part', 'parts', 'parts')}${nRows !== nAll ? ` · ${nRows} shown` : ''}</span></div></td></tr>`;
   }
-  const soloOf = (m, list) => list.find(i => i.kind !== 'plugin' && i.members.length === 1 && i.members[0].kind === m.kind && i.members[0].name === m.name);
-
   function renderTable() {
     renderHead();
     const nCols = cols().length;
@@ -468,12 +492,13 @@
     if (state.group === 'plugin') {
       const inSome = new Set();
       for (const p of items.filter(i => i.kind === 'plugin')) {
-        const ms = p.members.map(m => soloOf(m, items)).filter(Boolean);
-        ms.forEach(i => inSome.add(i.name));
+        const ms = p.members.map(m => soloOf(m, items) || partItems.get(partKey(m.kind, m.name))).filter(Boolean);
+        ms.forEach(i => { if (!i.part) inSome.add(i.name); });
         const rows = sorted(ms.filter(visible));
         if (!rows.length && !visible(p)) continue;
-        shown += rows.length;
-        html += pluginHead(p, rows.length, ms.length, nCols) + (state.open.has(p.name) ? detailHtml(p, nCols) : '') + rows.map(it => rowHtml(it, nCols)).join('');
+        const fold = state.collapsed.has(p.name);
+        if (!fold) shown += rows.length;
+        html += pluginHead(p, rows.length, ms.length, nCols) + (state.open.has(p.name) ? detailHtml(p, nCols) : '') + (fold ? '' : rows.map(it => rowHtml(it, nCols)).join(''));
       }
       const rest = sorted(items.filter(i => i.kind !== 'plugin' && !inSome.has(i.name) && visible(i)));
       if (rest.length) { shown += rest.length; html += `<tr class="kind"><td colspan="${nCols}">Not in a plugin<span class="gm">${rest.length}</span></td></tr>` + rest.map(it => rowHtml(it, nCols)).join(''); }
@@ -501,6 +526,8 @@
   });
   $('tbody').addEventListener('click', e => {
     if (e.target.matches('input[data-sel]')) { const n = e.target.dataset.sel; e.target.checked ? state.selected.add(n) : state.selected.delete(n); persist(); render(); return; }
+    const fl = e.target.closest('[data-fold]');
+    if (fl) { const n = fl.dataset.fold; state.collapsed.has(n) ? state.collapsed.delete(n) : state.collapsed.add(n); persist(); renderTable(); return; }
     const bc = e.target.closest('[data-bundle]');
     if (bc) { state.q = '@' + bc.dataset.bundle; $('f-q').value = state.q; $('f-clear').hidden = false; render(); return; }
     if (e.target.closest('a')) return;
@@ -509,7 +536,7 @@
   });
 
   // ---- basket ----
-  const selectedItems = () => [...state.selected].map(n => byName.get(n)).filter(Boolean);
+  const selectedItems = () => [...state.selected].map(n => byKey.get(n)).filter(Boolean);
   const envOf = it => it.members.flatMap(m => m.env_required || []);
   function warnings(sel) {
     const w = [];
@@ -517,9 +544,11 @@
     if (sumTok > CAP_TOK) w.push(`standing cost ${sumTok} tok in every prompt is above the recommended ${CAP_TOK}: every extra entry is paid on every turn`);
     for (const it of sel.filter(i => i.security != null && i.security <= 2)) w.push(`<code>${esc(it.name)}</code>: security ${it.security}/5 — do not install without checking`);
     for (const it of sel.filter(i => envOf(i).length)) w.push(`<code>${esc(it.name)}</code> expects in the environment: ${envOf(it).map(v => `<code>${esc(v)}</code>`).join(', ')}`);
-    for (const it of sel.filter(i => i.economy.pct == null)) w.push(`<code>${esc(it.name)}</code>: economy is not set in REVIEW.md, the total counts only the standing part`);
+    for (const it of sel.filter(i => i.economy.pct == null && !i.part)) w.push(`<code>${esc(it.name)}</code>: economy is not set in REVIEW.md, the total counts only the standing part`);
     for (const it of sel.filter(i => i.kind !== 'plugin' && i.bundles.some(b => state.selected.has(b)))) w.push(`<code>${esc(it.name)}</code> is already part of the selected plugin ${it.bundles.filter(b => state.selected.has(b)).map(b => `<code>${esc(b)}</code>`).join(', ')} — it will be installed twice`);
-    for (const it of sel.filter(i => i.status === 'draft')) w.push(`<code>${esc(it.name)}</code> has no finished REVIEW.md: it is not in the marketplace, so <code>claude plugin install</code> will not find it`);
+    for (const it of sel.filter(i => i.status === 'draft' && !i.part)) w.push(`<code>${esc(it.name)}</code> has no finished REVIEW.md: it is not in the marketplace, so <code>claude plugin install</code> will not find it`);
+    const prts = sel.filter(i => i.part);
+    if (prts.length) w.push(`${prts.length} ${plural(prts.length, 'entry is a part', 'parts', 'entries are parts')} of a plugin: no review and no marketplace entry of their own, the output block copies the folders from the repo`);
     for (const it of sel.filter(i => i.flags.review_stale)) w.push(`<code>${esc(it.name)}</code>: the artifact changed after the review`);
     return w;
   }
@@ -530,7 +559,7 @@
     const partial = sel.filter(i => i.economy.pct == null).length;
     const over = sumTok > CAP_TOK;
     $('totals').innerHTML = `
-      <div class="kpi"><b>${sel.length}</b><span>${sel.length === 1 ? 'plugin' : 'plugins'}</span></div>
+      <div class="kpi"><b>${sel.length}</b><span>${sel.length === 1 ? 'entry' : 'entries'}</span></div>
       <div class="kpi ${over ? 'over' : ''}" title="skill and agent descriptions ride along in every prompt; recommended cap ${CAP_TOK}"><b>${sumTok}</b><span>tok in every prompt</span></div>
       <div class="kpi ${sumPct <= -1 ? 'save' : sumPct >= 5 ? 'cost' : ''}" title="sum of the entry estimates over a typical session (${S.turns} turns × ${fmtK(S.context_tokens)} tok)${partial ? `; ${partial} entries have only the standing part` : ''}"><b>${sel.length ? (partial ? '≥ ' : '≈ ') + fmtPct(sumPct) : '–'}</b><span>tokens per session</span></div>`;
     const fill = $('bar-fill');
@@ -544,20 +573,32 @@
   $('sel').addEventListener('click', e => { const b = e.target.closest('[data-rm]'); if (!b) return; state.selected.delete(b.dataset.rm); persist(); render(); });
 
   // ---- output ----
+  const REPO_URL = `https://github.com/${C.marketplace.repo}`;
+  const REPO_DIR = String(C.marketplace.repo || 'repo').split('/').pop();
   function renderOutput(sel) {
     const out = $('out');
     if (!sel.length) { out.value = ''; out.placeholder = 'Select entries — the block to paste into the agent window will appear here.'; return; }
     const order = { skill: 0, agent: 1, mcp: 2, hook: 3, plugin: 4 };
     const s = [...sel].sort((a, b) => order[a.kind] - order[b.kind] || a.name.localeCompare(b.name));
+    const inst = s.filter(i => !i.part), prt = s.filter(i => i.part);
+    const dest = state.scope === 'user' ? '~/.claude/skills/' : '.claude/skills/';
     const lines = ['Set up the context for this project.', ''];
-    lines.push('1. Run in the project root (the marketplace is added once):');
-    lines.push(`   ${ADD()}`);
-    for (const it of s) lines.push(`   ${it.install.cmd}${scopeFlag()}`);
-    const envs = [...new Set(s.flatMap(envOf))];
-    if (envs.length) lines.push(`   Before that, the environment must have: ${envs.join(', ')}.`);
-    lines.push('', '2. Add a "When to use" section to the project CLAUDE.md:');
-    for (const it of s.filter(i => i.kind !== 'hook')) lines.push(`   - ${it.name} (${it.kind === 'plugin' ? 'plugin: ' + it.members.map(m => m.name).join(', ') : it.kind}) — ${it.view.pitch || it.view.description || ''}`);
-    lines.push('', '3. Restart the Claude Code session: plugins, hooks and MCP servers take effect after a restart.');
+    let step = 0;
+    if (inst.length) {
+      lines.push(`${++step}. Run in the project root (the marketplace is added once):`);
+      lines.push(`   ${ADD()}`);
+      for (const it of inst) lines.push(`   ${it.install.cmd}${scopeFlag()}`);
+      const envs = [...new Set(inst.flatMap(envOf))];
+      if (envs.length) lines.push(`   Before that, the environment must have: ${envs.join(', ')}.`);
+    }
+    if (prt.length) {
+      if (step) lines.push('');
+      lines.push(`${++step}. These are parts of a plugin, not marketplace entries: take them out of ${REPO_DIR} (git clone ${REPO_URL}) one by one.`);
+      for (const it of prt) lines.push(it.kind === 'skill' ? `   cp -R ${REPO_DIR}/${it.dir} ${dest}` : `   ${it.kind} ${it.name}: ${REPO_DIR}/${it.dir}`);
+    }
+    lines.push('', `${++step}. Add a "When to use" section to the project CLAUDE.md:`);
+    for (const it of s.filter(i => i.kind !== 'hook')) lines.push(`   - ${it.name} (${it.kind === 'plugin' ? 'plugin: ' + it.members.map(m => m.name).join(', ') : it.part ? it.kind + ' from ' + it.parent : it.kind}) – ${it.view.pitch || it.view.description || ''}`);
+    lines.push('', `${++step}. Restart the Claude Code session: plugins, hooks and MCP servers take effect after a restart.`);
     out.value = lines.join('\n');
   }
   $('copy').onclick = async () => {
@@ -566,8 +607,8 @@
     const b = $('copy'), t = b.textContent; b.textContent = 'copied ✓'; setTimeout(() => b.textContent = t, 1200);
   };
 
-  const renderHint = () => $('mode-hint').innerHTML = `The unit of installation is a plugin from the <code>${esc(MK.name)}</code> marketplace: once <code>${esc(ADD())}</code>, then <code>claude plugin install &lt;name&gt;@${esc(MK.name)}${esc(scopeFlag())}</code> for every ticked entry. ${state.scope === 'user' ? 'User scope: the plugins are available in all your projects.' : 'Project scope: the plugins are declared in <code>.claude/settings.json</code> of this repo and travel with it.'} A skill installs as its own folder, a plugin installs whole (skills, agents, hooks, MCP servers). The version is pinned to a commit of this repo; to update — <code>claude plugin update</code>.`;
-  $('foot').innerHTML = `The catalog holds entries with a finished REVIEW.md; drafts never reach it — <code>python3 ui/build.py</code> lists them. Eval is the latest run of <code>python3 ui/eval.py &lt;path in lib&gt;</code>, results in <code>catalog/&lt;entry&gt;/evals/results/</code>. Token cost is measured against a typical session: ${S.turns} turns × ${fmtK(S.context_tokens)} tok of context and ${S.output_tokens} tok of output (config.json → session_model).${C.git ? '' : ' The repo is not in git: review dates and staleness are not computed.'} Catalog built ${esc(C.generated_at)}.`;
+  const renderHint = () => $('mode-hint').innerHTML = `The unit of installation is a plugin from the <code>${esc(MK.name)}</code> marketplace: once <code>${esc(ADD())}</code>, then <code>claude plugin install &lt;name&gt;@${esc(MK.name)}${esc(scopeFlag())}</code> for every ticked entry. ${state.scope === 'user' ? 'User scope: the plugins are available in all your projects.' : 'Project scope: the plugins are declared in <code>.claude/settings.json</code> of this repo and travel with it.'} A skill installs as its own folder, a plugin installs whole (skills, agents, hooks, MCP servers). Group the table <b>by plugin</b> to tick single skills out of different plugins: a part has no marketplace entry, so the output block copies its folder from the repo instead. The version is pinned to a commit of this repo; to update — <code>claude plugin update</code>.`;
+  $('foot').innerHTML = `The catalog holds every entry; the ones without a finished REVIEW.md show as unverified and stay out of the marketplace. Group <b>by plugin</b> to tick single parts of a plugin. Eval is the latest run of <code>python3 ui/eval.py &lt;path in lib&gt;</code>, results in <code>catalog/&lt;entry&gt;/evals/results/</code>. Token cost is measured against a typical session: ${S.turns} turns × ${fmtK(S.context_tokens)} tok of context and ${S.output_tokens} tok of output (config.json → session_model).${C.git ? '' : ' The repo is not in git: review dates and staleness are not computed.'} Catalog built ${esc(C.generated_at)}.`;
 
   function render() { renderTable(); renderBasket(); renderHint(); }
   render();
