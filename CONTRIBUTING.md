@@ -13,6 +13,10 @@ with the PR exactly as `python3 ui/build.py` left them and are never edited by h
 and `.claude-plugin/marketplace.json`. The rest — `ui/`, `template/`, `config.json` — is build code
 shared by every entry; if it has to change, that is a separate PR with its own reason.
 
+Never push a `REVIEW.md` you have not read. `ui/eval.py` drops a template into every new entry; a
+template that reaches a PR looks like a review and is not one. Write it before you push, or delete
+the file — an entry with no `REVIEW.md` is the honest state, and the build already reports it.
+
 ## Steps
 
 ```mermaid
