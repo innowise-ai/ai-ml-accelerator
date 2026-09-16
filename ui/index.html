@@ -154,6 +154,7 @@
   tr.kind.ph td { padding: 8px 12px; }
   .ph-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
   .ph-row input { position: relative; top: 2px; }
+  .ph-row .sp { display: inline-block; width: 13px; }
   .ph-name { font-family: var(--mono); font-size: 13px; cursor: pointer; }
   .ph-name:hover { color: var(--accent); }
   .ph-pitch { color: var(--muted); font-weight: 400; flex: 1 1 240px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -201,6 +202,7 @@
       <div class="chips" id="verdicts"></div>
       <div class="chips" id="verified"></div>
       <div class="chips" id="group" title="group rows by kind or by plugin"></div>
+      <div class="chips" id="foldall" hidden></div>
       <div class="colpick"><button id="cols-btn" title="which columns to show">Columns ▾</button><div class="pop" id="cols-pop" hidden></div></div>
     </div>
     <div class="tablewrap"><table class="grid"><colgroup id="cols"></colgroup><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
@@ -326,6 +328,20 @@
   const GROUPS = [['kind', 'by kind'], ['plugin', 'by plugin']];
   $('group').innerHTML = GROUPS.map(([g, l]) => `<button data-group="${g}" class="${state.group === g ? 'on' : ''}">${l}</button>`).join('');
   $('group').onclick = e => { const b = e.target.closest('[data-group]'); if (!b) return; state.group = b.dataset.group; $('group').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); persist(); render(); };
+  const NOPLUG = '__not-in-a-plugin__';
+  const pluginNames = () => [...items.filter(i => i.kind === 'plugin').map(i => i.name), NOPLUG];
+  const allFolded = () => { const ns = pluginNames(); return ns.length > 0 && ns.every(n => state.collapsed.has(n)); };
+  function renderFoldAll() {
+    const box = $('foldall');
+    box.hidden = state.group !== 'plugin';
+    if (box.hidden) return;
+    const f = allFolded();
+    box.innerHTML = `<button data-foldall title="${f ? 'expand every plugin' : 'collapse every plugin'}">${f ? '▾ expand all' : '▸ collapse all'}</button>`;
+  }
+  $('foldall').onclick = () => {
+    if (allFolded()) state.collapsed.clear(); else pluginNames().forEach(n => state.collapsed.add(n));
+    persist(); renderFoldAll(); renderTable();
+  };
   const SCOPES = [['user', 'globally (user)'], ['project', 'this project']];
   $('scope').innerHTML = SCOPES.map(([v, l]) => `<button data-scope="${v}" class="${state.scope === v ? 'on' : ''}">${l}</button>`).join('');
   $('scope').onclick = e => { const b = e.target.closest('[data-scope]'); if (!b) return; state.scope = b.dataset.scope; $('scope').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); persist(); render(); };
@@ -501,7 +517,12 @@
         html += pluginHead(p, rows.length, ms.length, nCols) + (state.open.has(p.name) ? detailHtml(p, nCols) : '') + (fold ? '' : rows.map(it => rowHtml(it, nCols)).join(''));
       }
       const rest = sorted(items.filter(i => i.kind !== 'plugin' && !inSome.has(i.name) && visible(i)));
-      if (rest.length) { shown += rest.length; html += `<tr class="kind"><td colspan="${nCols}">Not in a plugin<span class="gm">${rest.length}</span></td></tr>` + rest.map(it => rowHtml(it, nCols)).join(''); }
+      if (rest.length) {
+        const fold = state.collapsed.has(NOPLUG);
+        if (!fold) shown += rest.length;
+        html += `<tr class="kind ph"><td colspan="${nCols}"><div class="ph-row"><span class="sp"></span><button class="fold" data-fold="${NOPLUG}" title="${fold ? 'expand' : 'collapse'}">${fold ? '▸' : '▾'}</button><span class="ph-name">Not in a plugin</span><span class="gm">${rest.length}</span></div></td></tr>`
+          + (fold ? '' : rest.map(it => rowHtml(it, nCols)).join(''));
+      }
     } else {
     const groups = state.kind === 'all' ? C.kinds : C.kinds.filter(k => k.kind === state.kind);
     for (const { kind, label } of groups) {
@@ -527,7 +548,7 @@
   $('tbody').addEventListener('click', e => {
     if (e.target.matches('input[data-sel]')) { const n = e.target.dataset.sel; e.target.checked ? state.selected.add(n) : state.selected.delete(n); persist(); render(); return; }
     const fl = e.target.closest('[data-fold]');
-    if (fl) { const n = fl.dataset.fold; state.collapsed.has(n) ? state.collapsed.delete(n) : state.collapsed.add(n); persist(); renderTable(); return; }
+    if (fl) { const n = fl.dataset.fold; state.collapsed.has(n) ? state.collapsed.delete(n) : state.collapsed.add(n); persist(); renderFoldAll(); renderTable(); return; }
     const bc = e.target.closest('[data-bundle]');
     if (bc) { state.q = '@' + bc.dataset.bundle; $('f-q').value = state.q; $('f-clear').hidden = false; render(); return; }
     if (e.target.closest('a')) return;
@@ -610,7 +631,7 @@
   const renderHint = () => $('mode-hint').innerHTML = `The unit of installation is a plugin from the <code>${esc(MK.name)}</code> marketplace: once <code>${esc(ADD())}</code>, then <code>claude plugin install &lt;name&gt;@${esc(MK.name)}${esc(scopeFlag())}</code> for every ticked entry. ${state.scope === 'user' ? 'User scope: the plugins are available in all your projects.' : 'Project scope: the plugins are declared in <code>.claude/settings.json</code> of this repo and travel with it.'} A skill installs as its own folder, a plugin installs whole (skills, agents, hooks, MCP servers). Group the table <b>by plugin</b> to tick single skills out of different plugins: a part has no marketplace entry, so the output block copies its folder from the repo instead. The version is pinned to a commit of this repo; to update — <code>claude plugin update</code>.`;
   $('foot').innerHTML = `The catalog holds every entry; the ones without a finished REVIEW.md show as unverified and stay out of the marketplace. Group <b>by plugin</b> to tick single parts of a plugin. Eval is the latest run of <code>python3 ui/eval.py &lt;path in lib&gt;</code>, results in <code>catalog/&lt;entry&gt;/evals/results/</code>. Token cost is measured against a typical session: ${S.turns} turns × ${fmtK(S.context_tokens)} tok of context and ${S.output_tokens} tok of output (config.json → session_model).${C.git ? '' : ' The repo is not in git: review dates and staleness are not computed.'} Catalog built ${esc(C.generated_at)}.`;
 
-  function render() { renderTable(); renderBasket(); renderHint(); }
+  function render() { renderFoldAll(); renderTable(); renderBasket(); renderHint(); }
   render();
 })();
 </script>
