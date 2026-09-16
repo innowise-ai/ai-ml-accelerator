@@ -6,6 +6,13 @@ Two kinds of contribution:
 
 Write REVIEW.md yourself (an LLM only for a draft): the file must reflect your own thinking
 
+## What a PR may touch
+
+By hand — only `lib/`, `catalog/` and `README.md`, nothing else. Two generated files come along
+with the PR exactly as `python3 ui/build.py` left them and are never edited by hand: `ui/catalog.js`
+and `.claude-plugin/marketplace.json`. The rest — `ui/`, `template/`, `config.json` — is build code
+shared by every entry; if it has to change, that is a separate PR with its own reason.
+
 ## Steps
 
 ```mermaid

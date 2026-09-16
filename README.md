@@ -6,6 +6,29 @@ To install, it is enough to open `ui/index.html`: a table with verdict, rating, 
 
 ![The catalog in ui/index.html: entries with verdict, rating, security, token cost and eval; the basket on the right builds the install commands](docs/catalog.png)
 
+## What's in it
+
+| Category | Name | Eval | Review |
+|---|---|---|---|
+| skill | caveman | — | done · taste |
+| skill | claude-api | 1 case · Δ +0.50 | done · stack |
+| skill | docx | — | done · task |
+| skill | mcp-builder | — | missing |
+| skill | skill-creator | — | done · task |
+| mcp | context7 | 2 cases · Δ +0.58 | done · must-have |
+| mcp | github | — | done · must-have |
+| hook | notify-done | — | done · taste |
+| agent | — | — | — |
+| plugin | base | — | missing |
+| plugin | evals | 32 cases · last run incomplete (16 of 32) | draft |
+| plugin | langchain | — | draft |
+| plugin | qdrant | — | draft |
+
+A plugin is a bundle of parts from `lib/`, so its members are not repeated as rows of their own.
+The one overlap is `plugin/base` — it bundles `mcp/context7` and `hook/notify-done`, which are also
+entries in their own right. Only an entry with a finished `REVIEW.md` (no `draft: true`) reaches
+`ui/index.html` and the marketplace; the rest are listed here as work in progress.
+
 ## Run
 
 ```bash
