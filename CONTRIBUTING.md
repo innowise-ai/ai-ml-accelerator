@@ -8,9 +8,8 @@ Write REVIEW.md yourself (an LLM only for a draft): the file must reflect your o
 
 ## What a PR may touch
 
-By hand — only `lib/`, `catalog/` and `README.md`. `ui/catalog.js` and
-`.claude-plugin/marketplace.json` come along as `ui/build.py` left them; anything else is a separate
-PR.
+By hand — only `lib/`, `catalog/` and `README.md`; 
+Other, `ui/catalog.js` and `.claude-plugin/marketplace.json` come along as `ui/build.py` left them; anything else is a separate PR.
 
 Never push a `REVIEW.md` you have not read: write it or delete it.
 

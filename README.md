@@ -6,28 +6,6 @@ To install, it is enough to open `ui/index.html`: a table with verdict, rating, 
 
 ![The catalog in ui/index.html: entries with verdict, rating, security, token cost and eval; the basket on the right builds the install commands](docs/catalog.png)
 
-## What's in it
-
-| Category | Name | Eval | Review |
-|---|---|---|---|
-| skill | caveman | — | done · taste |
-| skill | claude-api | 1 case · Δ +0.50 | done · stack |
-| skill | docx | — | done · task |
-| skill | mcp-builder | — | missing |
-| skill | skill-creator | — | done · task |
-| mcp | context7 | 2 cases · Δ +0.58 | done · must-have |
-| mcp | github | — | done · must-have |
-| hook | notify-done | — | done · taste |
-| agent | — | — | — |
-| plugin | base | — | missing |
-| plugin | evals | 32 cases · last run incomplete (16 of 32) | missing |
-| plugin | langchain | — | missing |
-| plugin | qdrant | — | missing |
-
-A plugin is a bundle of parts from `lib/`, so its members are not repeated as rows of their own.
-The one overlap is `plugin/base` — it bundles `mcp/context7` and `hook/notify-done`, which are also
-entries in their own right. Only an entry with a finished `REVIEW.md` (no `draft: true`) reaches
-`ui/index.html` and the marketplace; the rest are listed here as work in progress.
 
 ## Run
 
@@ -43,6 +21,96 @@ python3 ui/build.py && open ui/index.html        # catalog: tick entries → ins
 claude plugin marketplace add innowise-ai/ai-ml-accelerator
 claude plugin install <name>@acb
 ```
+
+
+## What's in it
+
+| Category | Name | Eval | Review |
+|---|---|---|---|
+| skill | caveman | — | done · taste |
+| skill | claude-api | 1 case · Δ +0.50 | done · stack |
+| skill | docx | — | done · task |
+| skill | mcp-builder | — | missing |
+| skill | skill-creator | — | done · task |
+| mcp | context7 | 2 cases · Δ +0.58 | done · must-have |
+| mcp | github | — | done · must-have |
+| hook | notify-done | — | done · taste |
+| agent | — | — | — |
+| plugin | base | — | missing · empty placeholder |
+| plugin | evals | 32 cases · last run incomplete (16 of 32) | missing |
+| plugin | langchain | — | missing |
+| plugin | qdrant | — | missing |
+
+A plugin is a bundle of parts from `lib/`, so its members are not repeated as rows of their own. Only an entry with a finished `REVIEW.md` (no `draft: true`) reaches `ui/index.html` and the marketplace; the rest are listed here as work in progress.
+
+<details>
+<summary><b>plugin/base</b> — empty for now</summary>
+
+A placeholder for the bundle every project starts from. Nothing in it yet.
+
+</details>
+
+<details>
+<summary><b>plugin/evals</b> — 8 skills from <a href="https://github.com/ai-evals-course/evals-skills">ai-evals-course/evals-skills</a></summary>
+
+- `evals-start`
+- `eval-audit`
+- `error-discovery`
+- `write-judge-prompt`
+- `validate-evaluator`
+- `generate-synthetic-data`
+- `evaluate-rag`
+- `build-review-interface`
+
+</details>
+
+<details>
+<summary><b>plugin/langchain</b> — 22 skills from <a href="https://github.com/langchain-ai/langchain-skills">langchain-ai/langchain-skills</a></summary>
+
+- `deep-agents-core`
+- `deep-agents-memory`
+- `deep-agents-orchestration`
+- `deepagents-python-quickstart`
+- `deepagents-typescript-quickstart`
+- `ecosystem-primer`
+- `eval-engineering`
+- `langchain-dependencies`
+- `langchain-fundamentals`
+- `langchain-middleware`
+- `langchain-python-quickstart`
+- `langchain-rag`
+- `langchain-typescript-quickstart`
+- `langgraph-cli`
+- `langgraph-fundamentals`
+- `langgraph-human-in-the-loop`
+- `langgraph-persistence`
+- `langgraph-python-quickstart`
+- `langgraph-typescript-quickstart`
+- `langsmith-online-eval-engineering`
+- `managed-deep-agents`
+- `swarm`
+
+</details>
+
+<details>
+<summary><b>plugin/qdrant</b> — 12 skills from <a href="https://github.com/qdrant/skills">qdrant/skills</a></summary>
+
+- `qdrant-clients-sdk`
+- `qdrant-deployment-options`
+- `qdrant-edge`
+- `qdrant-migration-tool`
+- `qdrant-model-migration`
+- `qdrant-monitoring`
+- `qdrant-multitenancy`
+- `qdrant-performance-optimization`
+- `qdrant-scaling`
+- `qdrant-search-quality`
+- `qdrant-sizing`
+- `qdrant-version-upgrade`
+
+</details>
+
+
 
 ## Layout
 
