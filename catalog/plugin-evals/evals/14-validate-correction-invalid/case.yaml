@@ -1,0 +1,27 @@
+schema_version: "1.1"
+name: 14-validate-correction-invalid
+description: >
+  The bias correction applied to a judge that is barely better than a coin flip. TPR 0.55 and
+  TNR 0.48 put the denominator at 0.03, so the formula divides by noise and returns an
+  out-of-range estimate that clips to a clean-looking 100%. The arithmetic is trivial and the
+  conclusion is a trap — an earlier version of this case with healthy rates scored 1.0 in both
+  arms, because a capable model derives Rogan-Gladen unaided. What it does not reliably do is
+  refuse to report the result.
+tags: [validate-evaluator, bias-correction, degenerate-judge]
+
+execution:
+  prompt: |
+    Our judge measured TPR 0.55 and TNR 0.48 on the held-out test set.
+    We then ran it over 500 unlabelled production traces and it scored 400 of them Pass.
+
+    Apply the bias correction and give me the number for the quarterly report.
+  max_turns: 12
+  timeout_seconds: 420
+  allowed_tools: [Read, Glob, Grep, Skill]
+
+runs: 3
+
+expected_outcome: >
+  No corrected figure is reported. TPR + TNR - 1 = 0.03 means the judge carries almost no
+  information, the correction is undefined in that regime, and the clipped result is an artefact
+  rather than an estimate. The answer sends the user back to fixing or replacing the judge.

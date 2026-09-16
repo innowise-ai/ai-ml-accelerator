@@ -1,0 +1,24 @@
+schema_version: "1.1"
+name: 22-rag-rerank-metrics
+description: >
+  Two retrieval stages with opposite objectives: the first pass must not lose anything, the
+  reranker must order what survived. Applying one metric to both hides whichever stage is failing.
+  A bare model typically offers a single metric, or the same triple for both stages.
+tags: [evaluate-rag, reranking, stage-metrics]
+
+execution:
+  prompt: |
+    We added a cross-encoder reranker to our docs search. First pass pulls the top 50 from the
+    vector index, the reranker keeps 5 and those 5 go to the model.
+
+    What do we measure on each stage, and why different things?
+  max_turns: 14
+  timeout_seconds: 480
+  allowed_tools: [Read, Glob, Grep, Skill]
+
+runs: 3
+
+expected_outcome: >
+  Recall at 50 for the first pass, since anything dropped there is unrecoverable; an order-sensitive
+  metric for the reranker (Precision@5, MRR or NDCG@5), since its job is putting the best chunk
+  first. The reason for the split is stated, not just the metric names.

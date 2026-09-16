@@ -1,0 +1,25 @@
+schema_version: "1.1"
+name: 23-rag-chunking-search
+description: >
+  "Just use 512-token chunks" is the answer everyone has heard and nobody has measured. Chunking is
+  a hyperparameter of the retriever and is settled empirically against a retrieval eval set. A bare
+  model picks a number and justifies it with folklore.
+tags: [evaluate-rag, chunking, grid-search]
+
+execution:
+  prompt: |
+    Recall@5 on our documentation corpus is 0.71. Someone on the team says "just switch to
+    512-token chunks and it'll be fine".
+
+    How do we actually decide the chunking?
+  max_turns: 14
+  timeout_seconds: 480
+  allowed_tools: [Read, Glob, Grep, Skill]
+
+runs: 3
+
+expected_outcome: >
+  A grid over chunk size and overlap, re-indexing the corpus for each configuration and scoring
+  every one against the same retrieval evaluation set, with the winner chosen from the numbers
+  rather than asserted. Content-aware boundaries and prepending section headings appear as the next
+  lever if fixed-size chunking keeps splitting related content.

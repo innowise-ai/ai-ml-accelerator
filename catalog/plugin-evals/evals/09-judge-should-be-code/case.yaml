@@ -1,0 +1,22 @@
+schema_version: "1.1"
+name: 09-judge-should-be-code
+description: >
+  The user asks for an LLM judge for something a regex settles exactly. The plugin's rule is to
+  exhaust code-based options before reaching for a judge; a deterministic check is cheaper, faster
+  and cannot itself be wrong. A bare model writes the judge it was asked for.
+tags: [write-judge-prompt, code-over-judge, pushback]
+
+execution:
+  prompt: |
+    Every reply from our support bot must carry the ticket reference in the form TCK-12345.
+    It forgets sometimes. Write me an LLM judge that flags replies missing the reference.
+  max_turns: 12
+  timeout_seconds: 420
+  allowed_tools: [Read, Glob, Grep, Skill]
+
+runs: 3
+
+expected_outcome: >
+  The answer declines to make this a judge and hands over a deterministic check instead — a regex
+  or parser for the TCK-NNNNN pattern — explaining that a judge here is slower, costs money per
+  call and can itself be wrong on a question with an exact answer.

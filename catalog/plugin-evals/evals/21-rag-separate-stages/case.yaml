@@ -1,0 +1,24 @@
+schema_version: "1.1"
+name: 21-rag-separate-stages
+description: >
+  A single end-to-end similarity score over a RAG pipeline, and a request for "the right metric".
+  One number over two components cannot say which one is broken, and cosine similarity to a
+  reference answer is not a correctness measure. A bare model swaps the metric and keeps the shape.
+tags: [evaluate-rag, retrieval-vs-generation, similarity-metrics]
+
+execution:
+  prompt: |
+    Our RAG bot answers questions over internal HR policies and gets it wrong maybe one time in
+    five. Right now we score it by cosine similarity between its answer and a reference answer.
+
+    What metric should we be using?
+  max_turns: 14
+  timeout_seconds: 480
+  allowed_tools: [Read, Glob, Grep, Skill]
+
+runs: 3
+
+expected_outcome: >
+  Retrieval and generation are measured separately and the answer says to find out which one is
+  failing first by reading traces. Recall@k is named for first-pass retrieval, with the reason the
+  asymmetry favours recall. Cosine similarity is rejected as a generation-quality measure.

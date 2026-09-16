@@ -1,0 +1,12 @@
+{
+  "skills": [
+    "evals-start",
+    "eval-audit",
+    "error-discovery",
+    "write-judge-prompt",
+    "validate-evaluator",
+    "generate-synthetic-data",
+    "evaluate-rag",
+    "build-review-interface"
+  ]
+}

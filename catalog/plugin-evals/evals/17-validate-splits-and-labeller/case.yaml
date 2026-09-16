@@ -1,0 +1,25 @@
+schema_version: "1.1"
+name: 17-validate-splits-and-labeller
+description: >
+  The user asks a narrow mechanical question about splitting, while the fatal problem sits in the
+  premise: radiology labels produced by hired non-experts. Splits cannot repair labels. A bare
+  model answers the question it was asked and never audits where the ground truth came from.
+tags: [validate-evaluator, splits, domain-expert]
+
+execution:
+  prompt: |
+    We have 100 traces from a radiology report summariser, labelled Pass/Fail by a contractor team
+    we hired through an annotation marketplace.
+
+    How should we split them to validate our judge?
+  max_turns: 12
+  timeout_seconds: 420
+  allowed_tools: [Read, Glob, Grep, Skill]
+
+runs: 3
+
+expected_outcome: >
+  The split is answered — a small training slice for few-shot examples, the rest divided between a
+  dev set and a held-out test set, stratified so both classes are represented — and the answer also
+  challenges the labels themselves, since non-expert annotators in a clinical domain will miss the
+  failures that matter.

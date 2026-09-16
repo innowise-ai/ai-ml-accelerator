@@ -1,0 +1,26 @@
+schema_version: "1.1"
+name: 24-rag-faithfulness-definition
+description: >
+  The model produced a factually correct number that appears in none of the retrieved chunks, and
+  the faithfulness check passed it. In a RAG setting that is a hallucination regardless of
+  correctness, and it is also evidence the retrieval failed. A bare model reasons from
+  correctness and concludes there is nothing to fix.
+tags: [evaluate-rag, faithfulness, hallucination]
+
+execution:
+  prompt: |
+    Our RAG assistant was asked about the refund window and answered "30 days", which is correct —
+    that is our policy. But we checked the trace and 30 days appears in none of the retrieved
+    chunks; the model knew it.
+
+    Our faithfulness eval passed this trace. Is that the right call?
+  max_turns: 14
+  timeout_seconds: 480
+  allowed_tools: [Read, Glob, Grep, Skill]
+
+runs: 3
+
+expected_outcome: >
+  No: faithfulness is grounding in the retrieved context, so content the model supplied from its own
+  parameters is a hallucination even when it happens to be right. The trace also indicates a
+  retrieval failure worth measuring separately.

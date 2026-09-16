@@ -1,0 +1,27 @@
+schema_version: "1.1"
+name: 26-discovery-sampling-composition
+description: >
+  How the first review batch is picked out of 200 traces. The plugin's recipe is specific: a batch
+  of roughly 15-25, mostly cluster representatives, with a deliberate random share because the
+  clustering will have missed dimensions, and diversity rather than frequency as the objective.
+  A bare model answers "take a random 10%" or "review them all".
+tags: [error-discovery, sampling, diversity]
+
+context:
+  scaffold_script: scaffold.sh
+
+execution:
+  prompt: |
+    There are 200 traces in traces.jsonl and none of them have been reviewed.
+    Pick the first batch for a human to go through by hand, and tell me exactly how you picked them
+    and why that way.
+  max_turns: 30
+  timeout_seconds: 900
+  allowed_tools: [Read, Glob, Grep, Bash, Write, Skill]
+
+runs: 3
+
+expected_outcome: >
+  A batch of roughly 15-25 traces combining representatives of semantic clusters with a random
+  share, deduplicated, chosen to maximise coverage of different kinds of trace rather than to
+  estimate how often anything happens.

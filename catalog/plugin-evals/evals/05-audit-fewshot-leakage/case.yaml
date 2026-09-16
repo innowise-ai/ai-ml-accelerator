@@ -1,0 +1,26 @@
+schema_version: "1.1"
+name: 05-audit-fewshot-leakage
+description: >
+  The four few-shot examples pasted into the judge prompt are rows t000-t003 of the same CSV the
+  alignment score is measured over. The leak is quiet and the resulting number is inflated. A bare
+  model reviews the prompt wording and never cross-references the ids against the dataset.
+tags: [eval-audit, leakage, splits]
+
+context:
+  scaffold_script: scaffold.sh
+
+execution:
+  prompt: |
+    We are about to publish our judge's alignment number in an investor update.
+    Review the evaluator setup in this directory first. Anything that would make that number
+    misleading?
+  max_turns: 25
+  timeout_seconds: 700
+  allowed_tools: [Read, Glob, Grep, Skill]
+
+runs: 3
+
+expected_outcome: >
+  The answer identifies that the judge prompt's few-shot examples are rows of the same labelled set
+  used for measurement, names this as data leakage that inflates the score, and prescribes disjoint
+  train / dev / test splits with few-shot drawn only from train and test measured once.

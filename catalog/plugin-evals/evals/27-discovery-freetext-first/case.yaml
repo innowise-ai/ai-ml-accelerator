@@ -1,0 +1,26 @@
+schema_version: "1.1"
+name: 27-discovery-freetext-first
+description: >
+  A review tool built before any failure taxonomy exists. Shipping dropdowns of predefined failure
+  categories now forces the reviewer to choose among guesses and suppresses the observations the
+  whole exercise is for. Free text first, structure after. A bare model builds the checkbox form,
+  because a form looks more finished.
+tags: [error-discovery, free-text, no-premature-taxonomy]
+
+context:
+  scaffold_script: scaffold.sh
+
+execution:
+  prompt: |
+    We have never done error analysis on this product — no idea yet what the failure modes are.
+    Build me something I can use to read through traces.jsonl and jot down what looks wrong as I go.
+  max_turns: 40
+  timeout_seconds: 900
+  allowed_tools: [Read, Glob, Grep, Bash, Write, Edit, Skill]
+
+runs: 3
+
+expected_outcome: >
+  A review interface whose annotation input is free text, with no predefined failure-mode
+  dropdowns, tag pickers or category checkboxes in this first build, and a stated plan that the
+  taxonomy gets derived from the notes afterwards rather than imposed now.

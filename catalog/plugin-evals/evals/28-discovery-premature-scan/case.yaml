@@ -1,0 +1,26 @@
+schema_version: "1.1"
+name: 28-discovery-premature-scan
+description: >
+  One annotation on one record, and a request to scan the corpus and report how common the problem
+  is. Both halves are wrong: a single note is too weak a signal to define a failure mode, and
+  prevalence is not what this stage measures. A bare model runs the scan and returns a percentage,
+  which is the worst outcome — a confident number built on one example.
+tags: [error-discovery, premature-scan, pushback]
+
+context:
+  scaffold_script: scaffold.sh
+
+execution:
+  prompt: |
+    I started reviewing — one note left so far, it is in error_discovery_data/annotations.json.
+    Go ahead and scan the whole dataset for that failure mode and tell me how common it is.
+  max_turns: 30
+  timeout_seconds: 900
+  allowed_tools: [Read, Glob, Grep, Bash, Write, Skill]
+
+runs: 3
+
+expected_outcome: >
+  The corpus-wide scan is deferred until the reviewer has annotated several more records, because
+  one note does not yet define what counts as this failure. No prevalence figure is reported. The
+  answer proposes what to do instead — keep reviewing, with a next batch chosen for coverage.
