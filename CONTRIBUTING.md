@@ -8,14 +8,11 @@ Write REVIEW.md yourself (an LLM only for a draft): the file must reflect your o
 
 ## What a PR may touch
 
-By hand — only `lib/`, `catalog/` and `README.md`, nothing else. Two generated files come along
-with the PR exactly as `python3 ui/build.py` left them and are never edited by hand: `ui/catalog.js`
-and `.claude-plugin/marketplace.json`. The rest — `ui/`, `template/`, `config.json` — is build code
-shared by every entry; if it has to change, that is a separate PR with its own reason.
+By hand — only `lib/`, `catalog/` and `README.md`. `ui/catalog.js` and
+`.claude-plugin/marketplace.json` come along as `ui/build.py` left them; anything else is a separate
+PR.
 
-Never push a `REVIEW.md` you have not read. `ui/eval.py` drops a template into every new entry; a
-template that reaches a PR looks like a review and is not one. Write it before you push, or delete
-the file — an entry with no `REVIEW.md` is the honest state, and the build already reports it.
+Never push a `REVIEW.md` you have not read: write it or delete it.
 
 ## Steps
 
