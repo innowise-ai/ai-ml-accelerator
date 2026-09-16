@@ -271,7 +271,7 @@
   const state = {
     selected: new Set(ls.get('acb.selected2', []).filter(n => byKey.has(n))),
     open: new Set(), scope: ls.get('acb.scope', 'user'),
-    sort: ls.get('acb.sort2', { key: 'default', dir: -1 }), kind: 'all', verdicts: new Set(), q: '', group: ls.get('acb.group', 'kind'), verified: ls.get('acb.verified', false), collapsed: new Set(ls.get('acb.collapsed', [])),
+    sort: ls.get('acb.sort2', { key: 'default', dir: -1 }), kind: 'all', verdicts: new Set(), q: '', group: ls.get('acb.group', 'kind'), verified: ls.get('acb.verified', true), collapsed: new Set(ls.get('acb.collapsed', [])),
     cols: new Set(ls.get('acb.cols5', DEFAULT_COLS).filter(k => OPTIONAL_COLS.includes(k))),
   };
   if (!['default', 'title', ...OPTIONAL_COLS].includes(state.sort.key)) state.sort = { key: 'default', dir: -1 };
