@@ -15,7 +15,8 @@ Clone https://github.com/innowise-ai/ai-ml-accelerator, run the commands from th
 
 # Or by hand:
 git clone https://github.com/innowise-ai/ai-ml-accelerator && cd ai-ml-accelerator
-python3 ui/build.py && open ui/index.html        # catalog: tick entries → install commands
+# the catalog: tick entries, get the install commands
+python3 ui/build.py && open ui/index.html
 
 # Install without the catalog:
 claude plugin marketplace add innowise-ai/ai-ml-accelerator
