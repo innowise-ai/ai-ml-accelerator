@@ -202,7 +202,7 @@
       <div class="chips" id="verdicts"></div>
       <div class="chips" id="verified"></div>
       <div class="chips" id="group" title="group rows by kind or by plugin"></div>
-      <div class="chips" id="foldall" hidden></div>
+      <div class="chips" id="foldall"></div>
       <div class="colpick"><button id="cols-btn" title="which columns to show">Columns ▾</button><div class="pop" id="cols-pop" hidden></div></div>
     </div>
     <div class="tablewrap"><table class="grid"><colgroup id="cols"></colgroup><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
@@ -261,6 +261,8 @@
   }
   const byKey = new Map([...items.map(i => [i.name, i]), ...partItems]);
   const selKey = it => it.part ? partKey(it.kind, it.name) : it.name;
+  // the table lists parts, not plugins: a plugin is a grouping, not a row
+  const rowItems = [...items.filter(i => i.kind !== 'plugin'), ...partItems.values()];
   const VERDICT_ORDER = Object.fromEntries(Object.keys(VER).map((v, i) => [v, i]));
   const OPTIONAL_COLS = ['verdict', 'why', 'rating', 'security', 'econ', 'eval', 'size', 'folder', 'rev'];
   const DEFAULT_COLS = OPTIONAL_COLS.filter(k => k !== 'rev');
@@ -272,7 +274,7 @@
   const state = {
     selected: new Set(ls.get('acb.selected2', []).filter(n => byKey.has(n))),
     open: new Set(), scope: ls.get('acb.scope', 'user'),
-    sort: ls.get('acb.sort2', { key: 'default', dir: -1 }), kind: 'all', verdicts: new Set(), q: '', group: ls.get('acb.group', 'kind'), verified: ls.get('acb.verified', true), collapsed: new Set(ls.get('acb.collapsed', [])),
+    sort: ls.get('acb.sort2', { key: 'default', dir: -1 }), kind: 'all', verdicts: new Set(), q: '', group: ls.get('acb.group', 'kind'), verified: ls.get('acb.verified', false), collapsed: new Set(ls.get('acb.collapsed', [])),
     cols: new Set(ls.get('acb.cols5', DEFAULT_COLS).filter(k => OPTIONAL_COLS.includes(k))),
   };
   if (!['default', 'title', ...OPTIONAL_COLS].includes(state.sort.key)) state.sort = { key: 'default', dir: -1 };
@@ -317,7 +319,7 @@
   }
 
   // ---- filters ----
-  const kindChips = [['all', 'All'], ...C.kinds.filter(k => items.some(i => i.kind === k.kind)).map(k => [k.kind, k.label])];
+  const kindChips = [['all', 'All'], ...C.kinds.filter(k => k.kind !== 'plugin' && rowItems.some(i => i.kind === k.kind)).map(k => [k.kind, k.label])];
   $('kinds').innerHTML = kindChips.map(([k, l]) => `<button data-kind="${k}" class="${state.kind === k ? 'on' : ''}">${esc(l)}</button>`).join('');
   $('verdicts').innerHTML = Object.entries(VER).filter(([v]) => v !== 'no').map(([v, o]) => `<button data-verdict="${v}" title="${esc(o.hint)}">${esc(o.label)}</button>`).join('');
   $('kinds').onclick = e => { const b = e.target.closest('[data-kind]'); if (!b) return; state.kind = b.dataset.kind; $('kinds').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); render(); };
@@ -329,17 +331,18 @@
   $('group').innerHTML = GROUPS.map(([g, l]) => `<button data-group="${g}" class="${state.group === g ? 'on' : ''}">${l}</button>`).join('');
   $('group').onclick = e => { const b = e.target.closest('[data-group]'); if (!b) return; state.group = b.dataset.group; $('group').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); persist(); render(); };
   const NOPLUG = '__not-in-a-plugin__';
-  const pluginNames = () => [...items.filter(i => i.kind === 'plugin').map(i => i.name), NOPLUG];
-  const allFolded = () => { const ns = pluginNames(); return ns.length > 0 && ns.every(n => state.collapsed.has(n)); };
+  const kindKey = k => 'kind:' + k;
+  // the fold keys of the groups the current view shows
+  const groupKeys = () => state.group === 'plugin'
+    ? [...items.filter(i => i.kind === 'plugin').map(i => i.name), NOPLUG]
+    : C.kinds.filter(k => k.kind !== 'plugin' && rowItems.some(i => i.kind === k.kind)).map(k => kindKey(k.kind));
+  const allFolded = () => { const ns = groupKeys(); return ns.length > 0 && ns.every(n => state.collapsed.has(n)); };
   function renderFoldAll() {
-    const box = $('foldall');
-    box.hidden = state.group !== 'plugin';
-    if (box.hidden) return;
     const f = allFolded();
-    box.innerHTML = `<button data-foldall title="${f ? 'expand every plugin' : 'collapse every plugin'}">${f ? '▾ expand all' : '▸ collapse all'}</button>`;
+    $('foldall').innerHTML = `<button data-foldall title="${f ? 'expand every group' : 'collapse every group'}">${f ? '▾ expand all' : '▸ collapse all'}</button>`;
   }
   $('foldall').onclick = () => {
-    if (allFolded()) state.collapsed.clear(); else pluginNames().forEach(n => state.collapsed.add(n));
+    if (allFolded()) groupKeys().forEach(n => state.collapsed.delete(n)); else groupKeys().forEach(n => state.collapsed.add(n));
     persist(); renderFoldAll(); renderTable();
   };
   const SCOPES = [['user', 'globally (user)'], ['project', 'this project']];
@@ -387,7 +390,8 @@
   document.addEventListener('click', () => { $('cols-pop').hidden = true; });
 
   function sorted(list) {
-    if (state.sort.key === 'default') return [...list].sort((a, b) => (VERDICT_ORDER[a.view.verdict] ?? 9) - (VERDICT_ORDER[b.view.verdict] ?? 9) || (b.rating ?? -1) - (a.rating ?? -1) || a.name.localeCompare(b.name));
+    const ver = it => it.status === 'reviewed' ? 0 : 1;
+    if (state.sort.key === 'default') return [...list].sort((a, b) => ver(a) - ver(b) || (VERDICT_ORDER[a.view.verdict] ?? 9) - (VERDICT_ORDER[b.view.verdict] ?? 9) || (b.rating ?? -1) - (a.rating ?? -1) || a.name.localeCompare(b.name));
     const col = cols().find(c => c.key === state.sort.key && c.sort);
     if (!col) return list;
     return [...list].sort((a, b) => { const x = col.sort(a), y = col.sort(b); const r = typeof x === 'number' ? x - y : String(x).localeCompare(String(y)); return (r || a.name.localeCompare(b.name)) * state.sort.dir; });
@@ -524,18 +528,19 @@
           + (fold ? '' : rest.map(it => rowHtml(it, nCols)).join(''));
       }
     } else {
-    const groups = state.kind === 'all' ? C.kinds : C.kinds.filter(k => k.kind === state.kind);
+    const groups = C.kinds.filter(k => k.kind !== 'plugin' && (state.kind === 'all' || k.kind === state.kind));
     for (const { kind, label } of groups) {
-      const all = items.filter(i => i.kind === kind);
+      const all = rowItems.filter(i => i.kind === kind);
       if (!all.length) continue;
       const rows = sorted(all.filter(visible));
-      shown += rows.length;
-      if (state.kind === 'all') html += `<tr class="kind"><td colspan="${nCols}">${esc(label)}<span class="gm">${rows.length}${rows.length !== all.length ? ' of ' + all.length : ''}</span></td></tr>`;
-      html += rows.length ? rows.map(it => rowHtml(it, nCols)).join('') : emptyRow;
+      const fold = state.collapsed.has(kindKey(kind));
+      if (!fold) shown += rows.length;
+      html += `<tr class="kind ph"><td colspan="${nCols}"><div class="ph-row"><span class="sp"></span><button class="fold" data-fold="${kindKey(kind)}" title="${fold ? 'expand' : 'collapse'}">${fold ? '▸' : '▾'}</button><span class="ph-name">${esc(label)}</span><span class="gm">${rows.length}${rows.length !== all.length ? ' of ' + all.length : ''}</span></div></td></tr>`;
+      if (!fold) html += rows.length ? rows.map(it => rowHtml(it, nCols)).join('') : emptyRow;
     }
     }
     $('tbody').innerHTML = html || `<tr><td colspan="${nCols}" class="empty">empty</td></tr>`;
-    const total = items.length, withEval = items.filter(i => i.eval.latest).length;
+    const total = rowItems.length, withEval = rowItems.filter(i => i.eval.latest).length;
     $('stats').innerHTML = `<b>${total}</b> entries · <b>${withEval}</b> with eval${shown !== total ? ` · ${shown} shown` : ''}`;
   }
 
@@ -628,8 +633,8 @@
     const b = $('copy'), t = b.textContent; b.textContent = 'copied ✓'; setTimeout(() => b.textContent = t, 1200);
   };
 
-  const renderHint = () => $('mode-hint').innerHTML = `The unit of installation is a plugin from the <code>${esc(MK.name)}</code> marketplace: once <code>${esc(ADD())}</code>, then <code>claude plugin install &lt;name&gt;@${esc(MK.name)}${esc(scopeFlag())}</code> for every ticked entry. ${state.scope === 'user' ? 'User scope: the plugins are available in all your projects.' : 'Project scope: the plugins are declared in <code>.claude/settings.json</code> of this repo and travel with it.'} A skill installs as its own folder, a plugin installs whole (skills, agents, hooks, MCP servers). Group the table <b>by plugin</b> to tick single skills out of different plugins: a part has no marketplace entry, so the output block copies its folder from the repo instead. The version is pinned to a commit of this repo; to update — <code>claude plugin update</code>.`;
-  $('foot').innerHTML = `The catalog holds every entry; the ones without a finished REVIEW.md show as unverified and stay out of the marketplace. Group <b>by plugin</b> to tick single parts of a plugin. Eval is the latest run of <code>python3 ui/eval.py &lt;path in lib&gt;</code>, results in <code>catalog/&lt;entry&gt;/evals/results/</code>. Token cost is measured against a typical session: ${S.turns} turns × ${fmtK(S.context_tokens)} tok of context and ${S.output_tokens} tok of output (config.json → session_model).${C.git ? '' : ' The repo is not in git: review dates and staleness are not computed.'} Catalog built ${esc(C.generated_at)}.`;
+  const renderHint = () => $('mode-hint').innerHTML = `The unit of installation is a plugin from the <code>${esc(MK.name)}</code> marketplace: once <code>${esc(ADD())}</code>, then <code>claude plugin install &lt;name&gt;@${esc(MK.name)}${esc(scopeFlag())}</code> for every ticked entry. ${state.scope === 'user' ? 'User scope: the plugins are available in all your projects.' : 'Project scope: the plugins are declared in <code>.claude/settings.json</code> of this repo and travel with it.'} A skill installs as its own folder, a plugin installs whole (skills, agents, hooks, MCP servers). A skill that lives inside a plugin is listed on its own and can be ticked on its own: it has no marketplace entry, so the output block copies its folder from the repo instead. A whole plugin is ticked from its header in the <b>by plugin</b> view. The version is pinned to a commit of this repo; to update — <code>claude plugin update</code>.`;
+  $('foot').innerHTML = `The catalog holds every entry; the ones without a finished REVIEW.md show as unverified and stay out of the marketplace. The table lists parts, not plugins: a plugin is a grouping, ticked from its header in the <b>by plugin</b> view. Eval is the latest run of <code>python3 ui/eval.py &lt;path in lib&gt;</code>, results in <code>catalog/&lt;entry&gt;/evals/results/</code>. Token cost is measured against a typical session: ${S.turns} turns × ${fmtK(S.context_tokens)} tok of context and ${S.output_tokens} tok of output (config.json → session_model).${C.git ? '' : ' The repo is not in git: review dates and staleness are not computed.'} Catalog built ${esc(C.generated_at)}.`;
 
   function render() { renderFoldAll(); renderTable(); renderBasket(); renderHint(); }
   render();
