@@ -33,7 +33,7 @@ comp = composition_of(p['kind'], p['name'], comps)
 if not comp: print(f"no lib/plugins/{p['name']}.json — describe the contents: {{\"skills\": [...], \"agents\": [...], \"mcp\": [...], \"hooks\": [...]}}", file=sys.stderr); sys.exit(1)
 members = comp_members(comp, lib)
 missing = [m for m in members if m.get('missing')]
-if not members: print(f'contents of {id} are empty', file=sys.stderr); sys.exit(1)
+if not members: print(f'{id}: contents are empty — building an empty placeholder', file=sys.stderr)
 names = lambda ms: ', '.join(f"{m['kind']}/{m['name']}" for m in ms)
 if missing: print(f"not in the library: {names(missing)} — put it into lib/skills/ lib/agents/ lib/mcp/ lib/hooks/", file=sys.stderr); sys.exit(1)
 

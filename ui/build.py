@@ -86,7 +86,7 @@ def validate_entries(entries, comps):
         if e['name'] in names: err(e['where'], f"plugin name \"{e['name']}\" is already taken by {names[e['name']]} — marketplace names are unique")
         names[e['name']] = e['where']
         if e['kind'] == 'plugin' and not (comps.get(e['name']) or {}).get('comp'): err(e['where'], f"no lib/plugins/{e['name']}.json with the contents")
-        if e['comp'] and not e['members']: err(e['where'], 'contents are empty')
+        if e['comp'] and not e['members']: warn(e['where'], 'contents are empty — a placeholder for a bundle that is not assembled yet')
         for m in e['members']:
             if m.get('missing'): err(e['where'], f"the library has no {m['kind']} \"{m['name']}\" (lib/)")
         if e['kind'] == 'plugin' and len(e['members']) == 1: warn(e['where'], f"bundle of a single part: a {e['members'][0]['kind']}-{e['members'][0]['name']} entry is simpler")
