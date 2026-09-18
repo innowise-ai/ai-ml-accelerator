@@ -1,0 +1,7 @@
+{
+  "name": "gcp",
+  "description": "When you are working with GCP BigQuery, CloudSQl or have authorization/authentification issues. Useful for both working in existing infrastructure or setting up a new one.",
+  "author": {
+    "name": "ai-context-builder"
+  }
+}
