@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'source \"$1\"' \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start\" \"${CLAUDE_PLUGIN_ROOT}/hooks/superpowers-session-start/session-start\"",
+            "async": false
+          }
+        ]
+      }
+    ]
+  }
+}
