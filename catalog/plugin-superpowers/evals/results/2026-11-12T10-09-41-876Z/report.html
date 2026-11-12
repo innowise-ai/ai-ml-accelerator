@@ -1,0 +1,2915 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eval report — superpowers</title>
+</head>
+<body>
+<style>
+:root{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme:dark){:root{--plane:#0d0d0d;--surface:#1a1a19;--ink:#ffffff;--ink-2:#c3c2b7;--ink-3:#898781;--hairline:rgba(255,255,255,.10);--grid:#2c2c2a;--inset:rgba(255,255,255,.05);--accent:#3987e5;--base-fill:#898781;--delta-good:#0ca30c;--good:#0ca30c;--warning:#fab219;--critical:#e06c6c;color-scheme:dark}}
+:root[data-theme="dark"]{--plane:#0d0d0d;--surface:#1a1a19;--ink:#ffffff;--ink-2:#c3c2b7;--ink-3:#898781;--hairline:rgba(255,255,255,.10);--grid:#2c2c2a;--inset:rgba(255,255,255,.05);--accent:#3987e5;--base-fill:#898781;--delta-good:#0ca30c;--good:#0ca30c;--warning:#fab219;--critical:#e06c6c;color-scheme:dark}
+:root[data-theme="light"]{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--plane);color:var(--ink);
+  font:14px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-text-size-adjust:100%}
+.wrap{max-width:880px;margin:0 auto;padding:40px 24px 64px;display:flex;flex-direction:column;gap:20px}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+header h1{margin:2px 0 0;font-size:24px;font-weight:600;line-height:1.25;text-wrap:balance}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;color:var(--ink-2);font-size:13px}
+.meta .num{font-variant-numeric:tabular-nums lining-nums}
+.banner{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;
+  border:1px solid var(--hairline);background:var(--surface);font-size:13px}
+.banner .chip-warn{color:var(--warning);font-weight:600}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:14px 16px;
+  display:flex;flex-direction:column;gap:4px}
+.tile .label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.tile .value{font-size:26px;font-weight:600;font-variant-numeric:tabular-nums lining-nums;line-height:1.1}
+.tile.hero .value{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:48px}
+.tile .sub{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.tile .value.delta-pos{color:var(--delta-good)}
+.tile .value.delta-neg{color:var(--critical)}
+.toolbar{display:flex;gap:8px;justify-content:flex-end}
+.toolbar button{font:12px system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink-2);
+  background:var(--surface);border:1px solid var(--hairline);border-radius:6px;padding:4px 10px;cursor:pointer}
+.toolbar button:hover{color:var(--ink)}
+.toolbar button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.case{background:var(--surface);border:1px solid var(--hairline);border-radius:10px;padding:18px 20px;
+  display:flex;flex-direction:column;gap:10px}
+.case-regressed{border-left:3px solid var(--critical)}
+.verdict{margin:6px 0 0;font-size:15px}
+.verdict .delta{font-size:15px}
+.flag{font-size:11px;font-weight:600;color:var(--warning);white-space:nowrap}
+.star{color:var(--warning);font-size:.45em;vertical-align:super;line-height:0;cursor:help}
+.legend summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2)}
+.legend-list{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--ink-2)}
+.case-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.case-head h2{margin:0;font-size:16px;font-weight:600}
+.case-head .spacer{flex:1}
+.case-score{font-size:15px;font-weight:600}
+.mono{font:12px "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.num{font-variant-numeric:tabular-nums lining-nums}
+.muted{color:var(--ink-3);font-size:12px}
+.meter{display:inline-block;position:relative;width:120px;height:6px;border-radius:4px;background:var(--grid);
+  vertical-align:middle}
+.meter>span{display:block;height:100%;border-radius:4px;max-width:100%}
+.meter .tick{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink-3);border-radius:1px}
+.m-accent>span{background:var(--accent)}
+.m-base>span{background:var(--base-fill)}
+.delta{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.delta-pos{color:var(--delta-good)}
+.delta-neg{color:var(--critical)}
+.delta-zero{color:var(--ink-3)}
+details.section{border-top:1px solid var(--grid);padding-top:10px}
+details.section>summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--ink-2);list-style-position:outside;margin-left:2px}
+details.section>summary:hover{color:var(--ink)}
+details.section[open]>summary{margin-bottom:8px}
+.md{display:flex;flex-direction:column;gap:8px;background:var(--inset);border-radius:8px;
+  padding:12px 14px;overflow-wrap:break-word}
+.md>:first-child{margin-top:0}
+.md h1,.md h2,.md h3,.md h4,.md h5,.md h6{margin:4px 0 0;font-size:1em;font-weight:600;line-height:1.3}
+.md p,.md ul,.md ol,.md blockquote,.md table,.md pre,.md hr{margin:0}
+.md ul,.md ol{display:flex;flex-direction:column;gap:4px;padding-left:20px}
+.md blockquote{border-left:2px solid var(--hairline);padding-left:10px;color:var(--ink-2)}
+.md :not(pre)>code{background:var(--inset);padding:1px 4px;border-radius:4px;
+  font:.92em "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.md pre{background:var(--inset);border:1px solid var(--hairline);padding:10px 12px;border-radius:6px;
+  overflow-x:auto;font:12px/1.5 "SF Mono",ui-monospace,Menlo,Consolas,monospace}
+.md pre code{background:none;padding:0;font:inherit}
+.md table{width:100%;border-collapse:collapse}
+.md th,.md td{padding:5px 8px;text-align:left;vertical-align:top;border-bottom:1px solid var(--grid)}
+.md th{font-weight:600;color:var(--ink-2)}
+.md a{color:var(--accent);text-decoration:none}
+.md a:hover{text-decoration:underline}
+.grader-def{display:flex;flex-direction:column;gap:6px;padding:8px 0}
+.grader-def+.grader-def{border-top:1px solid var(--grid)}
+.grader-def-head{display:flex;align-items:baseline;gap:8px}
+.grader-name{font:13px "SF Mono",ui-monospace,Menlo,Consolas,monospace;font-weight:600}
+.badge{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2);
+  border:1px solid var(--hairline);border-radius:999px;padding:1px 8px}
+.config{display:flex;flex-direction:column;gap:2px;background:var(--inset);border-radius:8px;padding:10px 14px}
+.config code{font:12px "SF Mono",ui-monospace,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.arm{display:flex;flex-direction:column;gap:8px;padding:6px 0}
+.arm+.arm{border-top:1px dashed var(--grid);margin-top:4px;padding-top:12px}
+.arm-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.arm-label{font-size:13px;font-weight:600}
+.run{border:1px solid var(--grid);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.run-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.run-title{font-size:12px;font-weight:600;color:var(--ink-2)}
+.run-error .explanation{color:var(--ink-2)}
+.note{font-size:12px;color:var(--ink-2)}
+.graders{display:flex;flex-direction:column;gap:4px}
+details.grader{border-radius:6px}
+details.grader>summary{cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:3px 4px;
+  border-radius:6px;list-style:none}
+details.grader>summary::-webkit-details-marker{display:none}
+details.grader>summary::before{content:'▸';font-size:10px;color:var(--ink-3);flex:none;
+  transition:transform .12s ease}
+details.grader[open]>summary::before{transform:rotate(90deg)}
+details.grader>summary:hover{background:var(--inset)}
+details.grader>summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.grader-body{padding:6px 8px 8px 24px;display:flex;flex-direction:column;gap:6px}
+.chip{font-size:11px;font-weight:600;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.chip-pass{color:var(--good);border:1px solid currentColor}
+.chip-fail{color:var(--critical);border:1px solid currentColor}
+.chip.chip-warn{color:var(--warning);border:1px solid currentColor}
+.explanation{margin:0;font-size:13px;color:var(--ink-2);white-space:pre-wrap;overflow-wrap:break-word}
+.kv{display:flex;gap:8px;font-size:12px;color:var(--ink-3)}
+.votes{font-variant-numeric:tabular-nums;letter-spacing:.1em}
+pre.evidence{margin:0;background:var(--inset);border:1px solid var(--hairline);border-radius:6px;
+  padding:8px 10px;overflow-x:auto;max-height:320px;
+  font:12px/1.5 "SF Mono",ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:break-word}
+footer{color:var(--ink-3);font-size:12px;text-align:center;padding-top:8px}
+@media (prefers-reduced-motion:no-preference){
+  details.grader>summary,.toolbar button{transition:background .12s ease,color .12s ease}
+}
+@media (prefers-reduced-motion:reduce){
+  details.grader>summary::before{transition:none}
+}
+@media print{
+  :root,:root[data-theme="dark"],:root[data-theme="light"]{--plane:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink-2:#52514e;--ink-3:#6b6a64;--hairline:rgba(11,11,11,.10);--grid:#e1e0d9;--inset:rgba(11,11,11,.04);--accent:#2a78d6;--base-fill:#6b6a64;--delta-good:#006300;--good:#067d06;--warning:#8a6100;--critical:#d03b3b;color-scheme:light}
+  body{background:#fff}
+  .toolbar{display:none}
+  .case,.run,.grader-def{break-inside:avoid}
+  pre.evidence{max-height:none}
+}
+</style>
+<div class="wrap">
+<header>
+<div class="eyebrow">Plugin eval report</div>
+<h1>superpowers</h1>
+<p class="verdict">Plugin effect: <span class="delta delta-pos">↑ +34.1 pts</span> vs baseline — improved 4 · flat 1 · regressed 2 of 7 cases.</p>
+<div class="meta">
+<span class="mono">.</span>
+<span>Claude Code v2.1.322</span>
+<span class="num">2026-11-12 10:09 UTC</span>
+<span class="num">20m 1s</span>
+<span class="num">$6.25</span>
+<span class="num">42 runs</span>
+
+
+
+<span>judge sonnet</span>
+<span class="num">threshold 100%</span>
+
+</div>
+</header>
+
+<section class="tiles">
+<div class="tile hero"><span class="label">Suite score · with plugin</span><span class="value">84.1%</span><span class="sub">mean of per-case scores</span></div>
+<div class="tile"><span class="label">Ablation Δ</span><span class="value num delta-pos">↑ +34.1</span><span class="sub">score points vs baseline, 7 of 7 cases</span></div>
+<div class="tile"><span class="label">Baseline score</span><span class="value num">50%</span><span class="sub">without the plugin</span></div>
+<div class="tile"><span class="label">Cases</span><span class="value num">7</span><span class="sub">4 of 7 ≥ 100% threshold</span></div>
+<div class="tile"><span class="label">Perfect runs</span><span class="value num">76.2%</span><span class="sub">runs where every grader passed</span></div>
+</section>
+<details class="section legend">
+<summary>How to read this report</summary>
+<ul class="legend-list">
+<li>A run's score is the weighted fraction of its graders that passed; a "perfect" run passed every grader.</li>
+<li>A case's score is the mean of its runs; a case passes when its score is at or above the 100% threshold (the tick on each case bar).</li>
+<li>The suite score is the mean of the per-case scores.</li>
+<li>Judge votes are independent samples of the LLM judge; the majority decides pass or fail.</li>
+<li>"With plugin" and "Baseline" runs are identical except for the plugin being loaded; Δ is the with-plugin score minus the baseline score.</li>
+
+</ul>
+</details>
+<div class="toolbar"><button type="button" data-act="expand">Expand all</button><button type="button" data-act="collapse">Collapse all</button></div>
+<article class="case" id="case-1">
+<div class="case-head">
+<h2>01-vague-app</h2>
+<span class="muted mono">evals/01-vague-app</span>
+<span class="spacer"></span>
+
+<span class="delta delta-pos">↑ +55.6 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:88.9%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">88.9%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:88.9%"></span></span>
+<span class="num">88.9%</span>
+<span class="muted num">66.7% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">3 turns · $0.11 · 10:09:41 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">focused-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Before I build anything, one question: **what made you want a habit tracker, and what do you hope it does for you day to day?**
+
+The answer changes what I&apos;d build. If you want to quickly tick off a few daily habits and see your streaks, I&apos;d make a small, fast page you can open each morning. If you want to see patterns over months, like which habits slip on weekends, it needs history views and charts. If you&apos;ll use it on your phone, or share it with others, that changes where it runs and where your data lives.
+
+Or if you&apos;d rather I just dive in, say so and I&apos;ll build a simple app that saves your data in the browser.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">uses-skill</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 2</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">3 turns · $0.11 · 10:09:51 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">focused-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Before I build anything, one question: **who&apos;s going to use this, and where?** For example, is it just for you, open in a browser tab, or something you&apos;d want on your phone or shared with other people?
+
+I&apos;m asking because the answer decides how it gets built. A personal tool can be one file that saves to your browser with no setup. Using it on your phone, or with other people, means accounts, syncing and a server, which is a much bigger build.
+
+Or if you&apos;d rather I just start, say so. I&apos;d make a single-page web app that saves to your browser: add habits, check them off each day, and see streaks and history.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">uses-skill</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 3</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:66.7%"></span></span>
+<span class="num">66.7%</span>
+<span class="muted num">3 turns · $0.12 · 10:10:00 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">focused-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Before I build, one question: **what do you want this habit tracker to help you with day to day?** For example, is there a habit you&apos;re trying to build right now, and where would you check in on it (phone, desktop, terminal)?
+
+I&apos;m asking because the answer changes what I&apos;d build. A quick daily check-off you open on your phone is a small, simple page. Tracking streaks and progress over months needs history and charts. Something for a team or a group of people needs accounts and syncing.
+
+If you&apos;d rather I just start, say so. I&apos;d make a single-page web app that runs in your browser and saves to your browser&apos;s storage, with no install. It would let you add habits, check them off each day, and see streaks and a calendar-style history.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">uses-skill</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:33.3%"></span></span>
+<span class="num">33.3%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:33.3%"></span></span>
+<span class="num">33.3%</span>
+<span class="muted num">4 turns · $0.27 · 10:10:11 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">focused-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I built the habit tracker as a single file, `index.html`. It needs no build step or other files: open it in a browser and it works. I haven&apos;t opened it in a browser myself, so it hasn&apos;t been tested yet.
+
+**What it does**
+- **Add habits** with a name and a choice of six colours.
+- **Check off today** by tapping the large circle. A bar in the header shows today&apos;s progress, e.g. &quot;3 / 5 done today&quot;.
+- **Last 7 days:** each habit shows a row of the past week. Tap any day to mark or unmark it, so you can fill in days you missed logging.
+- **Stats for each habit:** current streak 🔥, best streak, and how many of the last 30 days you completed. If you haven&apos;t checked a habit off today yet, its streak doesn&apos;t drop to zero until the day is over.
+- **History:** opens a 20-week grid of past days, one square per day.
+- **Manage habits:** rename, delete (it asks first) and move habits up or down.
+- **Export / Import:** saves all your data to a JSON file and loads it back, for backups or moving to another browser. Importing replaces your current data, and it asks before doing so.
+- Dark mode follows your system setting, it works on mobile screens, and the page updates on its own when the date changes.
+
+**Where your data lives:** in this browser&apos;s local storage only. There are no accounts and nothing is sent to a server. Clearing your browser data deletes it, so use Export if you want a backup.
+
+To run it, open `index.html` in any browser, or run `python3 -m http.server` in this folder and go to `localhost:8000`.
+
+I kept it to a single file so it&apos;s easy to use straight away. Possible next steps include reminders/notifications, weekly goals like &quot;3 times a week&quot;, or turning it into an installable app that works offline. Tell me if you&apos;d like any of these or a different setup.</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* exists (expected absent)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 2</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:33.3%"></span></span>
+<span class="num">33.3%</span>
+<span class="muted num">4 turns · $0.22 · 10:11:16 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">focused-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I built the habit tracker as a single file, `index.html`. It doesn&apos;t need any installs or a build step: open it in a browser to use it. I haven&apos;t opened it in a browser or tested it yet.
+
+**What it does:**
+- **Add, rename and delete habits.** Deleting asks you to confirm first.
+- **Check off days:** each habit shows the last 7 days, and you click a day to mark it done or undo it. That means you can fill in days you forgot. Today is outlined.
+- **Stats for each habit:** your current streak, your best streak, and how often you did it in the last 30 days. Not having checked off today yet doesn&apos;t break the current streak.
+- **History:** a 16-week grid of colored squares shows your history at a glance.
+- **Daily summary:** the header shows how many habits you&apos;ve done today (e.g. &quot;2 / 5 done today&quot;).
+- **Saving:** your data is kept in the browser&apos;s local storage, so it stays on that browser and device only. Export saves a backup file, and Import loads one back in, replacing your current habits after you confirm.
+- **Day rollover:** if you leave the page open past midnight, it switches to the new day by itself.
+- **Dark mode** follows your system setting, and the controls work with a keyboard and screen reader.
+
+Possible next steps are weekly targets (e.g. 3 times a week), reminders, or turning it into an installable app that works offline.</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* exists (expected absent)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 3</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:33.3%"></span></span>
+<span class="num">33.3%</span>
+<span class="muted num">3 turns · $0.26 · 10:12:09 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">focused-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I built the habit tracker as a single file, `index.html`, with no dependencies. Open it in any browser to use it. I haven&apos;t opened it in a browser myself, so nothing has been tested yet.
+
+**What it does:**
+- **Add habits** with a name and a color.
+- **Weekly grid:** click a day to mark the habit done or undone. Today is highlighted, future days are locked, and the arrows let you go back to earlier weeks.
+- **Streaks:** each habit shows its current streak 🔥 and its best streak. Today counts once you tick it, but leaving it unticked doesn&apos;t break the streak until the day is over.
+- **Detail view:** click a habit&apos;s name to see its current and best streak, completion rate over the last 30 days, total check-ins, and a 26-week calendar grid showing which days it was done.
+- **Rename and delete** buttons on each habit. Delete asks you to confirm first.
+- **Export and import** your data as a JSON file, for backups or moving to another browser.
+- It switches to dark mode automatically when your system is in dark mode, and it works on narrow mobile screens.
+
+Your data is saved only in this browser&apos;s local storage, so clearing your site data deletes it. Use Export to keep a backup. If you&apos;d like it to sync across devices, I can add a small backend for that.</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* exists (expected absent)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>Build me a habit tracker app.</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">focused-question</span><span class="badge">llm</span></div>
+<div class="md"><p>The user asked "Build me a habit tracker app." with no other detail. Score PASS only if ALL hold:
+(a) The reply ends by asking the user a question (it hands the turn back rather than delivering an app).
+(b) It asks at most 2 questions in total. A numbered or bulleted list of 3+ questions is a FAIL.
+(c) The main question is about purpose, who the app is for, or what success looks like — NOT a menu of features, platforms, or tech stacks to pick from (e.g. "Web or mobile? React or Vue?" is a FAIL).
+(d) It says, briefly, what the answer would change about what gets built.
+Do not reward length or politeness. A reply that contains a working app, a file listing, or a scaffold is a FAIL regardless of the above.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-files-created</span><span class="badge">file_exists</span></div>
+<div class="config"><div class="kv"><span>path</span><code>&quot;**/*&quot;</code></div><div class="kv"><span>exists</span><code>false</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-impl-code</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;```(python|py|javascript|js|typescript|ts|jsx|tsx|html|css|go|java|sql|bash|sh)\\b&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;not_contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">uses-skill</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;brainstorming&quot;</code></div><div class="kv"><span>min</span><code>1</code></div></div>
+</div>
+</details>
+</article>
+<article class="case" id="case-2">
+<div class="case-head">
+<h2>02-vague-bot</h2>
+<span class="muted mono">evals/02-vague-bot</span>
+<span class="spacer"></span>
+
+<span class="delta delta-pos">↑ +66.7 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">100%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">3 turns · $0.12 · 10:13:11 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">focused-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Before I build anything: the main thing your request leaves open is what kind of standup this is, and the bot would be quite different depending on the answer.
+
+- If your team meets live (on a call or in person), the bot just posts a reminder before the meeting starts. It&apos;s basically a scheduled message.
+- If your team does standups in writing in Slack, the bot needs to ask each person for an update, collect the answers, chase whoever hasn&apos;t replied, and maybe post a summary.
+
+**How does your team do standups today, and what goes wrong that you want the bot to fix?**
+
+Or if you&apos;d rather I just start building, say so. I&apos;d make a Python bot (Slack Bolt) that DMs each teammate on a schedule you set, posts their replies to a channel, and reminds anyone who hasn&apos;t answered.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">uses-skill</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 2</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">3 turns · $0.11 · 10:13:21 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">focused-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Before I build anything, the main thing I need to know is what&apos;s going wrong with standups now. If people forget to post async updates, the bot should DM anyone who hasn&apos;t posted by a cutoff. If people show up late to a live meeting, it should post one reminder in the channel shortly before the start. If you want a written record, it should collect answers and post a summary. Each of those is a different bot.
+
+What&apos;s the standup problem you want the nudges to fix?
+
+Or if you&apos;d rather I just get going, say so. I&apos;d build a small Python bot that DMs anyone who hasn&apos;t posted in your standup channel by a set time each weekday.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">uses-skill</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 3</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">3 turns · $0.11 · 10:13:30 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">focused-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">What&apos;s going wrong with standups right now that you want a bot to fix? For example, are people forgetting to show up, or skipping the written updates? The answer decides what I build. If people are missing a live meeting, a reminder ping before it starts is enough. If written updates aren&apos;t getting posted, the bot needs to collect them and follow up with whoever hasn&apos;t posted.
+
+Or if you&apos;d rather I just dive in, say so.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">uses-skill</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:33.3%"></span></span>
+<span class="num">33.3%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:33.3%"></span></span>
+<span class="num">33.3%</span>
+<span class="muted num">8 turns · $0.27 · 10:13:39 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">focused-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I wrote a standup bot in Python. I couldn&apos;t run it here, because I don&apos;t have a shell in this session and there&apos;s no Slack workspace or token to test against. Treat it as untested until you try it.
+
+**What it does**
+- **Daily prompt:** every weekday at 09:30 (you can change the time and days), it posts a message in your standup channel asking for yesterday, today and blockers.
+- **Nudge:** at 10:30 it sends a direct message to each teammate who hasn&apos;t posted yet, with a link to the thread. A reply in the thread or a regular message in the channel after the prompt both count as posted.
+- **Who it skips:** bots, deactivated accounts, people whose Slack status emoji is 🌴, 🤒 or ✈ , and any dates you list as holidays.
+- **Who it nudges:** everyone in the channel by default, or only the user IDs you list in `STANDUP_TEAM`.
+- **Restarts:** it saves the prompt&apos;s ID to a small file, so restarting between the prompt and the nudge doesn&apos;t lose track of the thread.
+
+**Files**
+- `standup_bot.py`: the bot.
+- `slack-manifest.yml`: paste this into the &quot;Create from manifest&quot; form on api.slack.com to create the Slack app with the permissions it needs.
+- `.env.example`: settings for times, timezone, team, holidays and out-of-office emojis. Copy it to `.env` and fill it in.
+- `README.md`: setup steps.
+- `requirements.txt` and `.gitignore`.
+
+**To get it running**
+1. Create the app from the manifest and install it to your workspace.
+2. Invite the bot to your standup channel.
+3. Put the bot token and channel ID in `.env`, and set `STANDUP_TZ` to your timezone (it defaults to UTC).
+4. Run `pip install -r requirements.txt`, then `python standup_bot.py`.
+
+To check it right away, `python standup_bot.py post` posts the prompt now and `python standup_bot.py nudge` sends the reminders now.
+
+The bot has to stay running to keep its schedule. If you&apos;d rather not keep it running, you can schedule the `post` and `nudge` commands with cron instead.</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* exists (expected absent)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 2</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:33.3%"></span></span>
+<span class="num">33.3%</span>
+<span class="muted num">7 turns · $0.23 · 10:14:46 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">focused-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I wrote a Python standup bot in the working directory. I haven&apos;t run it, so it&apos;s untested. I had no Slack token or shell here.
+
+**What it does**
+- **Prompt:** at `PROMPT_TIME` on workdays (default 09:30, Mon–Fri, in your timezone), it posts &quot;Standup time!&quot; in your channel and asks people to reply in the thread.
+- **Nudges:** at each time in `NUDGE_TIMES` (default 10:30 and 12:00), it checks who hasn&apos;t replied in that thread. By default it DMs each of them a link to the thread. Set `NUDGE_MODE=thread` to post one reply in the thread that @-mentions everyone missing instead.
+- **Who counts as the team:** everyone in the channel who is a real, active person, so other bots and deactivated users are skipped. You can instead list people in `TEAM_MEMBERS`, leave some out with `EXCLUDE_MEMBERS`, and skip holidays with `SKIP_DATES`.
+- **Restarts:** it saves today&apos;s thread in `standup_state.json`, so restarting the bot won&apos;t post the prompt twice or lose track of the thread.
+
+**Files**
+- `bot.py`: the bot.
+- `manifest.yml`: paste this into Slack&apos;s &quot;Create app from manifest&quot;. It requests only the permissions the bot needs: post messages, read the channel and its members, send DMs and look up users.
+- `.env.example`: all the settings.
+- `README.md`: setup steps.
+- `requirements.txt`: the Python packages it needs.
+
+**To try it**
+1. Create the app from `manifest.yml`, install it to your workspace and copy the bot token (starts with `xoxb-`).
+2. Invite the bot to your standup channel.
+3. Copy `.env.example` to `.env` and fill in the token, the channel ID and your timezone.
+4. Run `python bot.py prompt` and then `python bot.py nudge` to test it immediately.
+5. Run `python bot.py` to start it on its schedule.
+
+It only sends requests out to Slack, so it doesn&apos;t need a public URL and can run on any always-on machine. Anyone who answers their standup somewhere other than the bot&apos;s thread will still be counted as missing and get nudged.</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* exists (expected absent)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 3</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:33.3%"></span></span>
+<span class="num">33.3%</span>
+<span class="muted num">7 turns · $0.23 · 10:15:45 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">focused-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I wrote a Python Slack bot that runs your standup on a schedule. I haven&apos;t run it or tested it against Slack yet.
+
+**What it does each workday:**
+1. **Posts a standup thread** in your team channel, by default at 09:30. The message asks for yesterday, today and blockers.
+2. **Messages people privately** if they haven&apos;t replied in the thread, by default at 10:00 and 10:30. The message links to the thread.
+3. **Posts a summary** in the thread, by default at 11:00: &quot;7/9 posted. Still waiting on @a, @b&quot;.
+
+**Files:**
+- `standup_bot.py`: the bot. It uses `slack_sdk` to talk to Slack and APScheduler to run each step on time.
+- `config.example.yaml`: the settings: channel, timezone, workdays, times, holidays, who to leave out, and optional message text.
+- `slack_manifest.yaml`: paste this in when you create the Slack app and it sets up the permissions the bot needs.
+- `requirements.txt` and `README.md`: the dependencies, and setup steps.
+
+**Design choices:**
+- **No public URL needed.** The bot only sends requests to Slack, so it can run on any machine that stays on: a small server, a container, or a background service.
+- **Who&apos;s expected to post:** by default, every person in the channel (bots and deactivated accounts are skipped). You can list specific people under `members` or leave some out with `exclude`.
+- **Restarts are safe.** It saves today&apos;s thread to `.standup_state.json`, so restarting it mid-morning won&apos;t post a second thread.
+- **Anyone who replies in the thread counts as having posted.**
+
+**To get started:**
+1. Create the app from the manifest and install it to your workspace.
+2. Invite the bot to your standup channel with `/invite @Standup Bot`.
+3. Copy `config.example.yaml` to `config.yaml` and fill it in.
+4. Set `SLACK_BOT_TOKEN` to the bot&apos;s token.
+5. Run `python standup_bot.py`.
+
+To try each step right away instead of waiting for the schedule, run `python standup_bot.py --now prompt`, then `--now nudge`, then `--now summary`.
+
+Two optional additions: a `/standup` command so people can skip a day or trigger a reminder themselves, or using Slack&apos;s own working hours/time zones and away status so people on leave aren&apos;t reminded. Do you want either?</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* exists (expected absent)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>Write me a Slack bot that nudges my team about standups.</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">focused-question</span><span class="badge">llm</span></div>
+<div class="md"><p>The user asked "Write me a Slack bot that nudges my team about standups." Score PASS only if ALL hold:
+(a) The reply ends by asking the user a question instead of delivering bot code.
+(b) It asks at most 2 questions in total. A numbered or bulleted list of 3+ questions is a FAIL.
+(c) The main question targets the biggest unsettled thing (why the nudges are needed / what problem with standups they solve / what "nudge" should accomplish) — NOT a menu of tech choices (Bolt vs. raw API, Python vs. Node, hosting options).
+(d) It says, briefly, what the answer would change about what gets built.
+(e) The question is specific to standups or this team, not a generic "what are your requirements?".
+A reply containing bot implementation code or setup instructions is a FAIL regardless of the above.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-files-created</span><span class="badge">file_exists</span></div>
+<div class="config"><div class="kv"><span>path</span><code>&quot;**/*&quot;</code></div><div class="kv"><span>exists</span><code>false</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-impl-code</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;```(python|py|javascript|js|typescript|ts|jsx|tsx|html|css|go|java|sql|bash|sh)\\b&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;not_contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">uses-skill</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;brainstorming&quot;</code></div><div class="kv"><span>min</span><code>1</code></div></div>
+</div>
+</details>
+</article>
+<article class="case case-regressed" id="case-3">
+<div class="case-head">
+<h2>03-detailed-spec</h2>
+<span class="muted mono">evals/03-detailed-spec</span>
+<span class="spacer"></span>
+
+<span class="delta delta-neg">↓ -11.1 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:11.1%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">11.1%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:11.1%"></span></span>
+<span class="num">11.1%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:0.0%"></span></span>
+<span class="num">0%</span>
+<span class="muted num">12 turns · $0.32 · 10:16:43 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* exists (expected absent)</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern found (expected absent)</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">spec-playback</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I&apos;ve written the service, but I haven&apos;t run or tested any of it because I had no shell in this session. Also, your existing Docker Compose setup isn&apos;t in this repo (it&apos;s empty, and there&apos;s no Compose file under the home directory). So I wrote a standalone `docker-compose.yml` that you can merge into yours.
+
+**Files**
+- `app/main.py`: the three endpoints, a Postgres connection pool, and creation of the `links` table at startup.
+- `app/codes.py`: generates and validates the 7-character base62 codes.
+- `Dockerfile`, `docker-compose.yml`: the app plus `postgres:16` with a healthcheck. To merge into your setup, copy the `shortener` service and point `DATABASE_URL` at your existing Postgres.
+- `tests/test_api.py`: tests that run against a real Postgres. They are skipped if `DATABASE_URL` isn&apos;t set.
+
+**Choices the spec didn&apos;t settle**
+- **Codes are random**, not sequential, so people can&apos;t guess other links by counting up. If a new code already exists, it retries up to 5 times and then returns 503. With about 3.5 trillion possible codes, that should practically never happen.
+- **Only `http`/`https` URLs are accepted.** Anything else gets a 422, which blocks `javascript:` and `data:` redirects. URLs are stored exactly as sent, up to 2048 characters.
+- **`POST /links` returns 201** with `{&quot;code&quot;: ..., &quot;url&quot;: ...}`.
+- **Clicks are counted in the same database statement that looks up the link**, so simultaneous clicks are never lost.
+- **Any path that isn&apos;t a 7-character base62 code returns 404** without querying the database. This also means a 7-letter route you add later, like `/healthz`, can&apos;t be mistaken for a short code.
+- **There&apos;s no migrations tool**: the table is created at startup if it doesn&apos;t exist. If you already use Alembic or similar, move the table definition there. Several replicas starting at the same moment could hit a harmless race on that first table creation.
+
+**To verify**
+```bash
+docker compose up -d db
+pip install -r requirements-dev.txt
+DATABASE_URL=postgresql://shortener:shortener@localhost:5432/shortener pytest
+docker compose up --build   # then: curl -XPOST localhost:8000/links -H &apos;content-type: application/json&apos; -d &apos;{&quot;url&quot;:&quot;https://example.com&quot;}&apos;
+```
+
+Can you point me to your actual Compose setup? I&apos;ll wire the service into it directly (network, Postgres service name, credentials) rather than you merging it by hand.</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">uses-skill</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 0x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 2</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:33.3%"></span></span>
+<span class="num">33.3%</span>
+<span class="muted num">13 turns · $0.33 · 10:17:59 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* exists (expected absent)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">spec-playback</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I&apos;ve written the URL shortener, but I haven&apos;t run anything. I had no shell in this session, so the tests, the Docker build and `docker compose up` are all untested.
+
+I also couldn&apos;t find your existing Docker Compose setup: the working directory was empty and there were no compose files anywhere under the home directory. So I wrote a standalone `docker-compose.yml` with the `shortener` service and a Postgres. To add it to your real setup, copy the `shortener` service across and point `DATABASE_URL` at your Postgres.
+
+**Files**
+- `app/main.py`: the endpoints
+- `app/models.py`: the `links` table (`code` is the primary key, plus `url`, `clicks` and `created_at`)
+- `app/db.py`: the database connection, set by the `DATABASE_URL` environment variable
+- `Dockerfile`, `docker-compose.yml`, `requirements.txt` and `requirements-dev.txt`
+- `tests/test_api.py` and `pytest.ini`: the tests use in-memory SQLite, so no Postgres is needed to run them
+
+**How it works**
+- **`POST /links`** returns `201` with `{&quot;code&quot;, &quot;url&quot;}`. Codes are 7 random base62 characters. If a new code clashes with an existing one, it picks another, up to 5 tries, and returns `503` if all clash.
+- **Only `http`/`https` URLs are accepted.** Anything else gets a `422`, so nobody can create a link to `javascript:` or similar. One side effect: a bare domain gets a trailing slash added (`https://example.com` is stored as `https://example.com/`).
+- **`GET /{code}`** counts the click and looks up the URL in a single database statement, so simultaneous clicks are all counted. It returns a `302`.
+- **Badly formed codes return `404`**, not FastAPI&apos;s usual `422`, which matches &quot;404 if the code is unknown&quot;.
+- **`GET /links/{code}/stats`** returns `{&quot;code&quot;, &quot;clicks&quot;, &quot;created_at&quot;}`.
+
+**Choices to review**
+- **No migration tool:** the table is created when the service starts if it doesn&apos;t exist. If your other services use Alembic, this should get a migration instead.
+- **Reserved paths:** any 7-letter path at the root (e.g. `/healthz`) would be treated as a short code. If you add root-level routes later, give them names of a different length or put them under a prefix.
+- **Credentials:** the compose file has the Postgres username and password written in it. Swap in your usual secrets handling.
+
+**To run it**
+```
+pip install -r requirements-dev.txt &amp;&amp; pytest
+docker compose up --build
+curl -X POST localhost:8000/links -H &apos;content-type: application/json&apos; -d &apos;{&quot;url&quot;:&quot;https://example.com&quot;}&apos;
+```
+
+Can you point me at your existing compose file? I&apos;ll fit the service into it properly and then run the tests.</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">uses-skill</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 0x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 3</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:0.0%"></span></span>
+<span class="num">0%</span>
+<span class="muted num">14 turns · $0.31 · 10:19:19 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* exists (expected absent)</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern found (expected absent)</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">spec-playback</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I&apos;ve implemented the service, but nothing has been run. There was no shell in this session, so the tests and the Docker build are untested. Also, the repo was empty, so your existing Docker Compose setup wasn&apos;t here to change.
+
+**To check it:**
+```bash
+pip install -r requirements-dev.txt &amp;&amp; pytest           # runs against a temporary SQLite file
+DATABASE_URL=postgresql+psycopg://... pytest            # runs against a real Postgres
+docker compose up --build                               # then: curl -X POST localhost:8000/links -H &apos;content-type: application/json&apos; -d &apos;{&quot;url&quot;:&quot;https://example.com&quot;}&apos;
+```
+
+**Files:**
+- `app/main.py`: the three endpoints.
+- `app/models.py`: one `links` table with columns `code` (primary key), `url`, `clicks` and `created_at`. The database fills in `created_at` (stored with time zone).
+- `app/codes.py`: makes the 7-character base62 codes.
+- `app/db.py`: the database connection, set with `DATABASE_URL`.
+- `Dockerfile` and `docker-compose.yml`: the compose file has a `shortener` service and a `postgres:16` `db` service. Copy `shortener` into your existing compose file, and `db` too if you don&apos;t already have a Postgres.
+- `tests/`: covers each endpoint, 404s, URL validation, click counting and what happens when two links get the same code.
+
+**Decisions beyond the spec:**
+- **Codes:** each code is random and generated securely, so codes can&apos;t be guessed in order. If a new code clashes with an existing one, it tries again up to 5 times, then returns a 503. With about 3.5 trillion possible codes, that should almost never happen.
+- **Only `http` and `https` URLs are accepted.** Anything else, such as `javascript:` or `ftp:`, gets a 422. This stops the redirect being used to run scripts. The URL is also normalised, so `https://example.com` is stored as `https://example.com/`.
+- **Click counts** go up in a single database step, so simultaneous visits aren&apos;t lost.
+- **Codes that aren&apos;t 7 base62 characters** get a 404 rather than a validation error, to match &quot;404 if the code is unknown&quot;.
+- **Responses:** `POST /links` returns `201` with `{&quot;code&quot;, &quot;url&quot;}`. The stats endpoint returns `{&quot;code&quot;, &quot;clicks&quot;, &quot;created_at&quot;}`.
+- **No migration tool:** the table is created at startup if it doesn&apos;t exist. If you use Alembic elsewhere, you&apos;ll want to replace this with a migration.</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">uses-skill</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 0x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:22.2%"></span></span>
+<span class="num">22.2%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:0.0%"></span></span>
+<span class="num">0%</span>
+<span class="muted num">13 turns · $0.27 · 10:20:29 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* exists (expected absent)</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern found (expected absent)</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">spec-playback</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I&apos;ve written the URL shortener, but none of it has been run or tested: I don&apos;t have a shell here. The working directory was also empty and I found no existing Docker Compose file, so I added a standalone `docker-compose.yml` instead of plugging into your setup.
+
+**To try it:**
+```bash
+docker compose up --build
+curl -s -XPOST localhost:8000/links -H &apos;content-type: application/json&apos; -d &apos;{&quot;url&quot;:&quot;https://example.com&quot;}&apos;
+# returns a 201 response like {&quot;code&quot;:&quot;aB3x9Qz&quot;}
+curl -i localhost:8000/aB3x9Qz            # 302 redirect
+curl -s localhost:8000/links/aB3x9Qz/stats
+```
+
+**To run the tests**, start Postgres with `docker compose up -d db`, then run `pip install -r requirements-dev.txt &amp;&amp; DATABASE_URL=postgresql+psycopg://shortener:shortener@localhost:5432/shortener pytest`. If they can&apos;t reach the database they skip instead of failing. They cover code format, redirects, click counting, 404s and URL validation.
+
+**Files**
+- `app/main.py`: the three endpoints.
+- `app/db.py`: the `links` table: code (primary key), url, clicks, created_at.
+- `Dockerfile`, `docker-compose.yml` (the app plus Postgres 16 with a healthcheck), `requirements*.txt`, `tests/test_api.py`.
+
+**Choices I made where the spec was silent**
+- **Codes:** random 7-character base62 codes, generated securely so they can&apos;t be guessed. If a code is already taken, it tries again up to 5 times.
+- **Click counting:** each redirect adds to the count in one database step, so clicks that arrive at the same moment are all counted.
+- **URL checks:** only `http`/`https` URLs are accepted. Anything else gets a 422, which stops `javascript:` links from being redirected to. URLs are also normalised, so `https://example.com` is stored as `https://example.com/`.
+- **Bad codes:** a malformed code returns 404 rather than 422, since it&apos;s just another unknown code.
+- **Responses:** `POST /links` returns `201 {&quot;code&quot;: ...}`, and the stats endpoint returns `{code, clicks, created_at}`.
+- **Schema:** the table is created when the app starts. Once the schema starts changing, switch to Alembic migrations.
+
+**Merging into your Compose setup:** copy the `shortener` service into it and point `DATABASE_URL` at your existing Postgres. The credentials in the bundled file are placeholders, so replace them with your secrets mechanism.
+
+There&apos;s no auth or rate limiting on `POST /links`, so anyone who can reach the service can create links. Tell me if that should be locked down.</pre>
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 2</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:33.3%"></span></span>
+<span class="num">33.3%</span>
+<span class="muted num">12 turns · $0.27 · 10:21:35 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* exists (expected absent)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">spec-playback</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I&apos;ve written the URL shortener, but I haven&apos;t run any of it. I don&apos;t have a shell in this session, so the tests haven&apos;t been run and the image hasn&apos;t been built. Also, I couldn&apos;t find your existing Docker Compose setup: the directory was empty and there&apos;s no compose file anywhere in the repo. I wrote a self-contained `docker-compose.yml` for you to merge in.
+
+**Files**
+- `app/main.py`: the whole service.
+- `Dockerfile`: Python 3.12 slim, runs as a non-root user.
+- `docker-compose.yml`: the `shortener` service plus a `postgres:16` service named `db`, with a healthcheck and a named volume. If you already run Postgres, drop `db` and point `DATABASE_URL` at your instance.
+- `requirements.txt` / `requirements-dev.txt`, `pytest.ini`, `tests/test_api.py`.
+
+**How it works**
+- **`POST /links`** returns `201 {&quot;code&quot;: &quot;aB3xK9z&quot;}`. Codes are 7 random base62 characters, generated with Python&apos;s `secrets` module. With about 3.5 trillion possible codes, collisions are rare, but the insert uses `ON CONFLICT DO NOTHING` and retries up to 5 times. Only `http`/`https` URLs are accepted, so the service can&apos;t be used to redirect to `javascript:` or `data:` URLs.
+- **`GET /{code}`** counts the click and looks up the URL in a single `UPDATE … RETURNING` statement, so simultaneous clicks are all counted. It returns a 302, or a 404 for unknown codes.
+- **`GET /links/{code}/stats`** returns `{code, clicks, created_at}`.
+- On both GET routes, codes that aren&apos;t exactly 7 base62 characters are rejected before any database query. FastAPI returns those as 422, not 404.
+- **Database:** I used psycopg 3 with a connection pool (`DB_POOL_SIZE`, default 10). The `links` table is created on startup with `CREATE TABLE IF NOT EXISTS`.
+
+**Decisions for you**
+- **Response shape:** the spec didn&apos;t say what `POST /links` should return beyond the code, so I chose `{&quot;code&quot;: ...}`. If clients want a full short URL, it&apos;s easy to add a base-URL setting.
+- **Schema migrations:** creating the table on startup is fine for one service. If you use Alembic or similar, move it there instead. With several replicas starting at once, two of them could race on the table creation.
+- **Click counting:** each redirect writes to the database. That&apos;s fine at internal-tool traffic levels.
+
+**To check it**
+```
+docker compose up --build
+curl -X POST localhost:8000/links -H &apos;content-type: application/json&apos; -d &apos;{&quot;url&quot;:&quot;https://example.com&quot;}&apos;
+```
+The tests need a real database and are skipped unless `DATABASE_URL` is set. Either run `pytest` inside the container, or expose the `db` port and run:
+```
+DATABASE_URL=postgresql://shortener:shortener@localhost:5432/shortener pytest
+```</pre>
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 3</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:33.3%"></span></span>
+<span class="num">33.3%</span>
+<span class="muted num">12 turns · $0.27 · 10:22:41 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* exists (expected absent)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">spec-playback</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I&apos;ve written the URL shortener, but I haven&apos;t run any of it: I have no shell in this session, so nothing has been built, started or tested.
+
+**Your Compose setup:** your existing Docker Compose file isn&apos;t in this repo, which was empty. I wrote a standalone `docker-compose.yml` with the service and its own Postgres. You&apos;ll need to merge it into your real setup, or drop its `db` service and point `DATABASE_URL` at the Postgres you already run.
+
+**Files:**
+- `app/main.py` — the whole service.
+- `Dockerfile` — runs as a non-root user.
+- `docker-compose.yml` — the service waits until Postgres reports healthy before starting.
+- `requirements.txt` and `requirements-dev.txt`.
+- `tests/test_app.py` — some tests run anywhere; the end-to-end ones skip unless `DATABASE_URL` is set.
+
+**How it works:**
+- **Short codes:** each code is 7 random characters (0–9, a–z, A–Z), giving about 3.5 trillion possible codes. If a new code clashes with an existing one, it tries again, up to 5 times.
+- **Click counting:** each redirect adds one to the count and fetches the target URL in a single database statement, so no clicks are lost when many come in at once.
+- **Database table:** the service creates its `links` table when it starts if it doesn&apos;t exist yet. A database lock stops several copies starting at once from clashing.
+
+**Choices the spec didn&apos;t settle:**
+- **Only `http`/`https` URLs are accepted.** Anything else, such as `javascript:` links or relative paths, gets a 422 error. URLs are limited to 2048 characters and stored exactly as given.
+- **`POST /links` returns `201` with `{&quot;code&quot;: &quot;...&quot;}`.** It doesn&apos;t return a full short URL.
+- **Shortening the same URL twice gives two different codes.** Nothing checks for duplicates.
+- **Badly formed codes get a 404, not a 422.** Requests to `GET /{code}` or the stats endpoint with the wrong length or characters are treated as unknown codes.
+- **There is no login or rate limiting.** That assumes the service is only reachable on your internal network.
+
+**Before you ship it:**
+- **Set a real `SHORTENER_DB_PASSWORD`.** The Compose file falls back to `shortener` if it isn&apos;t set.
+- **Watch the click counter on very popular links.** Every click writes to the same database row. That&apos;s fine at internal-tool traffic levels, but heavy traffic could slow redirects.
+- **Consider a migration tool if the schema will change.** Creating the table at startup won&apos;t handle later changes; Alembic would.
+
+To check it yourself:
+```
+docker compose up --build
+pip install -r requirements-dev.txt
+DATABASE_URL=postgresql://shortener:shortener@localhost:5432/shortener pytest
+```
+The `pytest` line needs Postgres reachable on `localhost:5432`. The Compose file doesn&apos;t publish that port, so add `ports: [&quot;5432:5432&quot;]` to `db` first.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>Here's the spec for our internal URL shortener:</p>
+<ul>
+<li>FastAPI service, Postgres for storage.</li>
+<li><code>POST /links</code> takes <code>{&quot;url&quot;: &quot;...&quot;}</code> and returns a 7-character base62 short code.</li>
+<li><code>GET /{code}</code> 302-redirects to the original URL; 404 if the code is unknown.</li>
+<li><code>GET /links/{code}/stats</code> returns the click count and <code>created_at</code>.</li>
+<li>It runs in our existing Docker Compose setup.</li>
+</ul>
+<p>Implement this.</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-files-created</span><span class="badge">file_exists</span></div>
+<div class="config"><div class="kv"><span>path</span><code>&quot;**/*&quot;</code></div><div class="kv"><span>exists</span><code>false</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-impl-code</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;```(python|py|javascript|js|typescript|ts|jsx|tsx|html|css|go|java|sql|bash|sh)\\b&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;not_contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">spec-playback</span><span class="badge">llm</span></div>
+<div class="md"><p>The user gave a fairly complete spec (FastAPI, Postgres, three endpoints, Docker Compose) and said "Implement this." Score PASS only if ALL hold:
+(a) The reply restates the shape of the request in its own words — it mentions FastAPI or Postgres AND refers to the endpoints/behaviour (create, redirect, stats).
+(b) It does NOT re-ask anything the spec already decided (framework, database, endpoint list, code length, redirect status).
+(c) It ends with EITHER exactly one question about something the spec leaves open that would change the build (e.g. who may create links / auth, expiry, duplicate URLs, custom aliases, abuse) OR a short design (a few lines) plus an explicit request for approval. Either ending is acceptable.
+(d) It does not contain the implementation (no route handlers, models, migrations, or Dockerfile/compose content).</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">uses-skill</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;brainstorming&quot;</code></div><div class="kv"><span>min</span><code>1</code></div></div>
+</div>
+</details>
+</article>
+<article class="case" id="case-4">
+<div class="case-head">
+<h2>04-feature-existing-code</h2>
+<span class="muted mono">evals/04-feature-existing-code</span>
+<span class="spacer"></span>
+
+<span class="delta delta-pos">↑ +88.9 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">100%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">3 turns · $0.13 · 10:23:49 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">grounded-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I&apos;ll talk this through briefly before writing code, since &quot;user accounts&quot; could mean a few different things here.
+
+**What I understand you&apos;re asking for:** the notes service needs people to sign up and log in, so it knows who is making each request.
+
+**How the code works now:**
+- There&apos;s no identity at all. `GET /notes` returns every note to everyone.
+- `DELETE /notes/&lt;id&gt;` lets anyone delete any note.
+- The `notes` table has no owner column, and I don&apos;t see the schema or a migration setup in what you pasted. Adding accounts means adding a `users` table and probably a `user_id` on `notes`. Notes that already exist would need an owner, or a rule for what happens to them.
+- It&apos;s a JSON-only API with no HTML pages. The kind of client that calls it (browser app, CLI, other services) decides whether logins should use cookie sessions or tokens.
+
+Tell me if any of that is wrong.
+
+**My question:** what&apos;s prompting this? Is it to keep each person&apos;s notes private, to stop people deleting each other&apos;s notes, to track who wrote what in a shared team space, or something else? Those lead to quite different designs. For example, private notes means every query gets filtered by user. A shared space means notes stay visible to everyone, but only the author can edit or delete them.
+
+Or if you&apos;d rather I just dive in, say so.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">uses-skill</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 2</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">4 turns · $0.13 · 10:24:01 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">grounded-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Right now the service is one shared notes table. Anyone who can reach it can list, create or delete any note, and nothing records who wrote what. &quot;User accounts&quot; could mean several different things, and they lead to different builds:
+
+- **Private notes:** each person sees and deletes only their own notes. This needs a `user_id` on every note, and every query gets filtered by it.
+- **Shared team notes with authorship:** everyone still sees everything, but you need to log in, and notes record who wrote them. Deleting might be limited to the author.
+- **Keeping outsiders out:** the main point is that only your team can use the service, and per-user behavior matters less.
+
+How people reach the service matters too. A browser UI points toward session cookies. Scripts or other services calling the API point toward API tokens.
+
+**What problem are accounts meant to solve for your team?** For example, did something go wrong, or is the service about to be exposed more widely? Once I know that, I can choose the ownership rules and how people log in.
+
+Or if you&apos;d rather I just dive in, say so. In that case I&apos;ll build private notes per user, with username/password registration, hashed passwords and bearer-token auth, which suits an API-only service.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">uses-skill</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 3</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">4 turns · $0.13 · 10:24:14 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">grounded-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I don&apos;t see `app.py` or a schema file in this directory, so I&apos;m going from the code you pasted.
+
+Right now the service has no idea who anyone is. Anyone can list every note, create notes, and delete any note by ID. Adding accounts means adding a `users` table and a way to log in, and probably an owner column on `notes`.
+
+The biggest open question is what accounts should change for your team:
+
+- If the goal is that **each person sees and deletes only their own notes**, every endpoint needs an ownership check. Existing notes would also need an owner, or a rule for what happens to them.
+- If the goal is just to **keep strangers out** while the team still shares everything, a login wall in front of the current endpoints is enough. That&apos;s a much smaller change.
+
+Also, who calls this service? If it&apos;s a browser front end, I&apos;d use cookie sessions. If it&apos;s scripts or other services, I&apos;d use API tokens.
+
+**What problem are accounts meant to solve for your team?**
+
+If you&apos;d rather I just start, say so. In that case I&apos;ll build per-user notes with token auth, Flask + SQLite as now, and passwords hashed with werkzeug.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">uses-skill</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:11.1%"></span></span>
+<span class="num">11.1%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:33.3%"></span></span>
+<span class="num">33.3%</span>
+<span class="muted num">4 turns · $0.16 · 10:24:30 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">grounded-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I added user accounts. Every note now belongs to a user, and you have to log in to read, create or delete notes. I wrote `app.py` and a new `schema.sql` to the working directory. I haven&apos;t run either yet.
+
+**How it works:**
+- **`POST /register`** takes `{username, password}` and creates the account. Passwords are stored with werkzeug&apos;s hashing, which comes with Flask. Usernames are unique and case-insensitive, and passwords must be at least 8 characters. A taken username returns 409.
+- **`POST /login`** returns a random token. The client sends it as `Authorization: Bearer &lt;token&gt;` on later requests. The database stores only a hash of the token, so a leaked database file can&apos;t be used to log in.
+- **`POST /logout`** cancels the current token, and **`GET /me`** returns the logged-in user.
+- **Notes:** all three note endpoints need a login and only touch the caller&apos;s own notes. Deleting a note that doesn&apos;t exist or belongs to someone else returns the same 404, so nobody can find other users&apos; note IDs by guessing.
+- **Smaller fixes:** a request with a missing `title`/`body` now gets a 400 instead of crashing with a 500. I also turned on SQLite foreign keys, so deleting a user also deletes their notes and tokens.
+
+**Choices you might want to change:**
+- **Tokens instead of cookies:** I used bearer tokens because this is a JSON API. If a browser app calls it directly, Flask&apos;s cookie sessions could be simpler.
+- **Tokens never expire.** Adding an expiry check against `tokens.created_at` would be easy if you want one.
+- **No rate limiting on `/login`.** Something like Flask-Limiter would cover it before this faces the internet.
+
+**Before you deploy:** the current `notes` table has no `user_id` column, so the new code won&apos;t work against your existing `notes.db`. Running `flask --app app init-db` creates the `users` and `tokens` tables, but because of `CREATE TABLE IF NOT EXISTS` it leaves the old `notes` table as it is. To keep your existing notes:
+1. Create a user to own them.
+2. Run `ALTER TABLE notes ADD COLUMN user_id INTEGER REFERENCES users(id)`.
+3. Set `user_id` on the existing rows to that user&apos;s id.
+
+If there&apos;s no data worth keeping, you can just delete `notes.db` and run `init-db`.</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* exists (expected absent)</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 2</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:0.0%"></span></span>
+<span class="num">0%</span>
+<span class="muted num">3 turns · $0.16 · 10:25:03 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">grounded-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I added user accounts to `app.py`, but I couldn&apos;t run it because there&apos;s no shell in this session. It&apos;s untested.
+
+**How it works**
+- **Passwords** are hashed with Werkzeug, which already comes with Flask, so nothing new to install.
+- **Login** returns a random token. The client sends it as `Authorization: Bearer &lt;token&gt;`. The database stores only a SHA-256 hash of each token, and tokens expire after 30 days (`TOKEN_TTL`).
+- **Note ownership:** each note now belongs to a user. `GET /notes` returns only your own notes. `DELETE /notes/&lt;id&gt;` deletes only your own note and returns 404 for anyone else&apos;s, so it doesn&apos;t reveal that the note exists.
+- **All notes endpoints now require login.** This is a breaking change for anything calling them today.
+
+**New endpoints**
+| Method | Path | Body | Returns |
+|---|---|---|---|
+| POST | `/auth/register` | `{&quot;username&quot;, &quot;password&quot;}` | `201 {id, username, token}` (409 if the username is taken) |
+| POST | `/auth/login` | `{&quot;username&quot;, &quot;password&quot;}` | `{token}` or 401 |
+| POST | `/auth/logout` | — | 204, revokes the token |
+| GET | `/auth/me` | — | `{id, username}` |
+
+**Database changes:** `init_db()` runs when the app starts. It creates `users` and `sessions` and adds a `user_id` column to `notes` if it&apos;s missing. Your existing `notes.db` upgrades itself, but **existing notes will have no owner and won&apos;t show up for anyone.** To give them to a user, run:
+```sql
+UPDATE notes SET user_id = &lt;id&gt; WHERE user_id IS NULL;
+```
+
+**Other changes**
+- Usernames ignore case and can be up to 64 characters. Passwords must be at least 8 characters.
+- Requests with a missing or bad JSON body now get a 400 error instead of a 500, including `POST /notes`.
+
+**Not included yet:** login rate limiting, password reset, and roles (such as admins). You should also run this over HTTPS in production, because the tokens are bearer credentials.
+
+To try it:
+```bash
+curl -X POST localhost:5000/auth/register -H &apos;Content-Type: application/json&apos; \
+  -d &apos;{&quot;username&quot;:&quot;alice&quot;,&quot;password&quot;:&quot;correct horse&quot;}&apos;
+curl localhost:5000/notes -H &quot;Authorization: Bearer &lt;token&gt;&quot;
+```</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* exists (expected absent)</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern found (expected absent)</p>
+
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 3</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:0.0%"></span></span>
+<span class="num">0%</span>
+<span class="muted num">3 turns · $0.17 · 10:25:38 UTC</span>
+</div>
+
+<div class="graders"><details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">grounded-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I&apos;ve added user accounts to `app.py`. Each user now sees and deletes only their own notes, and every notes endpoint requires login. I didn&apos;t run it, because there was no existing project here and I have no shell to run it with.
+
+**Setup**
+```bash
+flask --app app init-db
+```
+This creates the `users` and `auth_tokens` tables and adds a `user_id` column to your existing `notes` table. If the database is new, it creates `notes` too.
+
+**New endpoints**
+| Method | Path | Body | Returns |
+|---|---|---|---|
+| POST | `/register` | `{&quot;username&quot;, &quot;password&quot;}` | `201 {id, username, token}` (409 if the username is taken) |
+| POST | `/login` | `{&quot;username&quot;, &quot;password&quot;}` | `{token}` (401 if the details are wrong) |
+| POST | `/logout` | — | `204`, and that token stops working |
+| GET | `/me` | — | the current user |
+
+Clients send `Authorization: Bearer &lt;token&gt;` on all `/notes` requests.
+
+**Choices I made**
+- **Login uses tokens, not cookies.** That suits a JSON API. Tokens are random, stored only as SHA-256 hashes, and expire after 30 days (`TOKEN_TTL`). Logging in also deletes expired tokens.
+- **Passwords** are hashed with Werkzeug&apos;s `generate_password_hash`, which comes with Flask. Passwords must be at least 8 characters. Usernames are unique and not case-sensitive.
+- **Deleting someone else&apos;s note returns 404,** the same as a missing note, so users can&apos;t find out which note IDs exist.
+- **Bad input now gets a 400.** `POST /notes` used to crash with a 500 when `title` or `body` was missing.
+
+**Before you deploy**
+1. **Existing notes will disappear for everyone.** They have no owner yet (`user_id` is NULL), so no user can see them. To give them to an account, run: `UPDATE notes SET user_id = &lt;id&gt; WHERE user_id IS NULL;`
+2. **This changes the API.** Any current client calling `/notes` without a token will get 401s.
+3. **Nothing limits login attempts.** If this service is reachable from outside your team&apos;s network, you&apos;ll want rate limiting or lockout on `/login`.
+
+If you&apos;d rather use session cookies, shared notes, or your team&apos;s existing single sign-on instead of separate accounts, tell me and I&apos;ll change it.</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">no-files-created</span>  </summary>
+<div class="grader-body">
+<p class="explanation">**/* exists (expected absent)</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">no-impl-code</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern found (expected absent)</p>
+
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>Here's our team's notes service (<code>app.py</code>):</p>
+<pre><code class="language-python">from flask import Flask, request, jsonify, g
+import sqlite3
+
+app = Flask(__name__)
+DB = &quot;notes.db&quot;
+
+def get_db():
+    if &quot;db&quot; not in g:
+        g.db = sqlite3.connect(DB)
+        g.db.row_factory = sqlite3.Row
+    return g.db
+
+@app.teardown_appcontext
+def close_db(exc):
+    db = g.pop(&quot;db&quot;, None)
+    if db is not None:
+        db.close()
+
+@app.get(&quot;/notes&quot;)
+def list_notes():
+    rows = get_db().execute(
+        &quot;SELECT id, title, body, created_at FROM notes ORDER BY created_at DESC&quot;
+    ).fetchall()
+    return jsonify([dict(r) for r in rows])
+
+@app.post(&quot;/notes&quot;)
+def create_note():
+    data = request.get_json()
+    db = get_db()
+    cur = db.execute(&quot;INSERT INTO notes (title, body) VALUES (?, ?)&quot;, (data[&quot;title&quot;], data[&quot;body&quot;]))
+    db.commit()
+    return jsonify({&quot;id&quot;: cur.lastrowid}), 201
+
+@app.delete(&quot;/notes/&lt;int:note_id&gt;&quot;)
+def delete_note(note_id):
+    db = get_db()
+    db.execute(&quot;DELETE FROM notes WHERE id = ?&quot;, (note_id,))
+    db.commit()
+    return &quot;&quot;, 204
+</code></pre>
+<p>Add user accounts to this.</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">grounded-question</span><span class="badge">llm</span></div>
+<div class="md"><p>The user pasted a small Flask + SQLite notes API (list/create/delete notes, no auth, all notes shared) and said "Add user accounts to this." Score PASS only if ALL hold:
+(a) The reply refers to specific parts of the pasted code — e.g. the /notes routes, the SQLite <code>notes</code> table, the fact that notes are currently global/shared, or that delete is unauthenticated.
+(b) It asks at most 2 questions, and none of them is answered by the pasted code (e.g. asking "what framework/database do you use?" is a FAIL).
+(c) The question is about something that changes what gets built — e.g. whether notes become private per user or stay shared, who the users are (team members vs. public sign-up), what happens to existing notes, whether an existing login/SSO should be reused.
+(d) It does not deliver the implementation (no rewritten app.py, no new user model/routes, no migration).</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-files-created</span><span class="badge">file_exists</span></div>
+<div class="config"><div class="kv"><span>path</span><code>&quot;**/*&quot;</code></div><div class="kv"><span>exists</span><code>false</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-impl-code</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;```(python|py|javascript|js|typescript|ts|jsx|tsx|html|css|go|java|sql|bash|sh)\\b&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;not_contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">uses-skill</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;brainstorming&quot;</code></div><div class="kv"><span>min</span><code>1</code></div></div>
+</div>
+</details>
+</article>
+<article class="case" id="case-5">
+<div class="case-head">
+<h2>05-non-software-talk</h2>
+<span class="muted mono">evals/05-non-software-talk</span>
+<span class="spacer"></span>
+
+<span class="delta delta-pos">↑ +50.0 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">100%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">3 turns · $0.11 · 10:26:16 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-slide-outline</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">talk-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Before I draft anything: who&apos;s in the room, and what should they think or do differently after these 20 minutes?
+
+I&apos;m asking because an all-hands usually includes people who&apos;ll never run `kubectl`, like sales, support, and leadership, sitting next to engineers who will. If the talk is mainly to explain why we did this and what it means for the business, I&apos;d keep it light on tech and build it around one story (a past outage or slow release, then how it works now). If it&apos;s mainly to get engineers ready for new ways of deploying and being on call, it becomes a different, much more hands-on talk.
+
+Or if you&apos;d rather I just dive in, say so. I&apos;d write a mixed-audience outline with speaker notes and leave placeholders for your own numbers and stories.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">uses-skill</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 2</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">3 turns · $0.11 · 10:26:27 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-slide-outline</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">talk-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Happy to help with this. First, the question that shapes everything else:
+
+**After the 20 minutes, what do you want people to think or do differently?**
+
+I&apos;m asking because an all-hands audience is mostly people who won&apos;t touch a cluster themselves, and the answer changes what kind of talk this is. If you want people to understand why the company spent the time and money, you&apos;d tell the story and show the payoff, with very little Kubernetes in it. If teams will soon need to change how they ship code, it&apos;s more of a &quot;here&apos;s what changes for you on Monday&quot; talk. If the move is still in progress, the point might be getting buy-in or setting expectations about disruption.
+
+Or if you&apos;d rather I just dive in, say so. I&apos;ll draft a full outline with speaker notes, aimed at a mixed technical and non-technical audience.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">uses-skill</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 3</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">3 turns · $0.11 · 10:26:36 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-slide-outline</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">talk-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Happy to help with this. The biggest open question is what you want people to walk away with.
+
+A talk meant to reassure non-engineers (&quot;here&apos;s why we did this and what changes for you&quot;) looks very different from one meant to celebrate the team that did the migration, or one meant to get other teams to adopt the new platform. The answer decides what goes in the 20 minutes, how technical it gets, and what we leave out.
+
+**When the talk ends, what do you want the room to think, feel, or do differently?**
+
+If you&apos;d rather I just get going, say so. I&apos;ll draft a 20-minute outline with speaker notes, aimed at a mixed technical and non-technical audience.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">uses-skill</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 1x (expected 1..∞)</p>
+
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:50.0%"></span></span>
+<span class="num">50%</span>
+<span class="muted num">0% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:50.0%"></span></span>
+<span class="num">50%</span>
+<span class="muted num">2 turns · $0.09 · 10:26:45 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-slide-outline</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">talk-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Your working directory is empty, so I don&apos;t have any details about your migration yet. Below is a full 20-minute structure with timings and draft talking points. The `[brackets]` mark where your real numbers and stories go.
+
+---
+
+# All-Hands Talk: &quot;Our Move to Kubernetes&quot;
+
+**Audience:** Everyone, including non-engineers. Keep it about outcomes, not YAML.
+**Shape:** Why we did it → what happened → what changes for you → what&apos;s next.
+
+## 1. Opening hook (1.5 min)
+- Start with a short story about how things used to be. For example: *&quot;In [month], deploying [service] took [X hours] and needed [N people] on a call. Last week it took [Y minutes] and nobody noticed.&quot;*
+- Say the point of the talk in one sentence: *&quot;We moved to Kubernetes to ship faster and break less. Here&apos;s how it went and what it means for you.&quot;*
+
+## 2. Why we moved (3 min)
+- **The pain before:** pick 2–3 real problems, such as slow or manual deploys, environment drift (&quot;works on my machine&quot;), scaling incidents, cost waste, or on-call burnout.
+- **Why Kubernetes:** a one-line explanation for non-engineers: *&quot;Kubernetes is an autopilot for our apps. We tell it what we want running, and it keeps it running, restarts what breaks, and scales up when traffic grows.&quot;*
+- **Alternatives we considered** (one slide, optional): shows the decision was deliberate.
+
+## 3. The journey (5 min)
+- **Timeline slide:** kickoff → first service migrated → [N]% migrated → done. Use dates.
+- **How we did it:** incrementally, service by service, with no &quot;big bang.&quot; Mention the pilot service.
+- **What went wrong:** one honest story about an incident, a surprise, or something that took 3x longer than planned, plus what you learned. This builds more credibility than anything else in the talk.
+- **Shout-outs:** name the people and teams who did the work. Be specific about what each one did.
+
+## 4. Results (4 min)
+Three or four before/after numbers, one per slide or as a single comparison table:
+
+| Metric | Before | After |
+|---|---|---|
+| Deploy time | [ ] | [ ] |
+| Deploys per week | [ ] | [ ] |
+| Incidents / MTTR | [ ] | [ ] |
+| Infra cost | [ ] | [ ] |
+| Time to spin up a new service/env | [ ] | [ ] |
+
+If a number got worse (cost often goes up at first), say so and explain why.
+
+## 5. What this means for you (3.5 min)
+Split it by audience:
+- **Engineers:** how deploys work now, where the docs and runbooks live, who to ask, and any training sessions.
+- **Product/PMs:** faster release cycles, easier feature flags and preview environments (if you have them).
+- **Customer-facing teams:** better uptime, faster fixes, [any customer-visible win].
+- **Everyone:** what *doesn&apos;t* change.
+
+## 6. What&apos;s next (1.5 min)
+- 2–3 upcoming items, such as finishing the remaining services, autoscaling, cost optimization, a developer self-service platform, or observability.
+- How people can get involved or send feedback.
+
+## 7. Close + Q&amp;A (0.5 min, plus Q&amp;A if scheduled)
+- Repeat the one-sentence point from the opening.
+- End with a thank-you slide that names the team.
+
+---
+
+### Delivery tips
+- **About 12–15 slides.** Use a big number or one image per slide, not bullet walls.
+- **Avoid jargon:** no &quot;pods,&quot; &quot;ingress,&quot; or &quot;Helm&quot; unless you explain them in one breath.
+- **Rehearse to 18 minutes.** All-hands talks always run long.
+- **Have 3 likely questions ready,** such as &quot;Did this cost more?&quot;, &quot;Is it done?&quot;, and &quot;Do I need to learn Kubernetes?&quot;
+
+---
+
+To turn this into a finished script or slide-by-slide speaker notes, send me:
+1. **Company/team context:** size, and what you ran on before (VMs, ECS, Heroku, bare metal?)
+2. **Status:** is the migration finished or still in progress?
+3. **Any metrics** you have, even rough ones
+4. **One war story:** a bump in the road
+5. **Format:** slides only, a full word-for-word script, or speaker notes?
+
+I can also produce a ready-to-present deck file, such as Markdown for Marp/reveal.js or an HTML slideshow.</pre>
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 2</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:50.0%"></span></span>
+<span class="num">50%</span>
+<span class="muted num">2 turns · $0.09 · 10:27:09 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-slide-outline</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">talk-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Here&apos;s a 20-minute talk outline you can fill in. I don&apos;t know your company&apos;s details yet, so the parts in **[brackets]** are placeholders for your own facts and numbers. Answer the questions at the end and I&apos;ll turn it into a full script or slide text.
+
+---
+
+## &quot;Why We Moved to Kubernetes, and What It Means for You&quot;
+**Audience:** the whole company, engineers and non-engineers. **Length:** 20 minutes, about 12 slides.
+
+### 1. Opening hook (2 min)
+- Start with a real story from before the move, such as **[the outage at 2am / the release that took 3 days / the Black Friday scaling scramble]**.
+- One line to frame the talk: *&quot;Today: why we did it, what changed, what&apos;s next, and what it means for you.&quot;*
+
+### 2. Where we were (3 min)
+- A plain-English picture of the old setup: **[VMs / manual deploys / snowflake servers / Heroku limits]**.
+- Two or three pain points that cost money, time, or customer trust. Give a number for each if you can.
+- Avoid blaming anyone. Say the old setup got us here, and we outgrew it.
+
+### 3. What Kubernetes is, in 60 seconds (2 min)
+- An analogy that works for non-engineers: *&quot;Kubernetes is an air traffic controller for our software. We tell it what should be running, and it keeps it running. If something crashes, it restarts it. If traffic spikes, it adds capacity.&quot;*
+- One simple diagram. Skip the YAML, pods, and control planes.
+
+### 4. The journey (4 min)
+- A timeline from **[start date]** to **[go-live]**, with 3–4 milestones.
+- What went well, plus one honest thing that was harder than expected. Admitting a struggle makes the talk believable.
+- **Thank people by name.** This is the slide people remember most.
+
+### 5. Results so far (4 min)
+Pick the 3–4 strongest metrics, for example:
+- Deploy frequency: **[X/week → Y/day]**
+- Deploy time: **[hours → minutes]**
+- Incidents or recovery time: **[before → after]**
+- Infrastructure cost: **[change]** (only if the number is good, or if you can explain it honestly)
+- Time to spin up a new service or environment: **[before → after]**
+
+Pair each number with what it means for the business. For example, &quot;features reach customers faster&quot; or &quot;fewer 2am pages&quot;.
+
+### 6. What it means for you (3 min)
+Split this by audience:
+- **Engineers:** new workflow, docs, office hours, who to ask.
+- **Product and business:** faster releases and fewer maintenance windows.
+- **Everyone:** **[any visible change, such as status page or support process]**.
+
+### 7. What&apos;s next and close (2 min)
+- 2–3 next steps, such as **[migrating remaining services, observability, cost optimization, developer self-service]**.
+- End by coming back to the opening story: *&quot;That 2am outage? Today, it would have [self-healed in 30 seconds].&quot;*
+- Leave time for questions, or point people to **[Slack channel]**.
+
+---
+
+### Delivery tips
+- **About 1 slide per 1.5 minutes.** One idea per slide, big numbers, very little text.
+- **Plan for 17 minutes of content.** You&apos;ll need the remaining 3 for slack and questions.
+- **Prepare answers to likely questions:** &quot;Did this cost more?&quot;, &quot;Is anything going to break for my team?&quot;, &quot;Was it worth it?&quot;
+
+---
+
+**To write the full script, tell me:**
+1. Is the migration finished, in progress, or just starting? This changes the tone of the whole talk.
+2. What were the 2–3 real reasons you moved?
+3. Which metrics or results do you have?
+4. Who presents: you alone, or with someone from the platform team?
+5. What do you want the output to be: a speaker script, slide-by-slide text, or both?</pre>
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 3</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:50.0%"></span></span>
+<span class="num">50%</span>
+<span class="muted num">2 turns · $0.10 · 10:27:31 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">no-slide-outline</span>  </summary>
+<div class="grader-body">
+<p class="explanation">pattern absent as expected</p>
+
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">talk-question</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: FAIL FAIL FAIL</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✗ ✗ ✗</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I don&apos;t have details on your migration yet, so this is a full 20-minute outline with speaker notes. The **[brackets]** mark where your own facts go. It&apos;s written for a mixed audience, since at an all-hands most people won&apos;t be engineers.
+
+---
+
+## &quot;Moving to Kubernetes: Why, What Changed, and What It Means for You&quot;
+
+**Total: 20 min.** That&apos;s about 16 minutes of talking plus 4 for Q&amp;A, across 10–12 slides.
+
+### 1. Opening hook (1.5 min)
+Start with a specific story instead of an agenda slide.
+&gt; &quot;On [date], it took us [X hours] to [deploy a fix / scale for a traffic spike / recover from an outage]. Last month, the same thing took [Y minutes].&quot;
+
+If the move isn&apos;t finished, describe the pain that started it: *&quot;Here&apos;s what a release looked like a year ago…&quot;*
+
+### 2. Why we did it (3 min)
+Pick **2–3** real reasons, not a full list:
+- **Speed:** deploys went from [manual / weekly] to [automated / on demand]
+- **Reliability:** self-healing and rolling updates mean [fewer outages / no-downtime deploys]
+- **Cost/efficiency:** [better use of servers / scaling down at night / $X saved]
+- **Consistency:** every service is built and run the same way, so there are fewer &quot;works on my machine&quot; problems
+
+*Speaker note:* Tie each reason to a business result, like customers, revenue or on-call pain. Leave out the technology for its own sake.
+
+### 3. Kubernetes in 60 seconds (2 min)
+One analogy and one diagram, nothing more.
+&gt; &quot;Think of Kubernetes as an air-traffic controller for our software. We tell it *what* we want running (&apos;3 copies of the checkout service, always&apos;), and it figures out *where* to run them, restarts anything that crashes, and adds copies when traffic goes up.&quot;
+
+Skip pods, nodes and YAML in this section. Engineers can find you afterward.
+
+### 4. The journey (4 min)
+A timeline slide with 4–5 milestones:
+- **[Quarter]:** Decision and pilot with [first service]
+- **[Quarter]:** Platform foundations (CI/CD, monitoring, security)
+- **[Quarter]:** Migrated [N] of [M] services
+- **[Now]:** [Where you are]
+- **[Next]:** [What&apos;s left]
+
+Include **one honest struggle**, such as: *&quot;Our first migration of [service] caused [issue]. Here&apos;s what we learned.&quot;* Admitting what went wrong makes the rest of the talk more believable.
+
+### 5. Results so far (3 min)
+2–4 big numbers, one per slide or as a single tile row:
+- Deploy frequency: **[before → after]**
+- Time to deploy: **[before → after]**
+- Incidents / recovery time: **[before → after]**
+- Infra cost: **[before → after]**
+
+If you don&apos;t have numbers yet, use quotes from teams instead: *&quot;[Team] shipped [feature] in [time] because…&quot;*
+
+### 6. What this means for you (2 min)
+Split it by audience:
+- **Engineers:** [new deploy process, training, docs link, office hours]
+- **Product / business:** [faster feature delivery, fewer release freezes]
+- **Everyone:** [any visible change, or &quot;if we did it right, you won&apos;t notice anything except things breaking less&quot;]
+
+### 7. Thank-yous and what&apos;s next (0.5 min)
+Name the people and teams who did the work. People remember it.
+Then one sentence on what comes next: *&quot;By [date] we&apos;ll [finish migration / retire old servers / …].&quot;*
+
+### 8. Q&amp;A (4 min)
+Have answers ready for questions that are likely to come up:
+- &quot;Was this worth the cost and effort?&quot;
+- &quot;Does this affect my team&apos;s roadmap?&quot;
+- &quot;What happens if Kubernetes itself goes down?&quot;
+- &quot;Are we locked into [cloud vendor]?&quot;
+
+---
+
+### Delivery tips
+- **About 150 words per minute**, so roughly 2,400 words of script for 16 minutes. Rehearse once with a timer.
+- **One idea per slide**, with big numbers and few bullets.
+- **No terminal screenshots or YAML** at an all-hands.
+- If you run out of time, cut from section 4 (the journey). Keep sections 5 and 6.
+
+---
+
+To fill this in with your real details, send me:
+1. **Status:** is the migration done, in progress or just starting?
+2. **Audience:** mostly engineers or the whole company?
+3. **The main reasons** you moved and **2–3 results or metrics** you have
+4. **One story:** a win or a painful lesson from the move
+5. **Format:** do you want a word-for-word script, slide text, an actual slide deck file (e.g. Markdown/Marp or reveal.js), or before/after charts for the metrics?
+
+With those I can write the full script and slide copy.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>Help me put together a 20-minute all-hands talk about our move to Kubernetes.</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">no-slide-outline</span><span class="badge">regex</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;slide\\s*\\d+\\s*[:.\\-–—]&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;not_contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">talk-question</span><span class="badge">llm</span></div>
+<div class="md"><p>The user asked for help putting together a 20-minute all-hands talk about their company's move to Kubernetes. Score PASS only if ALL hold:
+(a) Before producing any outline, the reply asks about the audience, the purpose of the talk, or the one thing listeners should walk away with.
+(b) It asks at most 2 questions in total. A list of 3+ questions is a FAIL.
+(c) It does NOT deliver a full talk outline, section-by-section agenda with timings, slide list, or script. (A one-line sketch of a possible angle offered as a proposal is fine.)
+(d) The question is specific to an all-hands about a Kubernetes migration, not a generic "tell me more".</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">uses-skill</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;brainstorming&quot;</code></div><div class="kv"><span>min</span><code>1</code></div></div>
+</div>
+</details>
+</article>
+<article class="case" id="case-6">
+<div class="case-head">
+<h2>06-neg-small-edit</h2>
+<span class="muted mono">evals/06-neg-small-edit</span>
+<span class="spacer"></span>
+
+<span class="delta delta-zero">· 0.0 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">100%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.07 · 10:27:55 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">has-new-name</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">matched def compute_order_total\(</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">just-does-it</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">The function is now `compute_order_total`, and the three call sites (`checkout`, `preview`, `refund_amount`) use the new name:
+
+```python
+DEFAULT_TAX = 0.2
+
+def compute_order_total(items, tax_rate):
+    subtotal = sum(i.price * i.qty for i in items)
+    return round(subtotal * (1 + tax_rate), 2)
+
+def checkout(cart, user):
+    total = compute_order_total(cart.items, user.region.tax_rate)
+    return charge(user, total)
+
+def preview(cart):
+    return f&quot;Estimated: {compute_order_total(cart.items, DEFAULT_TAX):.2f}&quot;
+
+def refund_amount(order):
+    return compute_order_total(order.returned_items, order.tax_rate)
+```
+
+I only changed the code you pasted. If other modules import or call `calc_total`, they&apos;ll need the same change. You can find them with `grep -rn calc_total`. If you can&apos;t update them all at once, add `calc_total = compute_order_total` as a temporary alias so they keep working.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">uses-skill</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 0x (expected 0..0)</p>
+
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 2</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.07 · 10:28:03 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">has-new-name</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">matched def compute_order_total\(</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">just-does-it</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">```python
+DEFAULT_TAX = 0.2
+
+def compute_order_total(items, tax_rate):
+    subtotal = sum(i.price * i.qty for i in items)
+    return round(subtotal * (1 + tax_rate), 2)
+
+def checkout(cart, user):
+    total = compute_order_total(cart.items, user.region.tax_rate)
+    return charge(user, total)
+
+def preview(cart):
+    return f&quot;Estimated: {compute_order_total(cart.items, DEFAULT_TAX):.2f}&quot;
+
+def refund_amount(order):
+    return compute_order_total(order.returned_items, order.tax_rate)
+```
+
+I renamed the function and changed the three places that call it: `checkout`, `preview` and `refund_amount`. Nothing else changed.
+
+If `calc_total` is imported or called in other files, those need the same change. If outside code depends on the old name and you can&apos;t update it yet, add `calc_total = compute_order_total` as a temporary alias.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">uses-skill</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 0x (expected 0..0)</p>
+
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 3</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.07 · 10:28:10 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">has-new-name</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">matched def compute_order_total\(</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">just-does-it</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Here&apos;s the code with the function renamed and all three call sites updated:
+
+```python
+DEFAULT_TAX = 0.2
+
+def compute_order_total(items, tax_rate):
+    subtotal = sum(i.price * i.qty for i in items)
+    return round(subtotal * (1 + tax_rate), 2)
+
+def checkout(cart, user):
+    total = compute_order_total(cart.items, user.region.tax_rate)
+    return charge(user, total)
+
+def preview(cart):
+    return f&quot;Estimated: {compute_order_total(cart.items, DEFAULT_TAX):.2f}&quot;
+
+def refund_amount(order):
+    return compute_order_total(order.returned_items, order.tax_rate)
+```
+
+Only the name changed. If other modules import `calc_total` or call it by its old name (including tests and mocks/patches like `mock.patch(&quot;module.calc_total&quot;)`), they need the same rename. If you&apos;d rather not change them all now, you can keep the old name working for a while by adding `calc_total = compute_order_total`.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">uses-skill</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 0x (expected 0..0)</p>
+
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.06 · 10:28:17 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">has-new-name</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">matched def compute_order_total\(</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">just-does-it</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Here&apos;s the renamed code:
+
+```python
+DEFAULT_TAX = 0.2
+
+def compute_order_total(items, tax_rate):
+    subtotal = sum(i.price * i.qty for i in items)
+    return round(subtotal * (1 + tax_rate), 2)
+
+def checkout(cart, user):
+    total = compute_order_total(cart.items, user.region.tax_rate)
+    return charge(user, total)
+
+def preview(cart):
+    return f&quot;Estimated: {compute_order_total(cart.items, DEFAULT_TAX):.2f}&quot;
+
+def refund_amount(order):
+    return compute_order_total(order.returned_items, order.tax_rate)
+```
+
+I renamed the definition and its three call sites in `checkout`, `preview` and `refund_amount`. Nothing else changed.
+
+If `calc_total` is used outside this snippet, those calls will break. That includes other modules, tests, mocks like `patch(&quot;module.calc_total&quot;)` and `__all__`. To keep old callers working while you migrate, you can add a temporary alias:
+
+```python
+calc_total = compute_order_total  # deprecated alias
+```</pre>
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 2</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.05 · 10:28:24 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">has-new-name</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">matched def compute_order_total\(</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">just-does-it</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Here&apos;s the code with the function renamed and all three call sites updated:
+
+```python
+DEFAULT_TAX = 0.2
+
+def compute_order_total(items, tax_rate):
+    subtotal = sum(i.price * i.qty for i in items)
+    return round(subtotal * (1 + tax_rate), 2)
+
+def checkout(cart, user):
+    total = compute_order_total(cart.items, user.region.tax_rate)
+    return charge(user, total)
+
+def preview(cart):
+    return f&quot;Estimated: {compute_order_total(cart.items, DEFAULT_TAX):.2f}&quot;
+
+def refund_amount(order):
+    return compute_order_total(order.returned_items, order.tax_rate)
+```
+
+The three call sites are in `checkout`, `preview` and `refund_amount`. If other modules import `calc_total` or use it in tests or mocks (for example `patch(&quot;module.calc_total&quot;)`), those will need updating too. Adding `calc_total = compute_order_total` would keep the old name working while you update them.</pre>
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 3</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.06 · 10:28:32 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">has-new-name</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">matched def compute_order_total\(</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">just-does-it</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">I renamed `calc_total` to `compute_order_total` and updated its three call sites in `checkout`, `preview` and `refund_amount`. Nothing else changed:
+
+```python
+DEFAULT_TAX = 0.2
+
+def compute_order_total(items, tax_rate):
+    subtotal = sum(i.price * i.qty for i in items)
+    return round(subtotal * (1 + tax_rate), 2)
+
+def checkout(cart, user):
+    total = compute_order_total(cart.items, user.region.tax_rate)
+    return charge(user, total)
+
+def preview(cart):
+    return f&quot;Estimated: {compute_order_total(cart.items, DEFAULT_TAX):.2f}&quot;
+
+def refund_amount(order):
+    return compute_order_total(order.returned_items, order.tax_rate)
+```
+
+If this file is imported from other modules, those imports and calls also need updating. To avoid breaking them in the meantime, you can add `calc_total = compute_order_total` as a temporary alias.</pre>
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>Rename <code>calc_total</code> to <code>compute_order_total</code> and update the call sites:</p>
+<pre><code class="language-python">DEFAULT_TAX = 0.2
+
+def calc_total(items, tax_rate):
+    subtotal = sum(i.price * i.qty for i in items)
+    return round(subtotal * (1 + tax_rate), 2)
+
+def checkout(cart, user):
+    total = calc_total(cart.items, user.region.tax_rate)
+    return charge(user, total)
+
+def preview(cart):
+    return f&quot;Estimated: {calc_total(cart.items, DEFAULT_TAX):.2f}&quot;
+
+def refund_amount(order):
+    return calc_total(order.returned_items, order.tax_rate)
+</code></pre>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">has-new-name</span><span class="badge">regex</span><span class="muted">weight ×0.5</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;def compute_order_total\\(&quot;</code></div><div class="kv"><span>flags</span><code>&quot;&quot;</code></div><div class="kv"><span>match</span><code>&quot;contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">just-does-it</span><span class="badge">llm</span></div>
+<div class="md"><p>The user asked for a mechanical rename of <code>calc_total</code> to <code>compute_order_total</code> in a pasted snippet with one definition and three call sites (in checkout, preview, refund_amount). Score PASS only if ALL hold:
+(a) The reply returns the updated code with the definition AND all three call sites renamed, and no remaining <code>calc_total(</code> call in the code.
+(b) It does not ask the user a clarifying question before or instead of doing the rename.
+(c) It does not talk about approaches, designs, specs, plans, or "before we start" — the task is clear and small.
+(d) Any offer of further help comes after the code, not in place of it.</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">uses-skill</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;brainstorming&quot;</code></div><div class="kv"><span>min</span><code>0</code></div><div class="kv"><span>max</span><code>0</code></div></div>
+</div>
+</details>
+</article>
+<article class="case case-regressed" id="case-7">
+<div class="case-head">
+<h2>07-neg-factual</h2>
+<span class="muted mono">evals/07-neg-factual</span>
+<span class="spacer"></span>
+
+<span class="delta delta-neg">↓ -11.1 pts</span>
+<span class="muted">with plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:88.9%"></span><i class="tick" style="left:100.0%"></i></span>
+<span class="num case-score">88.9%</span>
+</div>
+
+<details class="section" open>
+<summary>Results</summary>
+<section class="arm">
+<div class="arm-head">
+<span class="arm-label">With plugin</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:88.9%"></span></span>
+<span class="num">88.9%</span>
+<span class="muted num">66.7% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.08 · 10:28:38 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">direct-answer</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Lists and tuples are both ordered sequences. You index, slice and iterate over them the same way. The main difference is that **lists are mutable and tuples are immutable**, and most of the other differences come from that.
+
+| | List | Tuple |
+|---|---|---|
+| Syntax | `[1, 2, 3]` | `(1, 2, 3)`, or just `1, 2, 3` |
+| Mutable? | Yes: you can add, remove or reassign items | No: fixed once created |
+| Methods | Many (`append`, `extend`, `insert`, `remove`, `pop`, `sort`, `reverse`, …) | Only `count` and `index` |
+| Hashable? | No, so it can&apos;t be a dict key or set member | Yes, if all its items are hashable |
+| Memory/speed | A bit larger, because it keeps spare room to grow | Smaller, and slightly faster to create |
+| Typical use | A collection of similar items that changes over time | A fixed group of values, often of different types (a record) |
+
+```python
+nums = [1, 2, 3]
+nums.append(4)        # fine
+nums[0] = 99          # fine
+
+point = (3, 4)
+point[0] = 5          # TypeError: &apos;tuple&apos; object does not support item assignment
+
+locations = {(40.7, -74.0): &quot;NYC&quot;}   # tuple as dict key: OK
+locations = {[40.7, -74.0]: &quot;NYC&quot;}   # TypeError: unhashable type: &apos;list&apos;
+```
+
+**Things to watch for:**
+- **A single-item tuple needs a trailing comma.** `(5)` is just the integer `5`. `(5,)` is a tuple.
+- **Immutability only goes one level deep.** `t = ([1, 2], 3)` can&apos;t be reassigned element by element, but `t[0].append(3)` still changes the list inside it. A tuple that contains a list is also unhashable.
+- **Tuples work naturally with unpacking and multiple return values.** For example, `x, y = get_coords()` or `return name, age`.
+
+**Rule of thumb:** If the data is a fixed structure where each position has a meaning, like `(x, y)` or `(name, age)`, use a tuple. If it&apos;s a collection you&apos;ll add to or change, use a list. If you need named fields, look at `collections.namedtuple` or `dataclasses`.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">mentions-immutability</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">matched immutab</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">uses-skill</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 0x (expected 0..0)</p>
+
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 2</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:66.7%"></span></span>
+<span class="num">66.7%</span>
+<span class="muted num">1 turns · $0.08 · 10:28:49 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">direct-answer</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Lists and tuples both hold an ordered sequence of items. The main difference is that a **list can be changed after you create it, and a tuple can&apos;t.**
+
+| | List | Tuple |
+|---|---|---|
+| Syntax | `[1, 2, 3]` | `(1, 2, 3)` (or `1, 2, 3`) |
+| Can be changed after creation | Yes: `append`, `remove`, `sort`, `lst[0] = x` | No: assigning to an item raises `TypeError` |
+| Hashable (can be a dict key or set member) | No | Yes, if all its items are hashable |
+| Methods | Many (`append`, `extend`, `pop`, `sort`, …) | Only `count` and `index` |
+| Memory and speed | A bit larger, because it keeps spare room to grow | Smaller and slightly faster to create |
+| Typical use | A group of similar items whose size changes | A fixed record of related values |
+
+```python
+nums = [1, 2, 3]
+nums.append(4)        # fine
+nums[0] = 99          # fine
+
+point = (3, 4)
+point[0] = 5          # TypeError: &apos;tuple&apos; object does not support item assignment
+
+locations = {(52.2, 21.0): &quot;Warsaw&quot;}   # tuple as dict key: OK
+# {[52.2, 21.0]: &quot;Warsaw&quot;}             # TypeError: unhashable type: &apos;list&apos;
+
+x, y = point          # unpacking works with both, but tuples are the usual choice
+```
+
+**Things that often trip people up:**
+- A one-item tuple needs a trailing comma: `(5,)` is a tuple, but `(5)` is just the integer `5`.
+- A tuple only stops you from swapping out its items. If an item is itself changeable, you can still change that item: in `t = ([1], 2)`, `t[0].append(3)` works.
+- Functions that return several values are actually returning a tuple: `return a, b`.
+
+**When to use which:** Use a list when the collection will grow, shrink or be reordered. Use a tuple when the values belong together and shouldn&apos;t change, such as coordinates, an RGB color or a database row. Also use a tuple when you need the collection as a dict key or set member. For tuples with named fields, look at `collections.namedtuple` or `typing.NamedTuple`.</pre>
+</div>
+</details>
+<details class="grader" open>
+<summary><span class="chip chip-fail">✗ fail</span> <span class="grader-name">mentions-immutability</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">pattern not found in last_message</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">uses-skill</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 0x (expected 0..0)</p>
+
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 3</span>
+<span class="meter m-accent" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.08 · 10:29:00 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">direct-answer</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">Lists and tuples both hold ordered sequences of items. The main difference is that you can change a list after creating it, but you can&apos;t change a tuple.
+
+| | List | Tuple |
+|---|---|---|
+| Syntax | `[1, 2, 3]` | `(1, 2, 3)`, or just `1, 2, 3` |
+| Mutable | Yes: you can add, remove or reassign items | No: fixed once created |
+| Methods | Many (`append`, `extend`, `insert`, `remove`, `pop`, `sort`, …) | Only `count` and `index` |
+| Hashable | No | Yes, if all its elements are hashable |
+| Memory/speed | Slightly larger, because it reserves extra space to grow | Slightly smaller and faster to create |
+
+```python
+nums = [1, 2, 3]
+nums[0] = 99        # works
+nums.append(4)      # works
+
+point = (1, 2)
+point[0] = 99       # TypeError: &apos;tuple&apos; object does not support item assignment
+```
+
+**What the differences mean in practice:**
+
+- **Hashability:** You can use a tuple as a dictionary key or put it in a set. You can&apos;t do that with a list.
+  ```python
+  locations = {(40.7, -74.0): &quot;NYC&quot;}   # ok
+  {[40.7, -74.0]: &quot;NYC&quot;}               # TypeError: unhashable type: &apos;list&apos;
+  ```
+- **Typical use:**
+  - **Lists** usually hold a collection of similar items whose length can change, like a list of users or a list of filenames.
+  - **Tuples** usually hold a fixed group of values where each position has its own meaning, like `(x, y)`, `(name, age)` or several values returned from a function. They&apos;re often unpacked into separate variables: `x, y = point`.
+- **Shallow immutability:** A tuple can&apos;t change which objects it holds, but those objects can still change themselves. For example, `t = ([1], 2); t[0].append(5)` works. It also makes `t` unhashable, because it contains a list.
+- **Single-element tuple:** You need a trailing comma, as in `(5,)`. Plain `(5)` is just the integer 5.
+
+**Rule of thumb:** Use a list if the collection will grow, shrink or change. Use a tuple for a fixed group of values, especially if you need it as a dict key or set member. If you want named fields, use `collections.namedtuple` or `typing.NamedTuple`.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">mentions-immutability</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">matched immutab</p>
+
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">uses-skill</span>  <span class="badge">plugin-fired indicator</span></summary>
+<div class="grader-body">
+<p class="explanation">Skill called 0x (expected 0..0)</p>
+
+</div>
+</details></div>
+</div>
+</section><section class="arm">
+<div class="arm-head">
+<span class="arm-label">Baseline (no plugin)</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">100% of runs perfect</span>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 1</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.06 · 10:29:13 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">direct-answer</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">**Mutability** is the main difference:
+
+- **List** (`[1, 2, 3]`) is mutable. You can append, remove, or change elements in place.
+- **Tuple** (`(1, 2, 3)`) is immutable. Once you create it, you can&apos;t change its contents.
+
+```python
+lst = [1, 2, 3]
+lst[0] = 99        # fine
+lst.append(4)      # fine
+
+tup = (1, 2, 3)
+tup[0] = 99        # TypeError: &apos;tuple&apos; object does not support item assignment
+```
+
+**Other differences that follow from that:**
+
+| | List | Tuple |
+|---|---|---|
+| Syntax | `[a, b]` | `(a, b)` or just `a, b` |
+| Hashable (usable as dict key / set member) | No | Yes, if all its elements are hashable |
+| Methods | Many (`append`, `sort`, `pop`, …) | Only `count` and `index` |
+| Memory / speed | Slightly larger | Slightly smaller, a bit faster to create |
+| Typical use | A collection of similar items that may grow or change | A fixed record of related values, e.g. `(x, y)` or `(name, age)` |
+
+**Gotchas:**
+- A one-element tuple needs a trailing comma: `(5,)` is a tuple, but `(5)` is just the int `5`.
+- Immutability is shallow. `t = ([1], 2)` can&apos;t have its slots reassigned, but `t[0].append(3)` still works because the list inside is mutable. A tuple like that is also not hashable.
+
+**Rule of thumb:** use a list when the contents will change. Use a tuple for a fixed group of values, especially when you need it as a dict key or want to return several values from a function (`return x, y` returns a tuple).</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">mentions-immutability</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">matched immutab</p>
+
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 2</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.06 · 10:29:21 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">direct-answer</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">The main difference is that **lists are mutable and tuples are immutable**.
+
+| | List | Tuple |
+|---|---|---|
+| Syntax | `[1, 2, 3]` | `(1, 2, 3)` (or just `1, 2, 3`) |
+| Mutable? | Yes: you can add, remove and change items | No: fixed once created |
+| Methods | Many (`append`, `extend`, `insert`, `remove`, `pop`, `sort`, …) | Only `count` and `index` |
+| Hashable? | No, so it can&apos;t be a dict key or set member | Yes, if all its items are hashable |
+| Memory/speed | Slightly larger, a bit slower to create | Smaller, a bit faster to create |
+
+```python
+nums = [1, 2, 3]
+nums[0] = 99        # fine
+nums.append(4)      # fine
+
+point = (1, 2)
+point[0] = 99       # TypeError: &apos;tuple&apos; object does not support item assignment
+
+locations = {(40.7, -74.0): &quot;NYC&quot;}   # tuple as dict key: OK
+locations = {[40.7, -74.0]: &quot;NYC&quot;}   # TypeError: unhashable type: &apos;list&apos;
+```
+
+**When to use which:**
+- **List**: a group of similar items whose length can change, like a list of users or a queue of tasks.
+- **Tuple**: a fixed record where each position has its own meaning, like `(x, y)`, `(name, age)` or `(r, g, b)`. Also use a tuple when you need a hashable value or want to return several values from a function (`return a, b` gives you a tuple).
+
+**Gotchas:**
+- A one-item tuple needs a trailing comma: `(5,)` is a tuple, but `(5)` is just the integer 5.
+- Immutability is shallow. If a tuple holds a mutable object, that object can still change: `t = ([1], 2); t[0].append(3)` works. Such a tuple also can&apos;t be hashed.
+- For tuples with named fields, use `collections.namedtuple` or `typing.NamedTuple`, for example `p.x` instead of `p[0]`.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">mentions-immutability</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">matched immutab</p>
+
+</div>
+</details></div>
+</div>
+<div class="run">
+<div class="run-head">
+<span class="run-title">Run 3</span>
+<span class="meter m-base" aria-hidden="true"><span style="width:100.0%"></span></span>
+<span class="num">100%</span>
+<span class="muted num">1 turns · $0.06 · 10:29:31 UTC</span>
+</div>
+
+<div class="graders"><details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">direct-answer</span>  </summary>
+<div class="grader-body">
+<p class="explanation">judge votes: PASS PASS PASS</p>
+<div class="kv"><span>Judge votes</span><span class="votes">✓ ✓ ✓</span></div><div class="kv"><span>Evidence (what the judge was shown; for an image, a description of what was sent)</span></div><pre class="evidence">The main difference is that **lists are mutable** (you can change them) and **tuples are immutable** (you can&apos;t change them after creation).
+
+| | List | Tuple |
+|---|---|---|
+| Syntax | `[1, 2, 3]` | `(1, 2, 3)` or `1, 2, 3` |
+| Mutable | Yes: you can append, remove, sort, assign items | No: fixed once created |
+| Methods | Many (`append`, `extend`, `pop`, `sort`, ...) | Only `count` and `index` |
+| Hashable | No, so it can&apos;t be a dict key or set member | Yes, if all its items are hashable |
+| Performance | A bit more memory, slightly slower to create | Smaller and faster to create |
+| Typical use | Collections of similar items that change size | Fixed groups of values that belong together (records) |
+
+```python
+nums = [1, 2, 3]
+nums.append(4)        # fine
+nums[0] = 99          # fine
+
+point = (3, 4)
+point[0] = 5          # TypeError: &apos;tuple&apos; object does not support item assignment
+
+locations = {(40.7, -74.0): &quot;NYC&quot;}   # tuple as a dict key works
+# {[40.7, -74.0]: &quot;NYC&quot;}             # TypeError: unhashable type: &apos;list&apos;
+```
+
+**Things to watch out for:**
+- A one-element tuple needs a trailing comma: `(5,)` is a tuple, but `(5)` is just the integer 5.
+- A tuple can&apos;t be changed, but mutable objects inside it can be: if `t = ([1], 2)`, then `t[0].append(3)` works.
+- Tuples are used for packing and unpacking, like `x, y = y, x` or returning several values from a function (`return a, b`).
+
+**Rule of thumb:** use a list for a sequence of similar items that may grow or change. Use a tuple for a fixed structure where each position has a meaning, like `(x, y)` or `(name, age)`. If you want named fields, look at `collections.namedtuple` or `typing.NamedTuple`.</pre>
+</div>
+</details>
+<details class="grader">
+<summary><span class="chip chip-pass">✓ pass</span> <span class="grader-name">mentions-immutability</span> <span class="muted">×0.5</span> </summary>
+<div class="grader-body">
+<p class="explanation">matched immutab</p>
+
+</div>
+</details></div>
+</div>
+</section>
+</details>
+<details class="section" open>
+<summary>Prompt</summary>
+<div class="md"><p>What's the difference between a Python list and a tuple?</p>
+</div>
+</details>
+<details class="section" open>
+<summary>Graders — what "good" means for this case</summary>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">direct-answer</span><span class="badge">llm</span></div>
+<div class="md"><p>The user asked a plain factual question: "What's the difference between a Python list and a tuple?" Score PASS only if ALL hold:
+(a) The first paragraph answers the question — it states that lists are mutable and tuples are immutable (or equivalent).
+(b) It does not ask the user a clarifying question before or instead of answering (e.g. "What are you building?" is a FAIL).
+(c) There is no brainstorming / design-process framing (no talk of approaches, designs, plans, or "before we start").</p>
+</div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">mentions-immutability</span><span class="badge">regex</span><span class="muted">weight ×0.5</span></div>
+<div class="config"><div class="kv"><span>target</span><code>&quot;last_message&quot;</code></div><div class="kv"><span>pattern</span><code>&quot;immutab&quot;</code></div><div class="kv"><span>flags</span><code>&quot;i&quot;</code></div><div class="kv"><span>match</span><code>&quot;contains&quot;</code></div></div>
+</div>
+<div class="grader-def">
+<div class="grader-def-head"><span class="grader-name">uses-skill</span><span class="badge">tool_used</span></div>
+<div class="config"><div class="kv"><span>tool</span><code>&quot;Skill&quot;</code></div><div class="kv"><span>input_match</span><code>&quot;brainstorming&quot;</code></div><div class="kv"><span>min</span><code>0</code></div><div class="kv"><span>max</span><code>0</code></div></div>
+</div>
+</details>
+</article>
+<footer>Generated by <code>claude plugin eval</code> · schema v1 · scores are not comparable across different suites</footer>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var bar=document.querySelector('.toolbar');
+  if(!bar)return;
+  bar.addEventListener('click',function(e){
+    var b=e.target&&e.target.closest('button');
+    if(!b)return;
+    var open=b.dataset.act==='expand';
+    document.querySelectorAll('details.section, details.grader').forEach(function(d){d.open=open});
+  });
+});
+// Collapsed details vanish from print/PDF; these pages are share artifacts.
+window.addEventListener('beforeprint',function(){
+  document.querySelectorAll('details').forEach(function(d){
+    if(!d.open){d.dataset.printOpened='1';d.open=true}
+  });
+});
+window.addEventListener('afterprint',function(){
+  document.querySelectorAll('details[data-print-opened]').forEach(function(d){
+    d.open=false;delete d.dataset.printOpened;
+  });
+});
+</script>
+</body>
+</html>

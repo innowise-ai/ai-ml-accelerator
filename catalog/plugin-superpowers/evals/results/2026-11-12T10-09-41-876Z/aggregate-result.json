@@ -1,0 +1,2325 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-12T10:09:41.876Z",
+  "durationSeconds": 1201,
+  "costUsd": 6.253476800000001,
+  "partial": false,
+  "suite": {
+    "root": "/home/egor/ai-ml-accelerator/catalog/plugin-superpowers",
+    "ablation": "with-without",
+    "judgeModel": "sonnet",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "superpowers",
+        "path": "/home/egor/ai-ml-accelerator/catalog/plugin-superpowers"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "01-vague-app",
+      "dir": "evals/01-vague-app",
+      "source": "prose",
+      "promptMarkdown": "Build me a habit tracker app.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 180,
+      "maxTurns": 10,
+      "graders": [
+        {
+          "name": "focused-question",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "The user asked \"Build me a habit tracker app.\" with no other detail. Score PASS only if ALL hold:\n(a) The reply ends by asking the user a question (it hands the turn back rather than delivering an app).\n(b) It asks at most 2 questions in total. A numbered or bulleted list of 3+ questions is a FAIL.\n(c) The main question is about purpose, who the app is for, or what success looks like — NOT a menu of features, platforms, or tech stacks to pick from (e.g. \"Web or mobile? React or Vue?\" is a FAIL).\n(d) It says, briefly, what the answer would change about what gets built.\nDo not reward length or politeness. A reply that contains a working app, a file listing, or a scaffold is a FAIL regardless of the above.",
+          "config": {
+            "criteria": "The user asked \"Build me a habit tracker app.\" with no other detail. Score PASS only if ALL hold:\n(a) The reply ends by asking the user a question (it hands the turn back rather than delivering an app).\n(b) It asks at most 2 questions in total. A numbered or bulleted list of 3+ questions is a FAIL.\n(c) The main question is about purpose, who the app is for, or what success looks like — NOT a menu of features, platforms, or tech stacks to pick from (e.g. \"Web or mobile? React or Vue?\" is a FAIL).\n(d) It says, briefly, what the answer would change about what gets built.\nDo not reward length or politeness. A reply that contains a working app, a file listing, or a scaffold is a FAIL regardless of the above.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "no-files-created",
+          "type": "file_exists",
+          "weight": 1,
+          "config": {
+            "path": "**/*",
+            "exists": false
+          }
+        },
+        {
+          "name": "no-impl-code",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "```(python|py|javascript|js|typescript|ts|jsx|tsx|html|css|go|java|sql|bash|sh)\\b",
+            "flags": "i",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "uses-skill",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "brainstorming",
+            "min": 1
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 3,
+            "costUsd": 0.11256139999999999,
+            "judgeCostUsd": 0.0034859999999999995,
+            "durationSeconds": 10,
+            "startedAt": "2026-11-12T10:09:41.950Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-CRWgtP/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "focused-question",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Before I build anything, one question: **what made you want a habit tracker, and what do you hope it does for you day to day?**\n\nThe answer changes what I'd build. If you want to quickly tick off a few daily habits and see your streaks, I'd make a small, fast page you can open each morning. If you want to see patterns over months, like which habits slip on weekends, it needs history views and charts. If you'll use it on your phone, or share it with others, that changes where it runs and where your data lives.\n\nOr if you'd rather I just dive in, say so and I'll build a simple app that saves your data in the browser."
+              },
+              {
+                "name": "no-files-created",
+                "passed": true,
+                "weight": 1,
+                "explanation": "**/* absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "uses-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 3,
+            "costUsd": 0.1120354,
+            "judgeCostUsd": 0.0034599999999999995,
+            "durationSeconds": 8,
+            "startedAt": "2026-11-12T10:09:51.819Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-G5lbdb/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "focused-question",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  false
+                ],
+                "evidence": "Before I build anything, one question: **who's going to use this, and where?** For example, is it just for you, open in a browser tab, or something you'd want on your phone or shared with other people?\n\nI'm asking because the answer decides how it gets built. A personal tool can be one file that saves to your browser with no setup. Using it on your phone, or with other people, means accounts, syncing and a server, which is a much bigger build.\n\nOr if you'd rather I just start, say so. I'd make a single-page web app that saves to your browser: add habits, check them off each day, and see streaks and history."
+              },
+              {
+                "name": "no-files-created",
+                "passed": true,
+                "weight": 1,
+                "explanation": "**/* absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "uses-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          },
+          {
+            "score": 0.6666666666666666,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.115374,
+            "judgeCostUsd": 0.005717999999999997,
+            "durationSeconds": 11,
+            "startedAt": "2026-11-12T10:10:00.012Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-YZEa7Y/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "focused-question",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "Before I build, one question: **what do you want this habit tracker to help you with day to day?** For example, is there a habit you're trying to build right now, and where would you check in on it (phone, desktop, terminal)?\n\nI'm asking because the answer changes what I'd build. A quick daily check-off you open on your phone is a small, simple page. Tracking streaks and progress over months needs history and charts. Something for a team or a group of people needs accounts and syncing.\n\nIf you'd rather I just start, say so. I'd make a single-page web app that runs in your browser and saves to your browser's storage, with no install. It would let you add habits, check them off each day, and see streaks and a calendar-style history."
+              },
+              {
+                "name": "no-files-created",
+                "passed": true,
+                "weight": 1,
+                "explanation": "**/* absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "uses-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0.3333333333333333,
+            "passed": false,
+            "turns": 4,
+            "costUsd": 0.2702788,
+            "judgeCostUsd": 0.0059219999999999984,
+            "durationSeconds": 66,
+            "startedAt": "2026-11-12T10:10:11.051Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-XWv7RB/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "focused-question",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I built the habit tracker as a single file, `index.html`. It needs no build step or other files: open it in a browser and it works. I haven't opened it in a browser myself, so it hasn't been tested yet.\n\n**What it does**\n- **Add habits** with a name and a choice of six colours.\n- **Check off today** by tapping the large circle. A bar in the header shows today's progress, e.g. \"3 / 5 done today\".\n- **Last 7 days:** each habit shows a row of the past week. Tap any day to mark or unmark it, so you can fill in days you missed logging.\n- **Stats for each habit:** current streak 🔥, best streak, and how many of the last 30 days you completed. If you haven't checked a habit off today yet, its streak doesn't drop to zero until the day is over.\n- **History:** opens a 20-week grid of past days, one square per day.\n- **Manage habits:** rename, delete (it asks first) and move habits up or down.\n- **Export / Import:** saves all your data to a JSON file and loads it back, for backups or moving to another browser. Importing replaces your current data, and it asks before doing so.\n- Dark mode follows your system setting, it works on mobile screens, and the page updates on its own when the date changes.\n\n**Where your data lives:** in this browser's local storage only. There are no accounts and nothing is sent to a server. Clearing your browser data deletes it, so use Export if you want a backup.\n\nTo run it, open `index.html` in any browser, or run `python3 -m http.server` in this folder and go to `localhost:8000`.\n\nI kept it to a single file so it's easy to use straight away. Possible next steps include reminders/notifications, weekly goals like \"3 times a week\", or turning it into an installable app that works offline. Tell me if you'd like any of these or a different setup."
+              },
+              {
+                "name": "no-files-created",
+                "passed": false,
+                "weight": 1,
+                "explanation": "**/* exists (expected absent)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 0.3333333333333333,
+            "passed": false,
+            "turns": 4,
+            "costUsd": 0.2247088,
+            "judgeCostUsd": 0.005063999999999996,
+            "durationSeconds": 53,
+            "startedAt": "2026-11-12T10:11:16.726Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-I3ykUq/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "focused-question",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I built the habit tracker as a single file, `index.html`. It doesn't need any installs or a build step: open it in a browser to use it. I haven't opened it in a browser or tested it yet.\n\n**What it does:**\n- **Add, rename and delete habits.** Deleting asks you to confirm first.\n- **Check off days:** each habit shows the last 7 days, and you click a day to mark it done or undo it. That means you can fill in days you forgot. Today is outlined.\n- **Stats for each habit:** your current streak, your best streak, and how often you did it in the last 30 days. Not having checked off today yet doesn't break the current streak.\n- **History:** a 16-week grid of colored squares shows your history at a glance.\n- **Daily summary:** the header shows how many habits you've done today (e.g. \"2 / 5 done today\").\n- **Saving:** your data is kept in the browser's local storage, so it stays on that browser and device only. Export saves a backup file, and Import loads one back in, replacing your current habits after you confirm.\n- **Day rollover:** if you leave the page open past midnight, it switches to the new day by itself.\n- **Dark mode** follows your system setting, and the controls work with a keyboard and screen reader.\n\nPossible next steps are weekly targets (e.g. 3 times a week), reminders, or turning it into an installable app that works offline."
+              },
+              {
+                "name": "no-files-created",
+                "passed": false,
+                "weight": 1,
+                "explanation": "**/* exists (expected absent)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 0.3333333333333333,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.2584366,
+            "judgeCostUsd": 0.004907999999999996,
+            "durationSeconds": 62,
+            "startedAt": "2026-11-12T10:12:09.858Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-rErn5d/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "focused-question",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I built the habit tracker as a single file, `index.html`, with no dependencies. Open it in any browser to use it. I haven't opened it in a browser myself, so nothing has been tested yet.\n\n**What it does:**\n- **Add habits** with a name and a color.\n- **Weekly grid:** click a day to mark the habit done or undone. Today is highlighted, future days are locked, and the arrows let you go back to earlier weeks.\n- **Streaks:** each habit shows its current streak 🔥 and its best streak. Today counts once you tick it, but leaving it unticked doesn't break the streak until the day is over.\n- **Detail view:** click a habit's name to see its current and best streak, completion rate over the last 30 days, total check-ins, and a 26-week calendar grid showing which days it was done.\n- **Rename and delete** buttons on each habit. Delete asks you to confirm first.\n- **Export and import** your data as a JSON file, for backups or moving to another browser.\n- It switches to dark mode automatically when your system is in dark mode, and it works on narrow mobile screens.\n\nYour data is saved only in this browser's local storage, so clearing your site data deletes it. Use Export to keep a backup. If you'd like it to sync across devices, I can add a small backend for that."
+              },
+              {
+                "name": "no-files-created",
+                "passed": false,
+                "weight": 1,
+                "explanation": "**/* exists (expected absent)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.8888888888888888,
+        "passRate": 0.6666666666666666,
+        "scoreWithout": 0.3333333333333333,
+        "passRateWithout": 0,
+        "delta": 0.5555555555555556
+      }
+    },
+    {
+      "name": "02-vague-bot",
+      "dir": "evals/02-vague-bot",
+      "source": "prose",
+      "promptMarkdown": "Write me a Slack bot that nudges my team about standups.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 180,
+      "maxTurns": 10,
+      "graders": [
+        {
+          "name": "focused-question",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "The user asked \"Write me a Slack bot that nudges my team about standups.\" Score PASS only if ALL hold:\n(a) The reply ends by asking the user a question instead of delivering bot code.\n(b) It asks at most 2 questions in total. A numbered or bulleted list of 3+ questions is a FAIL.\n(c) The main question targets the biggest unsettled thing (why the nudges are needed / what problem with standups they solve / what \"nudge\" should accomplish) — NOT a menu of tech choices (Bolt vs. raw API, Python vs. Node, hosting options).\n(d) It says, briefly, what the answer would change about what gets built.\n(e) The question is specific to standups or this team, not a generic \"what are your requirements?\".\nA reply containing bot implementation code or setup instructions is a FAIL regardless of the above.",
+          "config": {
+            "criteria": "The user asked \"Write me a Slack bot that nudges my team about standups.\" Score PASS only if ALL hold:\n(a) The reply ends by asking the user a question instead of delivering bot code.\n(b) It asks at most 2 questions in total. A numbered or bulleted list of 3+ questions is a FAIL.\n(c) The main question targets the biggest unsettled thing (why the nudges are needed / what problem with standups they solve / what \"nudge\" should accomplish) — NOT a menu of tech choices (Bolt vs. raw API, Python vs. Node, hosting options).\n(d) It says, briefly, what the answer would change about what gets built.\n(e) The question is specific to standups or this team, not a generic \"what are your requirements?\".\nA reply containing bot implementation code or setup instructions is a FAIL regardless of the above.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "no-files-created",
+          "type": "file_exists",
+          "weight": 1,
+          "config": {
+            "path": "**/*",
+            "exists": false
+          }
+        },
+        {
+          "name": "no-impl-code",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "```(python|py|javascript|js|typescript|ts|jsx|tsx|html|css|go|java|sql|bash|sh)\\b",
+            "flags": "i",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "uses-skill",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "brainstorming",
+            "min": 1
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 3,
+            "costUsd": 0.1150504,
+            "judgeCostUsd": 0.0039900000000000005,
+            "durationSeconds": 9,
+            "startedAt": "2026-11-12T10:13:11.911Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-b7I91g/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "focused-question",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Before I build anything: the main thing your request leaves open is what kind of standup this is, and the bot would be quite different depending on the answer.\n\n- If your team meets live (on a call or in person), the bot just posts a reminder before the meeting starts. It's basically a scheduled message.\n- If your team does standups in writing in Slack, the bot needs to ask each person for an update, collect the answers, chase whoever hasn't replied, and maybe post a summary.\n\n**How does your team do standups today, and what goes wrong that you want the bot to fix?**\n\nOr if you'd rather I just start building, say so. I'd make a Python bot (Slack Bolt) that DMs each teammate on a schedule you set, posts their replies to a channel, and reminds anyone who hasn't answered."
+              },
+              {
+                "name": "no-files-created",
+                "passed": true,
+                "weight": 1,
+                "explanation": "**/* absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "uses-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 3,
+            "costUsd": 0.11241580000000001,
+            "judgeCostUsd": 0.0036480000000000054,
+            "durationSeconds": 10,
+            "startedAt": "2026-11-12T10:13:21.018Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-xCOubA/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "focused-question",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Before I build anything, the main thing I need to know is what's going wrong with standups now. If people forget to post async updates, the bot should DM anyone who hasn't posted by a cutoff. If people show up late to a live meeting, it should post one reminder in the channel shortly before the start. If you want a written record, it should collect answers and post a summary. Each of those is a different bot.\n\nWhat's the standup problem you want the nudges to fix?\n\nOr if you'd rather I just get going, say so. I'd build a small Python bot that DMs anyone who hasn't posted in your standup channel by a set time each weekday."
+              },
+              {
+                "name": "no-files-created",
+                "passed": true,
+                "weight": 1,
+                "explanation": "**/* absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "uses-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 3,
+            "costUsd": 0.111173,
+            "judgeCostUsd": 0.003276000000000008,
+            "durationSeconds": 8,
+            "startedAt": "2026-11-12T10:13:30.934Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-X8mhqi/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "focused-question",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "What's going wrong with standups right now that you want a bot to fix? For example, are people forgetting to show up, or skipping the written updates? The answer decides what I build. If people are missing a live meeting, a reminder ping before it starts is enough. If written updates aren't getting posted, the bot needs to collect them and follow up with whoever hasn't posted.\n\nOr if you'd rather I just dive in, say so."
+              },
+              {
+                "name": "no-files-created",
+                "passed": true,
+                "weight": 1,
+                "explanation": "**/* absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "uses-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0.3333333333333333,
+            "passed": false,
+            "turns": 8,
+            "costUsd": 0.26993340000000005,
+            "judgeCostUsd": 0.006845999999999998,
+            "durationSeconds": 67,
+            "startedAt": "2026-11-12T10:13:39.293Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-NpUEg9/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "focused-question",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I wrote a standup bot in Python. I couldn't run it here, because I don't have a shell in this session and there's no Slack workspace or token to test against. Treat it as untested until you try it.\n\n**What it does**\n- **Daily prompt:** every weekday at 09:30 (you can change the time and days), it posts a message in your standup channel asking for yesterday, today and blockers.\n- **Nudge:** at 10:30 it sends a direct message to each teammate who hasn't posted yet, with a link to the thread. A reply in the thread or a regular message in the channel after the prompt both count as posted.\n- **Who it skips:** bots, deactivated accounts, people whose Slack status emoji is 🌴, 🤒 or ✈\ufe0f, and any dates you list as holidays.\n- **Who it nudges:** everyone in the channel by default, or only the user IDs you list in `STANDUP_TEAM`.\n- **Restarts:** it saves the prompt's ID to a small file, so restarting between the prompt and the nudge doesn't lose track of the thread.\n\n**Files**\n- `standup_bot.py`: the bot.\n- `slack-manifest.yml`: paste this into the \"Create from manifest\" form on api.slack.com to create the Slack app with the permissions it needs.\n- `.env.example`: settings for times, timezone, team, holidays and out-of-office emojis. Copy it to `.env` and fill it in.\n- `README.md`: setup steps.\n- `requirements.txt` and `.gitignore`.\n\n**To get it running**\n1. Create the app from the manifest and install it to your workspace.\n2. Invite the bot to your standup channel.\n3. Put the bot token and channel ID in `.env`, and set `STANDUP_TZ` to your timezone (it defaults to UTC).\n4. Run `pip install -r requirements.txt`, then `python standup_bot.py`.\n\nTo check it right away, `python standup_bot.py post` posts the prompt now and `python standup_bot.py nudge` sends the reminders now.\n\nThe bot has to stay running to keep its schedule. If you'd rather not keep it running, you can schedule the `post` and `nudge` commands with cron instead."
+              },
+              {
+                "name": "no-files-created",
+                "passed": false,
+                "weight": 1,
+                "explanation": "**/* exists (expected absent)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 0.3333333333333333,
+            "passed": false,
+            "turns": 7,
+            "costUsd": 0.233657,
+            "judgeCostUsd": 0.006936000000000005,
+            "durationSeconds": 59,
+            "startedAt": "2026-11-12T10:14:46.726Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-tN8eB8/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "focused-question",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I wrote a Python standup bot in the working directory. I haven't run it, so it's untested. I had no Slack token or shell here.\n\n**What it does**\n- **Prompt:** at `PROMPT_TIME` on workdays (default 09:30, Mon–Fri, in your timezone), it posts \"Standup time!\" in your channel and asks people to reply in the thread.\n- **Nudges:** at each time in `NUDGE_TIMES` (default 10:30 and 12:00), it checks who hasn't replied in that thread. By default it DMs each of them a link to the thread. Set `NUDGE_MODE=thread` to post one reply in the thread that @-mentions everyone missing instead.\n- **Who counts as the team:** everyone in the channel who is a real, active person, so other bots and deactivated users are skipped. You can instead list people in `TEAM_MEMBERS`, leave some out with `EXCLUDE_MEMBERS`, and skip holidays with `SKIP_DATES`.\n- **Restarts:** it saves today's thread in `standup_state.json`, so restarting the bot won't post the prompt twice or lose track of the thread.\n\n**Files**\n- `bot.py`: the bot.\n- `manifest.yml`: paste this into Slack's \"Create app from manifest\". It requests only the permissions the bot needs: post messages, read the channel and its members, send DMs and look up users.\n- `.env.example`: all the settings.\n- `README.md`: setup steps.\n- `requirements.txt`: the Python packages it needs.\n\n**To try it**\n1. Create the app from `manifest.yml`, install it to your workspace and copy the bot token (starts with `xoxb-`).\n2. Invite the bot to your standup channel.\n3. Copy `.env.example` to `.env` and fill in the token, the channel ID and your timezone.\n4. Run `python bot.py prompt` and then `python bot.py nudge` to test it immediately.\n5. Run `python bot.py` to start it on its schedule.\n\nIt only sends requests out to Slack, so it doesn't need a public URL and can run on any always-on machine. Anyone who answers their standup somewhere other than the bot's thread will still be counted as missing and get nudged."
+              },
+              {
+                "name": "no-files-created",
+                "passed": false,
+                "weight": 1,
+                "explanation": "**/* exists (expected absent)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 0.3333333333333333,
+            "passed": false,
+            "turns": 7,
+            "costUsd": 0.23077459999999997,
+            "judgeCostUsd": 0.007259999999999996,
+            "durationSeconds": 57,
+            "startedAt": "2026-11-12T10:15:45.691Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-Wwu1QG/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "focused-question",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I wrote a Python Slack bot that runs your standup on a schedule. I haven't run it or tested it against Slack yet.\n\n**What it does each workday:**\n1. **Posts a standup thread** in your team channel, by default at 09:30. The message asks for yesterday, today and blockers.\n2. **Messages people privately** if they haven't replied in the thread, by default at 10:00 and 10:30. The message links to the thread.\n3. **Posts a summary** in the thread, by default at 11:00: \"7/9 posted. Still waiting on @a, @b\".\n\n**Files:**\n- `standup_bot.py`: the bot. It uses `slack_sdk` to talk to Slack and APScheduler to run each step on time.\n- `config.example.yaml`: the settings: channel, timezone, workdays, times, holidays, who to leave out, and optional message text.\n- `slack_manifest.yaml`: paste this in when you create the Slack app and it sets up the permissions the bot needs.\n- `requirements.txt` and `README.md`: the dependencies, and setup steps.\n\n**Design choices:**\n- **No public URL needed.** The bot only sends requests to Slack, so it can run on any machine that stays on: a small server, a container, or a background service.\n- **Who's expected to post:** by default, every person in the channel (bots and deactivated accounts are skipped). You can list specific people under `members` or leave some out with `exclude`.\n- **Restarts are safe.** It saves today's thread to `.standup_state.json`, so restarting it mid-morning won't post a second thread.\n- **Anyone who replies in the thread counts as having posted.**\n\n**To get started:**\n1. Create the app from the manifest and install it to your workspace.\n2. Invite the bot to your standup channel with `/invite @Standup Bot`.\n3. Copy `config.example.yaml` to `config.yaml` and fill it in.\n4. Set `SLACK_BOT_TOKEN` to the bot's token.\n5. Run `python standup_bot.py`.\n\nTo try each step right away instead of waiting for the schedule, run `python standup_bot.py --now prompt`, then `--now nudge`, then `--now summary`.\n\nTwo optional additions: a `/standup` command so people can skip a day or trigger a reminder themselves, or using Slack's own working hours/time zones and away status so people on leave aren't reminded. Do you want either?"
+              },
+              {
+                "name": "no-files-created",
+                "passed": false,
+                "weight": 1,
+                "explanation": "**/* exists (expected absent)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 0.3333333333333333,
+        "passRateWithout": 0,
+        "delta": 0.6666666666666667
+      }
+    },
+    {
+      "name": "03-detailed-spec",
+      "dir": "evals/03-detailed-spec",
+      "source": "prose",
+      "promptMarkdown": "Here's the spec for our internal URL shortener:\n\n- FastAPI service, Postgres for storage.\n- `POST /links` takes `{\"url\": \"...\"}` and returns a 7-character base62 short code.\n- `GET /{code}` 302-redirects to the original URL; 404 if the code is unknown.\n- `GET /links/{code}/stats` returns the click count and `created_at`.\n- It runs in our existing Docker Compose setup.\n\nImplement this.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 180,
+      "maxTurns": 10,
+      "graders": [
+        {
+          "name": "no-files-created",
+          "type": "file_exists",
+          "weight": 1,
+          "config": {
+            "path": "**/*",
+            "exists": false
+          }
+        },
+        {
+          "name": "no-impl-code",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "```(python|py|javascript|js|typescript|ts|jsx|tsx|html|css|go|java|sql|bash|sh)\\b",
+            "flags": "i",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "spec-playback",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "The user gave a fairly complete spec (FastAPI, Postgres, three endpoints, Docker Compose) and said \"Implement this.\" Score PASS only if ALL hold:\n(a) The reply restates the shape of the request in its own words — it mentions FastAPI or Postgres AND refers to the endpoints/behaviour (create, redirect, stats).\n(b) It does NOT re-ask anything the spec already decided (framework, database, endpoint list, code length, redirect status).\n(c) It ends with EITHER exactly one question about something the spec leaves open that would change the build (e.g. who may create links / auth, expiry, duplicate URLs, custom aliases, abuse) OR a short design (a few lines) plus an explicit request for approval. Either ending is acceptable.\n(d) It does not contain the implementation (no route handlers, models, migrations, or Dockerfile/compose content).",
+          "config": {
+            "criteria": "The user gave a fairly complete spec (FastAPI, Postgres, three endpoints, Docker Compose) and said \"Implement this.\" Score PASS only if ALL hold:\n(a) The reply restates the shape of the request in its own words — it mentions FastAPI or Postgres AND refers to the endpoints/behaviour (create, redirect, stats).\n(b) It does NOT re-ask anything the spec already decided (framework, database, endpoint list, code length, redirect status).\n(c) It ends with EITHER exactly one question about something the spec leaves open that would change the build (e.g. who may create links / auth, expiry, duplicate URLs, custom aliases, abuse) OR a short design (a few lines) plus an explicit request for approval. Either ending is acceptable.\n(d) It does not contain the implementation (no route handlers, models, migrations, or Dockerfile/compose content).",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "uses-skill",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "brainstorming",
+            "min": 1
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 12,
+            "costUsd": 0.32435359999999996,
+            "judgeCostUsd": 0.0076859999999999845,
+            "durationSeconds": 77,
+            "startedAt": "2026-11-12T10:16:43.018Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-avD45W/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-files-created",
+                "passed": false,
+                "weight": 1,
+                "explanation": "**/* exists (expected absent)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern found (expected absent)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "spec-playback",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I've written the service, but I haven't run or tested any of it because I had no shell in this session. Also, your existing Docker Compose setup isn't in this repo (it's empty, and there's no Compose file under the home directory). So I wrote a standalone `docker-compose.yml` that you can merge into yours.\n\n**Files**\n- `app/main.py`: the three endpoints, a Postgres connection pool, and creation of the `links` table at startup.\n- `app/codes.py`: generates and validates the 7-character base62 codes.\n- `Dockerfile`, `docker-compose.yml`: the app plus `postgres:16` with a healthcheck. To merge into your setup, copy the `shortener` service and point `DATABASE_URL` at your existing Postgres.\n- `tests/test_api.py`: tests that run against a real Postgres. They are skipped if `DATABASE_URL` isn't set.\n\n**Choices the spec didn't settle**\n- **Codes are random**, not sequential, so people can't guess other links by counting up. If a new code already exists, it retries up to 5 times and then returns 503. With about 3.5 trillion possible codes, that should practically never happen.\n- **Only `http`/`https` URLs are accepted.** Anything else gets a 422, which blocks `javascript:` and `data:` redirects. URLs are stored exactly as sent, up to 2048 characters.\n- **`POST /links` returns 201** with `{\"code\": ..., \"url\": ...}`.\n- **Clicks are counted in the same database statement that looks up the link**, so simultaneous clicks are never lost.\n- **Any path that isn't a 7-character base62 code returns 404** without querying the database. This also means a 7-letter route you add later, like `/healthz`, can't be mistaken for a short code.\n- **There's no migrations tool**: the table is created at startup if it doesn't exist. If you already use Alembic or similar, move the table definition there. Several replicas starting at the same moment could hit a harmless race on that first table creation.\n\n**To verify**\n```bash\ndocker compose up -d db\npip install -r requirements-dev.txt\nDATABASE_URL=postgresql://shortener:shortener@localhost:5432/shortener pytest\ndocker compose up --build   # then: curl -XPOST localhost:8000/links -H 'content-type: application/json' -d '{\"url\":\"https://example.com\"}'\n```\n\nCan you point me to your actual Compose setup? I'll wire the service into it directly (network, Postgres service name, credentials) rather than you merging it by hand."
+              },
+              {
+                "name": "uses-skill",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Skill called 0x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          },
+          {
+            "score": 0.3333333333333333,
+            "passed": false,
+            "turns": 13,
+            "costUsd": 0.3271704,
+            "judgeCostUsd": 0.008225999999999983,
+            "durationSeconds": 80,
+            "startedAt": "2026-11-12T10:17:59.978Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-SVe8YA/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-files-created",
+                "passed": false,
+                "weight": 1,
+                "explanation": "**/* exists (expected absent)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "spec-playback",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I've written the URL shortener, but I haven't run anything. I had no shell in this session, so the tests, the Docker build and `docker compose up` are all untested.\n\nI also couldn't find your existing Docker Compose setup: the working directory was empty and there were no compose files anywhere under the home directory. So I wrote a standalone `docker-compose.yml` with the `shortener` service and a Postgres. To add it to your real setup, copy the `shortener` service across and point `DATABASE_URL` at your Postgres.\n\n**Files**\n- `app/main.py`: the endpoints\n- `app/models.py`: the `links` table (`code` is the primary key, plus `url`, `clicks` and `created_at`)\n- `app/db.py`: the database connection, set by the `DATABASE_URL` environment variable\n- `Dockerfile`, `docker-compose.yml`, `requirements.txt` and `requirements-dev.txt`\n- `tests/test_api.py` and `pytest.ini`: the tests use in-memory SQLite, so no Postgres is needed to run them\n\n**How it works**\n- **`POST /links`** returns `201` with `{\"code\", \"url\"}`. Codes are 7 random base62 characters. If a new code clashes with an existing one, it picks another, up to 5 tries, and returns `503` if all clash.\n- **Only `http`/`https` URLs are accepted.** Anything else gets a `422`, so nobody can create a link to `javascript:` or similar. One side effect: a bare domain gets a trailing slash added (`https://example.com` is stored as `https://example.com/`).\n- **`GET /{code}`** counts the click and looks up the URL in a single database statement, so simultaneous clicks are all counted. It returns a `302`.\n- **Badly formed codes return `404`**, not FastAPI's usual `422`, which matches \"404 if the code is unknown\".\n- **`GET /links/{code}/stats`** returns `{\"code\", \"clicks\", \"created_at\"}`.\n\n**Choices to review**\n- **No migration tool:** the table is created when the service starts if it doesn't exist. If your other services use Alembic, this should get a migration instead.\n- **Reserved paths:** any 7-letter path at the root (e.g. `/healthz`) would be treated as a short code. If you add root-level routes later, give them names of a different length or put them under a prefix.\n- **Credentials:** the compose file has the Postgres username and password written in it. Swap in your usual secrets handling.\n\n**To run it**\n```\npip install -r requirements-dev.txt && pytest\ndocker compose up --build\ncurl -X POST localhost:8000/links -H 'content-type: application/json' -d '{\"url\":\"https://example.com\"}'\n```\n\nCan you point me at your existing compose file? I'll fit the service into it properly and then run the tests."
+              },
+              {
+                "name": "uses-skill",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Skill called 0x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          },
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 14,
+            "costUsd": 0.305223,
+            "judgeCostUsd": 0.007655999999999996,
+            "durationSeconds": 70,
+            "startedAt": "2026-11-12T10:19:19.690Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-hgZnxI/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-files-created",
+                "passed": false,
+                "weight": 1,
+                "explanation": "**/* exists (expected absent)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern found (expected absent)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "spec-playback",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I've implemented the service, but nothing has been run. There was no shell in this session, so the tests and the Docker build are untested. Also, the repo was empty, so your existing Docker Compose setup wasn't here to change.\n\n**To check it:**\n```bash\npip install -r requirements-dev.txt && pytest           # runs against a temporary SQLite file\nDATABASE_URL=postgresql+psycopg://... pytest            # runs against a real Postgres\ndocker compose up --build                               # then: curl -X POST localhost:8000/links -H 'content-type: application/json' -d '{\"url\":\"https://example.com\"}'\n```\n\n**Files:**\n- `app/main.py`: the three endpoints.\n- `app/models.py`: one `links` table with columns `code` (primary key), `url`, `clicks` and `created_at`. The database fills in `created_at` (stored with time zone).\n- `app/codes.py`: makes the 7-character base62 codes.\n- `app/db.py`: the database connection, set with `DATABASE_URL`.\n- `Dockerfile` and `docker-compose.yml`: the compose file has a `shortener` service and a `postgres:16` `db` service. Copy `shortener` into your existing compose file, and `db` too if you don't already have a Postgres.\n- `tests/`: covers each endpoint, 404s, URL validation, click counting and what happens when two links get the same code.\n\n**Decisions beyond the spec:**\n- **Codes:** each code is random and generated securely, so codes can't be guessed in order. If a new code clashes with an existing one, it tries again up to 5 times, then returns a 503. With about 3.5 trillion possible codes, that should almost never happen.\n- **Only `http` and `https` URLs are accepted.** Anything else, such as `javascript:` or `ftp:`, gets a 422. This stops the redirect being used to run scripts. The URL is also normalised, so `https://example.com` is stored as `https://example.com/`.\n- **Click counts** go up in a single database step, so simultaneous visits aren't lost.\n- **Codes that aren't 7 base62 characters** get a 404 rather than a validation error, to match \"404 if the code is unknown\".\n- **Responses:** `POST /links` returns `201` with `{\"code\", \"url\"}`. The stats endpoint returns `{\"code\", \"clicks\", \"created_at\"}`.\n- **No migration tool:** the table is created at startup if it doesn't exist. If you use Alembic elsewhere, you'll want to replace this with a migration."
+              },
+              {
+                "name": "uses-skill",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Skill called 0x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 13,
+            "costUsd": 0.27106719999999995,
+            "judgeCostUsd": 0.008063999999999988,
+            "durationSeconds": 66,
+            "startedAt": "2026-11-12T10:20:29.549Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-EO3Gz4/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-files-created",
+                "passed": false,
+                "weight": 1,
+                "explanation": "**/* exists (expected absent)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern found (expected absent)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "spec-playback",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I've written the URL shortener, but none of it has been run or tested: I don't have a shell here. The working directory was also empty and I found no existing Docker Compose file, so I added a standalone `docker-compose.yml` instead of plugging into your setup.\n\n**To try it:**\n```bash\ndocker compose up --build\ncurl -s -XPOST localhost:8000/links -H 'content-type: application/json' -d '{\"url\":\"https://example.com\"}'\n# returns a 201 response like {\"code\":\"aB3x9Qz\"}\ncurl -i localhost:8000/aB3x9Qz            # 302 redirect\ncurl -s localhost:8000/links/aB3x9Qz/stats\n```\n\n**To run the tests**, start Postgres with `docker compose up -d db`, then run `pip install -r requirements-dev.txt && DATABASE_URL=postgresql+psycopg://shortener:shortener@localhost:5432/shortener pytest`. If they can't reach the database they skip instead of failing. They cover code format, redirects, click counting, 404s and URL validation.\n\n**Files**\n- `app/main.py`: the three endpoints.\n- `app/db.py`: the `links` table: code (primary key), url, clicks, created_at.\n- `Dockerfile`, `docker-compose.yml` (the app plus Postgres 16 with a healthcheck), `requirements*.txt`, `tests/test_api.py`.\n\n**Choices I made where the spec was silent**\n- **Codes:** random 7-character base62 codes, generated securely so they can't be guessed. If a code is already taken, it tries again up to 5 times.\n- **Click counting:** each redirect adds to the count in one database step, so clicks that arrive at the same moment are all counted.\n- **URL checks:** only `http`/`https` URLs are accepted. Anything else gets a 422, which stops `javascript:` links from being redirected to. URLs are also normalised, so `https://example.com` is stored as `https://example.com/`.\n- **Bad codes:** a malformed code returns 404 rather than 422, since it's just another unknown code.\n- **Responses:** `POST /links` returns `201 {\"code\": ...}`, and the stats endpoint returns `{code, clicks, created_at}`.\n- **Schema:** the table is created when the app starts. Once the schema starts changing, switch to Alembic migrations.\n\n**Merging into your Compose setup:** copy the `shortener` service into it and point `DATABASE_URL` at your existing Postgres. The credentials in the bundled file are placeholders, so replace them with your secrets mechanism.\n\nThere's no auth or rate limiting on `POST /links`, so anyone who can reach the service can create links. Tell me if that should be locked down."
+              }
+            ]
+          },
+          {
+            "score": 0.3333333333333333,
+            "passed": false,
+            "turns": 12,
+            "costUsd": 0.27262200000000003,
+            "judgeCostUsd": 0.008729999999999988,
+            "durationSeconds": 66,
+            "startedAt": "2026-11-12T10:21:35.677Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-lHNxQU/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-files-created",
+                "passed": false,
+                "weight": 1,
+                "explanation": "**/* exists (expected absent)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "spec-playback",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I've written the URL shortener, but I haven't run any of it. I don't have a shell in this session, so the tests haven't been run and the image hasn't been built. Also, I couldn't find your existing Docker Compose setup: the directory was empty and there's no compose file anywhere in the repo. I wrote a self-contained `docker-compose.yml` for you to merge in.\n\n**Files**\n- `app/main.py`: the whole service.\n- `Dockerfile`: Python 3.12 slim, runs as a non-root user.\n- `docker-compose.yml`: the `shortener` service plus a `postgres:16` service named `db`, with a healthcheck and a named volume. If you already run Postgres, drop `db` and point `DATABASE_URL` at your instance.\n- `requirements.txt` / `requirements-dev.txt`, `pytest.ini`, `tests/test_api.py`.\n\n**How it works**\n- **`POST /links`** returns `201 {\"code\": \"aB3xK9z\"}`. Codes are 7 random base62 characters, generated with Python's `secrets` module. With about 3.5 trillion possible codes, collisions are rare, but the insert uses `ON CONFLICT DO NOTHING` and retries up to 5 times. Only `http`/`https` URLs are accepted, so the service can't be used to redirect to `javascript:` or `data:` URLs.\n- **`GET /{code}`** counts the click and looks up the URL in a single `UPDATE … RETURNING` statement, so simultaneous clicks are all counted. It returns a 302, or a 404 for unknown codes.\n- **`GET /links/{code}/stats`** returns `{code, clicks, created_at}`.\n- On both GET routes, codes that aren't exactly 7 base62 characters are rejected before any database query. FastAPI returns those as 422, not 404.\n- **Database:** I used psycopg 3 with a connection pool (`DB_POOL_SIZE`, default 10). The `links` table is created on startup with `CREATE TABLE IF NOT EXISTS`.\n\n**Decisions for you**\n- **Response shape:** the spec didn't say what `POST /links` should return beyond the code, so I chose `{\"code\": ...}`. If clients want a full short URL, it's easy to add a base-URL setting.\n- **Schema migrations:** creating the table on startup is fine for one service. If you use Alembic or similar, move it there instead. With several replicas starting at once, two of them could race on the table creation.\n- **Click counting:** each redirect writes to the database. That's fine at internal-tool traffic levels.\n\n**To check it**\n```\ndocker compose up --build\ncurl -X POST localhost:8000/links -H 'content-type: application/json' -d '{\"url\":\"https://example.com\"}'\n```\nThe tests need a real database and are skipped unless `DATABASE_URL` is set. Either run `pytest` inside the container, or expose the `db` port and run:\n```\nDATABASE_URL=postgresql://shortener:shortener@localhost:5432/shortener pytest\n```"
+              }
+            ]
+          },
+          {
+            "score": 0.3333333333333333,
+            "passed": false,
+            "turns": 12,
+            "costUsd": 0.2712154,
+            "judgeCostUsd": 0.0087,
+            "durationSeconds": 68,
+            "startedAt": "2026-11-12T10:22:41.456Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-oLo4r1/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-files-created",
+                "passed": false,
+                "weight": 1,
+                "explanation": "**/* exists (expected absent)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "spec-playback",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I've written the URL shortener, but I haven't run any of it: I have no shell in this session, so nothing has been built, started or tested.\n\n**Your Compose setup:** your existing Docker Compose file isn't in this repo, which was empty. I wrote a standalone `docker-compose.yml` with the service and its own Postgres. You'll need to merge it into your real setup, or drop its `db` service and point `DATABASE_URL` at the Postgres you already run.\n\n**Files:**\n- `app/main.py` — the whole service.\n- `Dockerfile` — runs as a non-root user.\n- `docker-compose.yml` — the service waits until Postgres reports healthy before starting.\n- `requirements.txt` and `requirements-dev.txt`.\n- `tests/test_app.py` — some tests run anywhere; the end-to-end ones skip unless `DATABASE_URL` is set.\n\n**How it works:**\n- **Short codes:** each code is 7 random characters (0–9, a–z, A–Z), giving about 3.5 trillion possible codes. If a new code clashes with an existing one, it tries again, up to 5 times.\n- **Click counting:** each redirect adds one to the count and fetches the target URL in a single database statement, so no clicks are lost when many come in at once.\n- **Database table:** the service creates its `links` table when it starts if it doesn't exist yet. A database lock stops several copies starting at once from clashing.\n\n**Choices the spec didn't settle:**\n- **Only `http`/`https` URLs are accepted.** Anything else, such as `javascript:` links or relative paths, gets a 422 error. URLs are limited to 2048 characters and stored exactly as given.\n- **`POST /links` returns `201` with `{\"code\": \"...\"}`.** It doesn't return a full short URL.\n- **Shortening the same URL twice gives two different codes.** Nothing checks for duplicates.\n- **Badly formed codes get a 404, not a 422.** Requests to `GET /{code}` or the stats endpoint with the wrong length or characters are treated as unknown codes.\n- **There is no login or rate limiting.** That assumes the service is only reachable on your internal network.\n\n**Before you ship it:**\n- **Set a real `SHORTENER_DB_PASSWORD`.** The Compose file falls back to `shortener` if it isn't set.\n- **Watch the click counter on very popular links.** Every click writes to the same database row. That's fine at internal-tool traffic levels, but heavy traffic could slow redirects.\n- **Consider a migration tool if the schema will change.** Creating the table at startup won't handle later changes; Alembic would.\n\nTo check it yourself:\n```\ndocker compose up --build\npip install -r requirements-dev.txt\nDATABASE_URL=postgresql://shortener:shortener@localhost:5432/shortener pytest\n```\nThe `pytest` line needs Postgres reachable on `localhost:5432`. The Compose file doesn't publish that port, so add `ports: [\"5432:5432\"]` to `db` first."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.1111111111111111,
+        "passRate": 0,
+        "scoreWithout": 0.2222222222222222,
+        "passRateWithout": 0,
+        "delta": -0.1111111111111111
+      }
+    },
+    {
+      "name": "04-feature-existing-code",
+      "dir": "evals/04-feature-existing-code",
+      "source": "prose",
+      "promptMarkdown": "Here's our team's notes service (`app.py`):\n\n```python\nfrom flask import Flask, request, jsonify, g\nimport sqlite3\n\napp = Flask(__name__)\nDB = \"notes.db\"\n\ndef get_db():\n    if \"db\" not in g:\n        g.db = sqlite3.connect(DB)\n        g.db.row_factory = sqlite3.Row\n    return g.db\n\n@app.teardown_appcontext\ndef close_db(exc):\n    db = g.pop(\"db\", None)\n    if db is not None:\n        db.close()\n\n@app.get(\"/notes\")\ndef list_notes():\n    rows = get_db().execute(\n        \"SELECT id, title, body, created_at FROM notes ORDER BY created_at DESC\"\n    ).fetchall()\n    return jsonify([dict(r) for r in rows])\n\n@app.post(\"/notes\")\ndef create_note():\n    data = request.get_json()\n    db = get_db()\n    cur = db.execute(\"INSERT INTO notes (title, body) VALUES (?, ?)\", (data[\"title\"], data[\"body\"]))\n    db.commit()\n    return jsonify({\"id\": cur.lastrowid}), 201\n\n@app.delete(\"/notes/<int:note_id>\")\ndef delete_note(note_id):\n    db = get_db()\n    db.execute(\"DELETE FROM notes WHERE id = ?\", (note_id,))\n    db.commit()\n    return \"\", 204\n```\n\nAdd user accounts to this.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 180,
+      "maxTurns": 10,
+      "graders": [
+        {
+          "name": "grounded-question",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "The user pasted a small Flask + SQLite notes API (list/create/delete notes, no auth, all notes shared) and said \"Add user accounts to this.\" Score PASS only if ALL hold:\n(a) The reply refers to specific parts of the pasted code — e.g. the /notes routes, the SQLite `notes` table, the fact that notes are currently global/shared, or that delete is unauthenticated.\n(b) It asks at most 2 questions, and none of them is answered by the pasted code (e.g. asking \"what framework/database do you use?\" is a FAIL).\n(c) The question is about something that changes what gets built — e.g. whether notes become private per user or stay shared, who the users are (team members vs. public sign-up), what happens to existing notes, whether an existing login/SSO should be reused.\n(d) It does not deliver the implementation (no rewritten app.py, no new user model/routes, no migration).",
+          "config": {
+            "criteria": "The user pasted a small Flask + SQLite notes API (list/create/delete notes, no auth, all notes shared) and said \"Add user accounts to this.\" Score PASS only if ALL hold:\n(a) The reply refers to specific parts of the pasted code — e.g. the /notes routes, the SQLite `notes` table, the fact that notes are currently global/shared, or that delete is unauthenticated.\n(b) It asks at most 2 questions, and none of them is answered by the pasted code (e.g. asking \"what framework/database do you use?\" is a FAIL).\n(c) The question is about something that changes what gets built — e.g. whether notes become private per user or stay shared, who the users are (team members vs. public sign-up), what happens to existing notes, whether an existing login/SSO should be reused.\n(d) It does not deliver the implementation (no rewritten app.py, no new user model/routes, no migration).",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "no-files-created",
+          "type": "file_exists",
+          "weight": 1,
+          "config": {
+            "path": "**/*",
+            "exists": false
+          }
+        },
+        {
+          "name": "no-impl-code",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "```(python|py|javascript|js|typescript|ts|jsx|tsx|html|css|go|java|sql|bash|sh)\\b",
+            "flags": "i",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "uses-skill",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "brainstorming",
+            "min": 1
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 3,
+            "costUsd": 0.12676359999999998,
+            "judgeCostUsd": 0.00514199999999998,
+            "durationSeconds": 12,
+            "startedAt": "2026-11-12T10:23:49.666Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-khom4m/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "grounded-question",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "I'll talk this through briefly before writing code, since \"user accounts\" could mean a few different things here.\n\n**What I understand you're asking for:** the notes service needs people to sign up and log in, so it knows who is making each request.\n\n**How the code works now:**\n- There's no identity at all. `GET /notes` returns every note to everyone.\n- `DELETE /notes/<id>` lets anyone delete any note.\n- The `notes` table has no owner column, and I don't see the schema or a migration setup in what you pasted. Adding accounts means adding a `users` table and probably a `user_id` on `notes`. Notes that already exist would need an owner, or a rule for what happens to them.\n- It's a JSON-only API with no HTML pages. The kind of client that calls it (browser app, CLI, other services) decides whether logins should use cookie sessions or tokens.\n\nTell me if any of that is wrong.\n\n**My question:** what's prompting this? Is it to keep each person's notes private, to stop people deleting each other's notes, to track who wrote what in a shared team space, or something else? Those lead to quite different designs. For example, private notes means every query gets filtered by user. A shared space means notes stay visible to everyone, but only the author can edit or delete them.\n\nOr if you'd rather I just dive in, say so."
+              },
+              {
+                "name": "no-files-created",
+                "passed": true,
+                "weight": 1,
+                "explanation": "**/* absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "uses-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 4,
+            "costUsd": 0.13013039999999998,
+            "judgeCostUsd": 0.004853999999999983,
+            "durationSeconds": 13,
+            "startedAt": "2026-11-12T10:24:01.800Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-i2Sva9/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "grounded-question",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Right now the service is one shared notes table. Anyone who can reach it can list, create or delete any note, and nothing records who wrote what. \"User accounts\" could mean several different things, and they lead to different builds:\n\n- **Private notes:** each person sees and deletes only their own notes. This needs a `user_id` on every note, and every query gets filtered by it.\n- **Shared team notes with authorship:** everyone still sees everything, but you need to log in, and notes record who wrote them. Deleting might be limited to the author.\n- **Keeping outsiders out:** the main point is that only your team can use the service, and per-user behavior matters less.\n\nHow people reach the service matters too. A browser UI points toward session cookies. Scripts or other services calling the API point toward API tokens.\n\n**What problem are accounts meant to solve for your team?** For example, did something go wrong, or is the service about to be exposed more widely? Once I know that, I can choose the ownership rules and how people log in.\n\nOr if you'd rather I just dive in, say so. In that case I'll build private notes per user, with username/password registration, hashed passwords and bearer-token auth, which suits an API-only service."
+              },
+              {
+                "name": "no-files-created",
+                "passed": true,
+                "weight": 1,
+                "explanation": "**/* absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "uses-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 4,
+            "costUsd": 0.13008280000000003,
+            "judgeCostUsd": 0.004764000000000018,
+            "durationSeconds": 16,
+            "startedAt": "2026-11-12T10:24:14.613Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-Ec68vo/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "grounded-question",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "I don't see `app.py` or a schema file in this directory, so I'm going from the code you pasted.\n\nRight now the service has no idea who anyone is. Anyone can list every note, create notes, and delete any note by ID. Adding accounts means adding a `users` table and a way to log in, and probably an owner column on `notes`.\n\nThe biggest open question is what accounts should change for your team:\n\n- If the goal is that **each person sees and deletes only their own notes**, every endpoint needs an ownership check. Existing notes would also need an owner, or a rule for what happens to them.\n- If the goal is just to **keep strangers out** while the team still shares everything, a login wall in front of the current endpoints is enough. That's a much smaller change.\n\nAlso, who calls this service? If it's a browser front end, I'd use cookie sessions. If it's scripts or other services, I'd use API tokens.\n\n**What problem are accounts meant to solve for your team?**\n\nIf you'd rather I just start, say so. In that case I'll build per-user notes with token auth, Flask + SQLite as now, and passwords hashed with werkzeug."
+              },
+              {
+                "name": "no-files-created",
+                "passed": true,
+                "weight": 1,
+                "explanation": "**/* absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "uses-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0.3333333333333333,
+            "passed": false,
+            "turns": 4,
+            "costUsd": 0.1579748,
+            "judgeCostUsd": 0.007416000000000006,
+            "durationSeconds": 33,
+            "startedAt": "2026-11-12T10:24:30.199Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-Zk0u8Z/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "grounded-question",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I added user accounts. Every note now belongs to a user, and you have to log in to read, create or delete notes. I wrote `app.py` and a new `schema.sql` to the working directory. I haven't run either yet.\n\n**How it works:**\n- **`POST /register`** takes `{username, password}` and creates the account. Passwords are stored with werkzeug's hashing, which comes with Flask. Usernames are unique and case-insensitive, and passwords must be at least 8 characters. A taken username returns 409.\n- **`POST /login`** returns a random token. The client sends it as `Authorization: Bearer <token>` on later requests. The database stores only a hash of the token, so a leaked database file can't be used to log in.\n- **`POST /logout`** cancels the current token, and **`GET /me`** returns the logged-in user.\n- **Notes:** all three note endpoints need a login and only touch the caller's own notes. Deleting a note that doesn't exist or belongs to someone else returns the same 404, so nobody can find other users' note IDs by guessing.\n- **Smaller fixes:** a request with a missing `title`/`body` now gets a 400 instead of crashing with a 500. I also turned on SQLite foreign keys, so deleting a user also deletes their notes and tokens.\n\n**Choices you might want to change:**\n- **Tokens instead of cookies:** I used bearer tokens because this is a JSON API. If a browser app calls it directly, Flask's cookie sessions could be simpler.\n- **Tokens never expire.** Adding an expiry check against `tokens.created_at` would be easy if you want one.\n- **No rate limiting on `/login`.** Something like Flask-Limiter would cover it before this faces the internet.\n\n**Before you deploy:** the current `notes` table has no `user_id` column, so the new code won't work against your existing `notes.db`. Running `flask --app app init-db` creates the `users` and `tokens` tables, but because of `CREATE TABLE IF NOT EXISTS` it leaves the old `notes` table as it is. To keep your existing notes:\n1. Create a user to own them.\n2. Run `ALTER TABLE notes ADD COLUMN user_id INTEGER REFERENCES users(id)`.\n3. Set `user_id` on the existing rows to that user's id.\n\nIf there's no data worth keeping, you can just delete `notes.db` and run `init-db`."
+              },
+              {
+                "name": "no-files-created",
+                "passed": false,
+                "weight": 1,
+                "explanation": "**/* exists (expected absent)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.16390420000000003,
+            "judgeCostUsd": 0.00744000000000003,
+            "durationSeconds": 35,
+            "startedAt": "2026-11-12T10:25:03.631Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-kJ2VIq/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "grounded-question",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I added user accounts to `app.py`, but I couldn't run it because there's no shell in this session. It's untested.\n\n**How it works**\n- **Passwords** are hashed with Werkzeug, which already comes with Flask, so nothing new to install.\n- **Login** returns a random token. The client sends it as `Authorization: Bearer <token>`. The database stores only a SHA-256 hash of each token, and tokens expire after 30 days (`TOKEN_TTL`).\n- **Note ownership:** each note now belongs to a user. `GET /notes` returns only your own notes. `DELETE /notes/<id>` deletes only your own note and returns 404 for anyone else's, so it doesn't reveal that the note exists.\n- **All notes endpoints now require login.** This is a breaking change for anything calling them today.\n\n**New endpoints**\n| Method | Path | Body | Returns |\n|---|---|---|---|\n| POST | `/auth/register` | `{\"username\", \"password\"}` | `201 {id, username, token}` (409 if the username is taken) |\n| POST | `/auth/login` | `{\"username\", \"password\"}` | `{token}` or 401 |\n| POST | `/auth/logout` | — | 204, revokes the token |\n| GET | `/auth/me` | — | `{id, username}` |\n\n**Database changes:** `init_db()` runs when the app starts. It creates `users` and `sessions` and adds a `user_id` column to `notes` if it's missing. Your existing `notes.db` upgrades itself, but **existing notes will have no owner and won't show up for anyone.** To give them to a user, run:\n```sql\nUPDATE notes SET user_id = <id> WHERE user_id IS NULL;\n```\n\n**Other changes**\n- Usernames ignore case and can be up to 64 characters. Passwords must be at least 8 characters.\n- Requests with a missing or bad JSON body now get a 400 error instead of a 500, including `POST /notes`.\n\n**Not included yet:** login rate limiting, password reset, and roles (such as admins). You should also run this over HTTPS in production, because the tokens are bearer credentials.\n\nTo try it:\n```bash\ncurl -X POST localhost:5000/auth/register -H 'Content-Type: application/json' \\\n  -d '{\"username\":\"alice\",\"password\":\"correct horse\"}'\ncurl localhost:5000/notes -H \"Authorization: Bearer <token>\"\n```"
+              },
+              {
+                "name": "no-files-created",
+                "passed": false,
+                "weight": 1,
+                "explanation": "**/* exists (expected absent)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern found (expected absent)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.17129079999999997,
+            "judgeCostUsd": 0.00737999999999997,
+            "durationSeconds": 38,
+            "startedAt": "2026-11-12T10:25:38.776Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-BpVDP1/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "grounded-question",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I've added user accounts to `app.py`. Each user now sees and deletes only their own notes, and every notes endpoint requires login. I didn't run it, because there was no existing project here and I have no shell to run it with.\n\n**Setup**\n```bash\nflask --app app init-db\n```\nThis creates the `users` and `auth_tokens` tables and adds a `user_id` column to your existing `notes` table. If the database is new, it creates `notes` too.\n\n**New endpoints**\n| Method | Path | Body | Returns |\n|---|---|---|---|\n| POST | `/register` | `{\"username\", \"password\"}` | `201 {id, username, token}` (409 if the username is taken) |\n| POST | `/login` | `{\"username\", \"password\"}` | `{token}` (401 if the details are wrong) |\n| POST | `/logout` | — | `204`, and that token stops working |\n| GET | `/me` | — | the current user |\n\nClients send `Authorization: Bearer <token>` on all `/notes` requests.\n\n**Choices I made**\n- **Login uses tokens, not cookies.** That suits a JSON API. Tokens are random, stored only as SHA-256 hashes, and expire after 30 days (`TOKEN_TTL`). Logging in also deletes expired tokens.\n- **Passwords** are hashed with Werkzeug's `generate_password_hash`, which comes with Flask. Passwords must be at least 8 characters. Usernames are unique and not case-sensitive.\n- **Deleting someone else's note returns 404,** the same as a missing note, so users can't find out which note IDs exist.\n- **Bad input now gets a 400.** `POST /notes` used to crash with a 500 when `title` or `body` was missing.\n\n**Before you deploy**\n1. **Existing notes will disappear for everyone.** They have no owner yet (`user_id` is NULL), so no user can see them. To give them to an account, run: `UPDATE notes SET user_id = <id> WHERE user_id IS NULL;`\n2. **This changes the API.** Any current client calling `/notes` without a token will get 401s.\n3. **Nothing limits login attempts.** If this service is reachable from outside your team's network, you'll want rate limiting or lockout on `/login`.\n\nIf you'd rather use session cookies, shared notes, or your team's existing single sign-on instead of separate accounts, tell me and I'll change it."
+              },
+              {
+                "name": "no-files-created",
+                "passed": false,
+                "weight": 1,
+                "explanation": "**/* exists (expected absent)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-impl-code",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern found (expected absent)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 0.1111111111111111,
+        "passRateWithout": 0,
+        "delta": 0.8888888888888888
+      }
+    },
+    {
+      "name": "05-non-software-talk",
+      "dir": "evals/05-non-software-talk",
+      "source": "prose",
+      "promptMarkdown": "Help me put together a 20-minute all-hands talk about our move to Kubernetes.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 180,
+      "maxTurns": 10,
+      "graders": [
+        {
+          "name": "no-slide-outline",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "slide\\s*\\d+\\s*[:.\\-–—]",
+            "flags": "i",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "talk-question",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "The user asked for help putting together a 20-minute all-hands talk about their company's move to Kubernetes. Score PASS only if ALL hold:\n(a) Before producing any outline, the reply asks about the audience, the purpose of the talk, or the one thing listeners should walk away with.\n(b) It asks at most 2 questions in total. A list of 3+ questions is a FAIL.\n(c) It does NOT deliver a full talk outline, section-by-section agenda with timings, slide list, or script. (A one-line sketch of a possible angle offered as a proposal is fine.)\n(d) The question is specific to an all-hands about a Kubernetes migration, not a generic \"tell me more\".",
+          "config": {
+            "criteria": "The user asked for help putting together a 20-minute all-hands talk about their company's move to Kubernetes. Score PASS only if ALL hold:\n(a) Before producing any outline, the reply asks about the audience, the purpose of the talk, or the one thing listeners should walk away with.\n(b) It asks at most 2 questions in total. A list of 3+ questions is a FAIL.\n(c) It does NOT deliver a full talk outline, section-by-section agenda with timings, slide list, or script. (A one-line sketch of a possible angle offered as a proposal is fine.)\n(d) The question is specific to an all-hands about a Kubernetes migration, not a generic \"tell me more\".",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "uses-skill",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "brainstorming",
+            "min": 1
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 3,
+            "costUsd": 0.11445280000000002,
+            "judgeCostUsd": 0.003594000000000014,
+            "durationSeconds": 11,
+            "startedAt": "2026-11-12T10:26:16.322Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-0xAxFX/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-slide-outline",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "talk-question",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Before I draft anything: who's in the room, and what should they think or do differently after these 20 minutes?\n\nI'm asking because an all-hands usually includes people who'll never run `kubectl`, like sales, support, and leadership, sitting next to engineers who will. If the talk is mainly to explain why we did this and what it means for the business, I'd keep it light on tech and build it around one story (a past outage or slow release, then how it works now). If it's mainly to get engineers ready for new ways of deploying and being on call, it becomes a different, much more hands-on talk.\n\nOr if you'd rather I just dive in, say so. I'd write a mixed-audience outline with speaker notes and leave placeholders for your own numbers and stories."
+              },
+              {
+                "name": "uses-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 3,
+            "costUsd": 0.11439740000000004,
+            "judgeCostUsd": 0.0037020000000000386,
+            "durationSeconds": 10,
+            "startedAt": "2026-11-12T10:26:27.044Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-kdf5Ad/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-slide-outline",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "talk-question",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Happy to help with this. First, the question that shapes everything else:\n\n**After the 20 minutes, what do you want people to think or do differently?**\n\nI'm asking because an all-hands audience is mostly people who won't touch a cluster themselves, and the answer changes what kind of talk this is. If you want people to understand why the company spent the time and money, you'd tell the story and show the payoff, with very little Kubernetes in it. If teams will soon need to change how they ship code, it's more of a \"here's what changes for you on Monday\" talk. If the move is still in progress, the point might be getting buy-in or setting expectations about disruption.\n\nOr if you'd rather I just dive in, say so. I'll draft a full outline with speaker notes, aimed at a mixed technical and non-technical audience."
+              },
+              {
+                "name": "uses-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 3,
+            "costUsd": 0.11264280000000002,
+            "judgeCostUsd": 0.0034200000000000064,
+            "durationSeconds": 8,
+            "startedAt": "2026-11-12T10:26:36.656Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-FLM5fp/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-slide-outline",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "talk-question",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Happy to help with this. The biggest open question is what you want people to walk away with.\n\nA talk meant to reassure non-engineers (\"here's why we did this and what changes for you\") looks very different from one meant to celebrate the team that did the migration, or one meant to get other teams to adopt the new platform. The answer decides what goes in the 20 minutes, how technical it gets, and what we leave out.\n\n**When the talk ends, what do you want the room to think, feel, or do differently?**\n\nIf you'd rather I just get going, say so. I'll draft a 20-minute outline with speaker notes, aimed at a mixed technical and non-technical audience."
+              },
+              {
+                "name": "uses-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0.5,
+            "passed": false,
+            "turns": 2,
+            "costUsd": 0.09156759999999997,
+            "judgeCostUsd": 0.011123999999999967,
+            "durationSeconds": 24,
+            "startedAt": "2026-11-12T10:26:45.138Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-RIrNYi/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-slide-outline",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "talk-question",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "Your working directory is empty, so I don't have any details about your migration yet. Below is a full 20-minute structure with timings and draft talking points. The `[brackets]` mark where your real numbers and stories go.\n\n---\n\n# All-Hands Talk: \"Our Move to Kubernetes\"\n\n**Audience:** Everyone, including non-engineers. Keep it about outcomes, not YAML.\n**Shape:** Why we did it → what happened → what changes for you → what's next.\n\n## 1. Opening hook (1.5 min)\n- Start with a short story about how things used to be. For example: *\"In [month], deploying [service] took [X hours] and needed [N people] on a call. Last week it took [Y minutes] and nobody noticed.\"*\n- Say the point of the talk in one sentence: *\"We moved to Kubernetes to ship faster and break less. Here's how it went and what it means for you.\"*\n\n## 2. Why we moved (3 min)\n- **The pain before:** pick 2–3 real problems, such as slow or manual deploys, environment drift (\"works on my machine\"), scaling incidents, cost waste, or on-call burnout.\n- **Why Kubernetes:** a one-line explanation for non-engineers: *\"Kubernetes is an autopilot for our apps. We tell it what we want running, and it keeps it running, restarts what breaks, and scales up when traffic grows.\"*\n- **Alternatives we considered** (one slide, optional): shows the decision was deliberate.\n\n## 3. The journey (5 min)\n- **Timeline slide:** kickoff → first service migrated → [N]% migrated → done. Use dates.\n- **How we did it:** incrementally, service by service, with no \"big bang.\" Mention the pilot service.\n- **What went wrong:** one honest story about an incident, a surprise, or something that took 3x longer than planned, plus what you learned. This builds more credibility than anything else in the talk.\n- **Shout-outs:** name the people and teams who did the work. Be specific about what each one did.\n\n## 4. Results (4 min)\nThree or four before/after numbers, one per slide or as a single comparison table:\n\n| Metric | Before | After |\n|---|---|---|\n| Deploy time | [ ] | [ ] |\n| Deploys per week | [ ] | [ ] |\n| Incidents / MTTR | [ ] | [ ] |\n| Infra cost | [ ] | [ ] |\n| Time to spin up a new service/env | [ ] | [ ] |\n\nIf a number got worse (cost often goes up at first), say so and explain why.\n\n## 5. What this means for you (3.5 min)\nSplit it by audience:\n- **Engineers:** how deploys work now, where the docs and runbooks live, who to ask, and any training sessions.\n- **Product/PMs:** faster release cycles, easier feature flags and preview environments (if you have them).\n- **Customer-facing teams:** better uptime, faster fixes, [any customer-visible win].\n- **Everyone:** what *doesn't* change.\n\n## 6. What's next (1.5 min)\n- 2–3 upcoming items, such as finishing the remaining services, autoscaling, cost optimization, a developer self-service platform, or observability.\n- How people can get involved or send feedback.\n\n## 7. Close + Q&A (0.5 min, plus Q&A if scheduled)\n- Repeat the one-sentence point from the opening.\n- End with a thank-you slide that names the team.\n\n---\n\n### Delivery tips\n- **About 12–15 slides.** Use a big number or one image per slide, not bullet walls.\n- **Avoid jargon:** no \"pods,\" \"ingress,\" or \"Helm\" unless you explain them in one breath.\n- **Rehearse to 18 minutes.** All-hands talks always run long.\n- **Have 3 likely questions ready,** such as \"Did this cost more?\", \"Is it done?\", and \"Do I need to learn Kubernetes?\"\n\n---\n\nTo turn this into a finished script or slide-by-slide speaker notes, send me:\n1. **Company/team context:** size, and what you ran on before (VMs, ECS, Heroku, bare metal?)\n2. **Status:** is the migration finished or still in progress?\n3. **Any metrics** you have, even rough ones\n4. **One war story:** a bump in the road\n5. **Format:** slides only, a full word-for-word script, or speaker notes?\n\nI can also produce a ready-to-present deck file, such as Markdown for Marp/reveal.js or an HTML slideshow."
+              }
+            ]
+          },
+          {
+            "score": 0.5,
+            "passed": false,
+            "turns": 2,
+            "costUsd": 0.08637160000000005,
+            "judgeCostUsd": 0.00986400000000004,
+            "durationSeconds": 22,
+            "startedAt": "2026-11-12T10:27:09.259Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-WCdMDo/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-slide-outline",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "talk-question",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "Here's a 20-minute talk outline you can fill in. I don't know your company's details yet, so the parts in **[brackets]** are placeholders for your own facts and numbers. Answer the questions at the end and I'll turn it into a full script or slide text.\n\n---\n\n## \"Why We Moved to Kubernetes, and What It Means for You\"\n**Audience:** the whole company, engineers and non-engineers. **Length:** 20 minutes, about 12 slides.\n\n### 1. Opening hook (2 min)\n- Start with a real story from before the move, such as **[the outage at 2am / the release that took 3 days / the Black Friday scaling scramble]**.\n- One line to frame the talk: *\"Today: why we did it, what changed, what's next, and what it means for you.\"*\n\n### 2. Where we were (3 min)\n- A plain-English picture of the old setup: **[VMs / manual deploys / snowflake servers / Heroku limits]**.\n- Two or three pain points that cost money, time, or customer trust. Give a number for each if you can.\n- Avoid blaming anyone. Say the old setup got us here, and we outgrew it.\n\n### 3. What Kubernetes is, in 60 seconds (2 min)\n- An analogy that works for non-engineers: *\"Kubernetes is an air traffic controller for our software. We tell it what should be running, and it keeps it running. If something crashes, it restarts it. If traffic spikes, it adds capacity.\"*\n- One simple diagram. Skip the YAML, pods, and control planes.\n\n### 4. The journey (4 min)\n- A timeline from **[start date]** to **[go-live]**, with 3–4 milestones.\n- What went well, plus one honest thing that was harder than expected. Admitting a struggle makes the talk believable.\n- **Thank people by name.** This is the slide people remember most.\n\n### 5. Results so far (4 min)\nPick the 3–4 strongest metrics, for example:\n- Deploy frequency: **[X/week → Y/day]**\n- Deploy time: **[hours → minutes]**\n- Incidents or recovery time: **[before → after]**\n- Infrastructure cost: **[change]** (only if the number is good, or if you can explain it honestly)\n- Time to spin up a new service or environment: **[before → after]**\n\nPair each number with what it means for the business. For example, \"features reach customers faster\" or \"fewer 2am pages\".\n\n### 6. What it means for you (3 min)\nSplit this by audience:\n- **Engineers:** new workflow, docs, office hours, who to ask.\n- **Product and business:** faster releases and fewer maintenance windows.\n- **Everyone:** **[any visible change, such as status page or support process]**.\n\n### 7. What's next and close (2 min)\n- 2–3 next steps, such as **[migrating remaining services, observability, cost optimization, developer self-service]**.\n- End by coming back to the opening story: *\"That 2am outage? Today, it would have [self-healed in 30 seconds].\"*\n- Leave time for questions, or point people to **[Slack channel]**.\n\n---\n\n### Delivery tips\n- **About 1 slide per 1.5 minutes.** One idea per slide, big numbers, very little text.\n- **Plan for 17 minutes of content.** You'll need the remaining 3 for slack and questions.\n- **Prepare answers to likely questions:** \"Did this cost more?\", \"Is anything going to break for my team?\", \"Was it worth it?\"\n\n---\n\n**To write the full script, tell me:**\n1. Is the migration finished, in progress, or just starting? This changes the tone of the whole talk.\n2. What were the 2–3 real reasons you moved?\n3. Which metrics or results do you have?\n4. Who presents: you alone, or with someone from the platform team?\n5. What do you want the output to be: a speaker script, slide-by-slide text, or both?"
+              }
+            ]
+          },
+          {
+            "score": 0.5,
+            "passed": false,
+            "turns": 2,
+            "costUsd": 0.09519560000000005,
+            "judgeCostUsd": 0.011856000000000033,
+            "durationSeconds": 25,
+            "startedAt": "2026-11-12T10:27:31.056Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-4Cu11w/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-slide-outline",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "talk-question",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I don't have details on your migration yet, so this is a full 20-minute outline with speaker notes. The **[brackets]** mark where your own facts go. It's written for a mixed audience, since at an all-hands most people won't be engineers.\n\n---\n\n## \"Moving to Kubernetes: Why, What Changed, and What It Means for You\"\n\n**Total: 20 min.** That's about 16 minutes of talking plus 4 for Q&A, across 10–12 slides.\n\n### 1. Opening hook (1.5 min)\nStart with a specific story instead of an agenda slide.\n> \"On [date], it took us [X hours] to [deploy a fix / scale for a traffic spike / recover from an outage]. Last month, the same thing took [Y minutes].\"\n\nIf the move isn't finished, describe the pain that started it: *\"Here's what a release looked like a year ago…\"*\n\n### 2. Why we did it (3 min)\nPick **2–3** real reasons, not a full list:\n- **Speed:** deploys went from [manual / weekly] to [automated / on demand]\n- **Reliability:** self-healing and rolling updates mean [fewer outages / no-downtime deploys]\n- **Cost/efficiency:** [better use of servers / scaling down at night / $X saved]\n- **Consistency:** every service is built and run the same way, so there are fewer \"works on my machine\" problems\n\n*Speaker note:* Tie each reason to a business result, like customers, revenue or on-call pain. Leave out the technology for its own sake.\n\n### 3. Kubernetes in 60 seconds (2 min)\nOne analogy and one diagram, nothing more.\n> \"Think of Kubernetes as an air-traffic controller for our software. We tell it *what* we want running ('3 copies of the checkout service, always'), and it figures out *where* to run them, restarts anything that crashes, and adds copies when traffic goes up.\"\n\nSkip pods, nodes and YAML in this section. Engineers can find you afterward.\n\n### 4. The journey (4 min)\nA timeline slide with 4–5 milestones:\n- **[Quarter]:** Decision and pilot with [first service]\n- **[Quarter]:** Platform foundations (CI/CD, monitoring, security)\n- **[Quarter]:** Migrated [N] of [M] services\n- **[Now]:** [Where you are]\n- **[Next]:** [What's left]\n\nInclude **one honest struggle**, such as: *\"Our first migration of [service] caused [issue]. Here's what we learned.\"* Admitting what went wrong makes the rest of the talk more believable.\n\n### 5. Results so far (3 min)\n2–4 big numbers, one per slide or as a single tile row:\n- Deploy frequency: **[before → after]**\n- Time to deploy: **[before → after]**\n- Incidents / recovery time: **[before → after]**\n- Infra cost: **[before → after]**\n\nIf you don't have numbers yet, use quotes from teams instead: *\"[Team] shipped [feature] in [time] because…\"*\n\n### 6. What this means for you (2 min)\nSplit it by audience:\n- **Engineers:** [new deploy process, training, docs link, office hours]\n- **Product / business:** [faster feature delivery, fewer release freezes]\n- **Everyone:** [any visible change, or \"if we did it right, you won't notice anything except things breaking less\"]\n\n### 7. Thank-yous and what's next (0.5 min)\nName the people and teams who did the work. People remember it.\nThen one sentence on what comes next: *\"By [date] we'll [finish migration / retire old servers / …].\"*\n\n### 8. Q&A (4 min)\nHave answers ready for questions that are likely to come up:\n- \"Was this worth the cost and effort?\"\n- \"Does this affect my team's roadmap?\"\n- \"What happens if Kubernetes itself goes down?\"\n- \"Are we locked into [cloud vendor]?\"\n\n---\n\n### Delivery tips\n- **About 150 words per minute**, so roughly 2,400 words of script for 16 minutes. Rehearse once with a timer.\n- **One idea per slide**, with big numbers and few bullets.\n- **No terminal screenshots or YAML** at an all-hands.\n- If you run out of time, cut from section 4 (the journey). Keep sections 5 and 6.\n\n---\n\nTo fill this in with your real details, send me:\n1. **Status:** is the migration done, in progress or just starting?\n2. **Audience:** mostly engineers or the whole company?\n3. **The main reasons** you moved and **2–3 results or metrics** you have\n4. **One story:** a win or a painful lesson from the move\n5. **Format:** do you want a word-for-word script, slide text, an actual slide deck file (e.g. Markdown/Marp or reveal.js), or before/after charts for the metrics?\n\nWith those I can write the full script and slide copy."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 0.5,
+        "passRateWithout": 0,
+        "delta": 0.5
+      }
+    },
+    {
+      "name": "06-neg-small-edit",
+      "dir": "evals/06-neg-small-edit",
+      "source": "prose",
+      "promptMarkdown": "Rename `calc_total` to `compute_order_total` and update the call sites:\n\n```python\nDEFAULT_TAX = 0.2\n\ndef calc_total(items, tax_rate):\n    subtotal = sum(i.price * i.qty for i in items)\n    return round(subtotal * (1 + tax_rate), 2)\n\ndef checkout(cart, user):\n    total = calc_total(cart.items, user.region.tax_rate)\n    return charge(user, total)\n\ndef preview(cart):\n    return f\"Estimated: {calc_total(cart.items, DEFAULT_TAX):.2f}\"\n\ndef refund_amount(order):\n    return calc_total(order.returned_items, order.tax_rate)\n```",
+      "runsPerCase": 3,
+      "timeoutSeconds": 120,
+      "maxTurns": 5,
+      "graders": [
+        {
+          "name": "has-new-name",
+          "type": "regex",
+          "weight": 0.5,
+          "config": {
+            "target": "last_message",
+            "pattern": "def compute_order_total\\(",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "just-does-it",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "The user asked for a mechanical rename of `calc_total` to `compute_order_total` in a pasted snippet with one definition and three call sites (in checkout, preview, refund_amount). Score PASS only if ALL hold:\n(a) The reply returns the updated code with the definition AND all three call sites renamed, and no remaining `calc_total(` call in the code.\n(b) It does not ask the user a clarifying question before or instead of doing the rename.\n(c) It does not talk about approaches, designs, specs, plans, or \"before we start\" — the task is clear and small.\n(d) Any offer of further help comes after the code, not in place of it.",
+          "config": {
+            "criteria": "The user asked for a mechanical rename of `calc_total` to `compute_order_total` in a pasted snippet with one definition and three call sites (in checkout, preview, refund_amount). Score PASS only if ALL hold:\n(a) The reply returns the updated code with the definition AND all three call sites renamed, and no remaining `calc_total(` call in the code.\n(b) It does not ask the user a clarifying question before or instead of doing the rename.\n(c) It does not talk about approaches, designs, specs, plans, or \"before we start\" — the task is clear and small.\n(d) Any offer of further help comes after the code, not in place of it.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "uses-skill",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "brainstorming",
+            "min": 0,
+            "max": 0
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.07373679999999999,
+            "judgeCostUsd": 0.004151999999999989,
+            "durationSeconds": 8,
+            "startedAt": "2026-11-12T10:27:55.578Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-jK8NSc/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "has-new-name",
+                "passed": true,
+                "weight": 0.5,
+                "explanation": "matched def compute_order_total\\(",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "just-does-it",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "The function is now `compute_order_total`, and the three call sites (`checkout`, `preview`, `refund_amount`) use the new name:\n\n```python\nDEFAULT_TAX = 0.2\n\ndef compute_order_total(items, tax_rate):\n    subtotal = sum(i.price * i.qty for i in items)\n    return round(subtotal * (1 + tax_rate), 2)\n\ndef checkout(cart, user):\n    total = compute_order_total(cart.items, user.region.tax_rate)\n    return charge(user, total)\n\ndef preview(cart):\n    return f\"Estimated: {compute_order_total(cart.items, DEFAULT_TAX):.2f}\"\n\ndef refund_amount(order):\n    return compute_order_total(order.returned_items, order.tax_rate)\n```\n\nI only changed the code you pasted. If other modules import or call `calc_total`, they'll need the same change. You can find them with `grep -rn calc_total`. If you can't update them all at once, add `calc_total = compute_order_total` as a temporary alias so they keep working."
+              },
+              {
+                "name": "uses-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 0x (expected 0..0)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.07394680000000001,
+            "judgeCostUsd": 0.0040020000000000056,
+            "durationSeconds": 7,
+            "startedAt": "2026-11-12T10:28:03.457Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-XhRYmY/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "has-new-name",
+                "passed": true,
+                "weight": 0.5,
+                "explanation": "matched def compute_order_total\\(",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "just-does-it",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "```python\nDEFAULT_TAX = 0.2\n\ndef compute_order_total(items, tax_rate):\n    subtotal = sum(i.price * i.qty for i in items)\n    return round(subtotal * (1 + tax_rate), 2)\n\ndef checkout(cart, user):\n    total = compute_order_total(cart.items, user.region.tax_rate)\n    return charge(user, total)\n\ndef preview(cart):\n    return f\"Estimated: {compute_order_total(cart.items, DEFAULT_TAX):.2f}\"\n\ndef refund_amount(order):\n    return compute_order_total(order.returned_items, order.tax_rate)\n```\n\nI renamed the function and changed the three places that call it: `checkout`, `preview` and `refund_amount`. Nothing else changed.\n\nIf `calc_total` is imported or called in other files, those need the same change. If outside code depends on the old name and you can't update it yet, add `calc_total = compute_order_total` as a temporary alias."
+              },
+              {
+                "name": "uses-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 0x (expected 0..0)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.07345080000000001,
+            "judgeCostUsd": 0.004086000000000006,
+            "durationSeconds": 7,
+            "startedAt": "2026-11-12T10:28:10.828Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-FxmnKB/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "has-new-name",
+                "passed": true,
+                "weight": 0.5,
+                "explanation": "matched def compute_order_total\\(",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "just-does-it",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Here's the code with the function renamed and all three call sites updated:\n\n```python\nDEFAULT_TAX = 0.2\n\ndef compute_order_total(items, tax_rate):\n    subtotal = sum(i.price * i.qty for i in items)\n    return round(subtotal * (1 + tax_rate), 2)\n\ndef checkout(cart, user):\n    total = compute_order_total(cart.items, user.region.tax_rate)\n    return charge(user, total)\n\ndef preview(cart):\n    return f\"Estimated: {compute_order_total(cart.items, DEFAULT_TAX):.2f}\"\n\ndef refund_amount(order):\n    return compute_order_total(order.returned_items, order.tax_rate)\n```\n\nOnly the name changed. If other modules import `calc_total` or call it by its old name (including tests and mocks/patches like `mock.patch(\"module.calc_total\")`), they need the same rename. If you'd rather not change them all now, you can keep the old name working for a while by adding `calc_total = compute_order_total`."
+              },
+              {
+                "name": "uses-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 0x (expected 0..0)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.056926799999999965,
+            "judgeCostUsd": 0.0042899999999999605,
+            "durationSeconds": 7,
+            "startedAt": "2026-11-12T10:28:17.846Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-N4O4p4/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "has-new-name",
+                "passed": true,
+                "weight": 0.5,
+                "explanation": "matched def compute_order_total\\(",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "just-does-it",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Here's the renamed code:\n\n```python\nDEFAULT_TAX = 0.2\n\ndef compute_order_total(items, tax_rate):\n    subtotal = sum(i.price * i.qty for i in items)\n    return round(subtotal * (1 + tax_rate), 2)\n\ndef checkout(cart, user):\n    total = compute_order_total(cart.items, user.region.tax_rate)\n    return charge(user, total)\n\ndef preview(cart):\n    return f\"Estimated: {compute_order_total(cart.items, DEFAULT_TAX):.2f}\"\n\ndef refund_amount(order):\n    return compute_order_total(order.returned_items, order.tax_rate)\n```\n\nI renamed the definition and its three call sites in `checkout`, `preview` and `refund_amount`. Nothing else changed.\n\nIf `calc_total` is used outside this snippet, those calls will break. That includes other modules, tests, mocks like `patch(\"module.calc_total\")` and `__all__`. To keep old callers working while you migrate, you can add a temporary alias:\n\n```python\ncalc_total = compute_order_total  # deprecated alias\n```"
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.05484679999999999,
+            "judgeCostUsd": 0.004073999999999994,
+            "durationSeconds": 8,
+            "startedAt": "2026-11-12T10:28:24.435Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-VQwAzu/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "has-new-name",
+                "passed": true,
+                "weight": 0.5,
+                "explanation": "matched def compute_order_total\\(",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "just-does-it",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Here's the code with the function renamed and all three call sites updated:\n\n```python\nDEFAULT_TAX = 0.2\n\ndef compute_order_total(items, tax_rate):\n    subtotal = sum(i.price * i.qty for i in items)\n    return round(subtotal * (1 + tax_rate), 2)\n\ndef checkout(cart, user):\n    total = compute_order_total(cart.items, user.region.tax_rate)\n    return charge(user, total)\n\ndef preview(cart):\n    return f\"Estimated: {compute_order_total(cart.items, DEFAULT_TAX):.2f}\"\n\ndef refund_amount(order):\n    return compute_order_total(order.returned_items, order.tax_rate)\n```\n\nThe three call sites are in `checkout`, `preview` and `refund_amount`. If other modules import `calc_total` or use it in tests or mocks (for example `patch(\"module.calc_total\")`), those will need updating too. Adding `calc_total = compute_order_total` would keep the old name working while you update them."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.055912799999999985,
+            "judgeCostUsd": 0.004055999999999976,
+            "durationSeconds": 7,
+            "startedAt": "2026-11-12T10:28:32.121Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-LSFMCE/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "has-new-name",
+                "passed": true,
+                "weight": 0.5,
+                "explanation": "matched def compute_order_total\\(",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "just-does-it",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "I renamed `calc_total` to `compute_order_total` and updated its three call sites in `checkout`, `preview` and `refund_amount`. Nothing else changed:\n\n```python\nDEFAULT_TAX = 0.2\n\ndef compute_order_total(items, tax_rate):\n    subtotal = sum(i.price * i.qty for i in items)\n    return round(subtotal * (1 + tax_rate), 2)\n\ndef checkout(cart, user):\n    total = compute_order_total(cart.items, user.region.tax_rate)\n    return charge(user, total)\n\ndef preview(cart):\n    return f\"Estimated: {compute_order_total(cart.items, DEFAULT_TAX):.2f}\"\n\ndef refund_amount(order):\n    return compute_order_total(order.returned_items, order.tax_rate)\n```\n\nIf this file is imported from other modules, those imports and calls also need updating. To avoid breaking them in the meantime, you can add `calc_total = compute_order_total` as a temporary alias."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 1,
+        "passRateWithout": 1,
+        "delta": 0
+      }
+    },
+    {
+      "name": "07-neg-factual",
+      "dir": "evals/07-neg-factual",
+      "source": "prose",
+      "promptMarkdown": "What's the difference between a Python list and a tuple?",
+      "runsPerCase": 3,
+      "timeoutSeconds": 120,
+      "maxTurns": 5,
+      "graders": [
+        {
+          "name": "direct-answer",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "The user asked a plain factual question: \"What's the difference between a Python list and a tuple?\" Score PASS only if ALL hold:\n(a) The first paragraph answers the question — it states that lists are mutable and tuples are immutable (or equivalent).\n(b) It does not ask the user a clarifying question before or instead of answering (e.g. \"What are you building?\" is a FAIL).\n(c) There is no brainstorming / design-process framing (no talk of approaches, designs, plans, or \"before we start\").",
+          "config": {
+            "criteria": "The user asked a plain factual question: \"What's the difference between a Python list and a tuple?\" Score PASS only if ALL hold:\n(a) The first paragraph answers the question — it states that lists are mutable and tuples are immutable (or equivalent).\n(b) It does not ask the user a clarifying question before or instead of answering (e.g. \"What are you building?\" is a FAIL).\n(c) There is no brainstorming / design-process framing (no talk of approaches, designs, plans, or \"before we start\").",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "mentions-immutability",
+          "type": "regex",
+          "weight": 0.5,
+          "config": {
+            "target": "last_message",
+            "pattern": "immutab",
+            "flags": "i",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "uses-skill",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "brainstorming",
+            "min": 0,
+            "max": 0
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.08252679999999997,
+            "judgeCostUsd": 0.006377999999999967,
+            "durationSeconds": 11,
+            "startedAt": "2026-11-12T10:28:38.821Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-yUbqev/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "direct-answer",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Lists and tuples are both ordered sequences. You index, slice and iterate over them the same way. The main difference is that **lists are mutable and tuples are immutable**, and most of the other differences come from that.\n\n| | List | Tuple |\n|---|---|---|\n| Syntax | `[1, 2, 3]` | `(1, 2, 3)`, or just `1, 2, 3` |\n| Mutable? | Yes: you can add, remove or reassign items | No: fixed once created |\n| Methods | Many (`append`, `extend`, `insert`, `remove`, `pop`, `sort`, `reverse`, …) | Only `count` and `index` |\n| Hashable? | No, so it can't be a dict key or set member | Yes, if all its items are hashable |\n| Memory/speed | A bit larger, because it keeps spare room to grow | Smaller, and slightly faster to create |\n| Typical use | A collection of similar items that changes over time | A fixed group of values, often of different types (a record) |\n\n```python\nnums = [1, 2, 3]\nnums.append(4)        # fine\nnums[0] = 99          # fine\n\npoint = (3, 4)\npoint[0] = 5          # TypeError: 'tuple' object does not support item assignment\n\nlocations = {(40.7, -74.0): \"NYC\"}   # tuple as dict key: OK\nlocations = {[40.7, -74.0]: \"NYC\"}   # TypeError: unhashable type: 'list'\n```\n\n**Things to watch for:**\n- **A single-item tuple needs a trailing comma.** `(5)` is just the integer `5`. `(5,)` is a tuple.\n- **Immutability only goes one level deep.** `t = ([1, 2], 3)` can't be reassigned element by element, but `t[0].append(3)` still changes the list inside it. A tuple that contains a list is also unhashable.\n- **Tuples work naturally with unpacking and multiple return values.** For example, `x, y = get_coords()` or `return name, age`.\n\n**Rule of thumb:** If the data is a fixed structure where each position has a meaning, like `(x, y)` or `(name, age)`, use a tuple. If it's a collection you'll add to or change, use a list. If you need named fields, look at `collections.namedtuple` or `dataclasses`."
+              },
+              {
+                "name": "mentions-immutability",
+                "passed": true,
+                "weight": 0.5,
+                "explanation": "matched immutab",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "uses-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 0x (expected 0..0)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          },
+          {
+            "score": 0.6666666666666666,
+            "passed": false,
+            "turns": 1,
+            "costUsd": 0.0823428,
+            "judgeCostUsd": 0.006330000000000002,
+            "durationSeconds": 11,
+            "startedAt": "2026-11-12T10:28:49.769Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-kAV7UA/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "direct-answer",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Lists and tuples both hold an ordered sequence of items. The main difference is that a **list can be changed after you create it, and a tuple can't.**\n\n| | List | Tuple |\n|---|---|---|\n| Syntax | `[1, 2, 3]` | `(1, 2, 3)` (or `1, 2, 3`) |\n| Can be changed after creation | Yes: `append`, `remove`, `sort`, `lst[0] = x` | No: assigning to an item raises `TypeError` |\n| Hashable (can be a dict key or set member) | No | Yes, if all its items are hashable |\n| Methods | Many (`append`, `extend`, `pop`, `sort`, …) | Only `count` and `index` |\n| Memory and speed | A bit larger, because it keeps spare room to grow | Smaller and slightly faster to create |\n| Typical use | A group of similar items whose size changes | A fixed record of related values |\n\n```python\nnums = [1, 2, 3]\nnums.append(4)        # fine\nnums[0] = 99          # fine\n\npoint = (3, 4)\npoint[0] = 5          # TypeError: 'tuple' object does not support item assignment\n\nlocations = {(52.2, 21.0): \"Warsaw\"}   # tuple as dict key: OK\n# {[52.2, 21.0]: \"Warsaw\"}             # TypeError: unhashable type: 'list'\n\nx, y = point          # unpacking works with both, but tuples are the usual choice\n```\n\n**Things that often trip people up:**\n- A one-item tuple needs a trailing comma: `(5,)` is a tuple, but `(5)` is just the integer `5`.\n- A tuple only stops you from swapping out its items. If an item is itself changeable, you can still change that item: in `t = ([1], 2)`, `t[0].append(3)` works.\n- Functions that return several values are actually returning a tuple: `return a, b`.\n\n**When to use which:** Use a list when the collection will grow, shrink or be reordered. Use a tuple when the values belong together and shouldn't change, such as coordinates, an RGB color or a database row. Also use a tuple when you need the collection as a dict key or set member. For tuples with named fields, look at `collections.namedtuple` or `typing.NamedTuple`."
+              },
+              {
+                "name": "mentions-immutability",
+                "passed": false,
+                "weight": 0.5,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "uses-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 0x (expected 0..0)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.0834348,
+            "judgeCostUsd": 0.0065820000000000045,
+            "durationSeconds": 12,
+            "startedAt": "2026-11-12T10:29:00.698Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-6HpCqq/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "direct-answer",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Lists and tuples both hold ordered sequences of items. The main difference is that you can change a list after creating it, but you can't change a tuple.\n\n| | List | Tuple |\n|---|---|---|\n| Syntax | `[1, 2, 3]` | `(1, 2, 3)`, or just `1, 2, 3` |\n| Mutable | Yes: you can add, remove or reassign items | No: fixed once created |\n| Methods | Many (`append`, `extend`, `insert`, `remove`, `pop`, `sort`, …) | Only `count` and `index` |\n| Hashable | No | Yes, if all its elements are hashable |\n| Memory/speed | Slightly larger, because it reserves extra space to grow | Slightly smaller and faster to create |\n\n```python\nnums = [1, 2, 3]\nnums[0] = 99        # works\nnums.append(4)      # works\n\npoint = (1, 2)\npoint[0] = 99       # TypeError: 'tuple' object does not support item assignment\n```\n\n**What the differences mean in practice:**\n\n- **Hashability:** You can use a tuple as a dictionary key or put it in a set. You can't do that with a list.\n  ```python\n  locations = {(40.7, -74.0): \"NYC\"}   # ok\n  {[40.7, -74.0]: \"NYC\"}               # TypeError: unhashable type: 'list'\n  ```\n- **Typical use:**\n  - **Lists** usually hold a collection of similar items whose length can change, like a list of users or a list of filenames.\n  - **Tuples** usually hold a fixed group of values where each position has its own meaning, like `(x, y)`, `(name, age)` or several values returned from a function. They're often unpacked into separate variables: `x, y = point`.\n- **Shallow immutability:** A tuple can't change which objects it holds, but those objects can still change themselves. For example, `t = ([1], 2); t[0].append(5)` works. It also makes `t` unhashable, because it contains a list.\n- **Single-element tuple:** You need a trailing comma, as in `(5,)`. Plain `(5)` is just the integer 5.\n\n**Rule of thumb:** Use a list if the collection will grow, shrink or change. Use a tuple for a fixed group of values, especially if you need it as a dict key or set member. If you want named fields, use `collections.namedtuple` or `typing.NamedTuple`."
+              },
+              {
+                "name": "mentions-immutability",
+                "passed": true,
+                "weight": 0.5,
+                "explanation": "matched immutab",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "uses-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 0x (expected 0..0)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.05931879999999997,
+            "judgeCostUsd": 0.005297999999999969,
+            "durationSeconds": 9,
+            "startedAt": "2026-11-12T10:29:13.186Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-N4AhH1/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "direct-answer",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "**Mutability** is the main difference:\n\n- **List** (`[1, 2, 3]`) is mutable. You can append, remove, or change elements in place.\n- **Tuple** (`(1, 2, 3)`) is immutable. Once you create it, you can't change its contents.\n\n```python\nlst = [1, 2, 3]\nlst[0] = 99        # fine\nlst.append(4)      # fine\n\ntup = (1, 2, 3)\ntup[0] = 99        # TypeError: 'tuple' object does not support item assignment\n```\n\n**Other differences that follow from that:**\n\n| | List | Tuple |\n|---|---|---|\n| Syntax | `[a, b]` | `(a, b)` or just `a, b` |\n| Hashable (usable as dict key / set member) | No | Yes, if all its elements are hashable |\n| Methods | Many (`append`, `sort`, `pop`, …) | Only `count` and `index` |\n| Memory / speed | Slightly larger | Slightly smaller, a bit faster to create |\n| Typical use | A collection of similar items that may grow or change | A fixed record of related values, e.g. `(x, y)` or `(name, age)` |\n\n**Gotchas:**\n- A one-element tuple needs a trailing comma: `(5,)` is a tuple, but `(5)` is just the int `5`.\n- Immutability is shallow. `t = ([1], 2)` can't have its slots reassigned, but `t[0].append(3)` still works because the list inside is mutable. A tuple like that is also not hashable.\n\n**Rule of thumb:** use a list when the contents will change. Use a tuple for a fixed group of values, especially when you need it as a dict key or want to return several values from a function (`return x, y` returns a tuple)."
+              },
+              {
+                "name": "mentions-immutability",
+                "passed": true,
+                "weight": 0.5,
+                "explanation": "matched immutab",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.06247079999999997,
+            "judgeCostUsd": 0.005969999999999975,
+            "durationSeconds": 9,
+            "startedAt": "2026-11-12T10:29:21.825Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-aaNTpF/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "direct-answer",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "The main difference is that **lists are mutable and tuples are immutable**.\n\n| | List | Tuple |\n|---|---|---|\n| Syntax | `[1, 2, 3]` | `(1, 2, 3)` (or just `1, 2, 3`) |\n| Mutable? | Yes: you can add, remove and change items | No: fixed once created |\n| Methods | Many (`append`, `extend`, `insert`, `remove`, `pop`, `sort`, …) | Only `count` and `index` |\n| Hashable? | No, so it can't be a dict key or set member | Yes, if all its items are hashable |\n| Memory/speed | Slightly larger, a bit slower to create | Smaller, a bit faster to create |\n\n```python\nnums = [1, 2, 3]\nnums[0] = 99        # fine\nnums.append(4)      # fine\n\npoint = (1, 2)\npoint[0] = 99       # TypeError: 'tuple' object does not support item assignment\n\nlocations = {(40.7, -74.0): \"NYC\"}   # tuple as dict key: OK\nlocations = {[40.7, -74.0]: \"NYC\"}   # TypeError: unhashable type: 'list'\n```\n\n**When to use which:**\n- **List**: a group of similar items whose length can change, like a list of users or a queue of tasks.\n- **Tuple**: a fixed record where each position has its own meaning, like `(x, y)`, `(name, age)` or `(r, g, b)`. Also use a tuple when you need a hashable value or want to return several values from a function (`return a, b` gives you a tuple).\n\n**Gotchas:**\n- A one-item tuple needs a trailing comma: `(5,)` is a tuple, but `(5)` is just the integer 5.\n- Immutability is shallow. If a tuple holds a mutable object, that object can still change: `t = ([1], 2); t[0].append(3)` works. Such a tuple also can't be hashed.\n- For tuples with named fields, use `collections.namedtuple` or `typing.NamedTuple`, for example `p.x` instead of `p[0]`."
+              },
+              {
+                "name": "mentions-immutability",
+                "passed": true,
+                "weight": 0.5,
+                "explanation": "matched immutab",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.0617368,
+            "judgeCostUsd": 0.005856,
+            "durationSeconds": 11,
+            "startedAt": "2026-11-12T10:29:31.298Z",
+            "error": null,
+            "tracePath": "/tmp/claude-eval-zlzzh9/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "direct-answer",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "The main difference is that **lists are mutable** (you can change them) and **tuples are immutable** (you can't change them after creation).\n\n| | List | Tuple |\n|---|---|---|\n| Syntax | `[1, 2, 3]` | `(1, 2, 3)` or `1, 2, 3` |\n| Mutable | Yes: you can append, remove, sort, assign items | No: fixed once created |\n| Methods | Many (`append`, `extend`, `pop`, `sort`, ...) | Only `count` and `index` |\n| Hashable | No, so it can't be a dict key or set member | Yes, if all its items are hashable |\n| Performance | A bit more memory, slightly slower to create | Smaller and faster to create |\n| Typical use | Collections of similar items that change size | Fixed groups of values that belong together (records) |\n\n```python\nnums = [1, 2, 3]\nnums.append(4)        # fine\nnums[0] = 99          # fine\n\npoint = (3, 4)\npoint[0] = 5          # TypeError: 'tuple' object does not support item assignment\n\nlocations = {(40.7, -74.0): \"NYC\"}   # tuple as a dict key works\n# {[40.7, -74.0]: \"NYC\"}             # TypeError: unhashable type: 'list'\n```\n\n**Things to watch out for:**\n- A one-element tuple needs a trailing comma: `(5,)` is a tuple, but `(5)` is just the integer 5.\n- A tuple can't be changed, but mutable objects inside it can be: if `t = ([1], 2)`, then `t[0].append(3)` works.\n- Tuples are used for packing and unpacking, like `x, y = y, x` or returning several values from a function (`return a, b`).\n\n**Rule of thumb:** use a list for a sequence of similar items that may grow or change. Use a tuple for a fixed structure where each position has a meaning, like `(x, y)` or `(name, age)`. If you want named fields, look at `collections.namedtuple` or `typing.NamedTuple`."
+              },
+              {
+                "name": "mentions-immutability",
+                "passed": true,
+                "weight": 0.5,
+                "explanation": "matched immutab",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.8888888888888888,
+        "passRate": 0.6666666666666666,
+        "scoreWithout": 1,
+        "passRateWithout": 1,
+        "delta": -0.11111111111111116
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 7,
+    "casesPassed": 4,
+    "overallScore": 0.8412698412698413,
+    "overallPassRate": 0.7619047619047619,
+    "meanDelta": 0.3412698412698413
+  }
+}

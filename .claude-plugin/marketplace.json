@@ -23,6 +23,18 @@
       "description": "When the project is on GitHub: the agent opens PRs and issues itself, reads reviews and the logs of failed Actions"
     },
     {
+      "name": "superpowers",
+      "source": "./catalog/plugin-superpowers",
+      "description": "For people who want Claude to stop and ask before it starts building. On a vague request like \"build me X\", it asks one clear question first instead of writing a whole app. It also comes with skills for debugging, TDD, planning and code review.",
+      "category": "workflow",
+      "tags": [
+        "brainstorming",
+        "tdd",
+        "debugging",
+        "planning"
+      ]
+    },
+    {
       "name": "caveman",
       "source": "./catalog/skill-caveman",
       "description": "When you need short answers: cuts the preamble and the articles, keeping code, errors and warnings about dangerous operations. More experimental"
