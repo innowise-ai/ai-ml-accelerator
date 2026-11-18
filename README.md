@@ -30,6 +30,7 @@ claude plugin install <name>@acb
 | skill | caveman | – | ✅ |
 | skill | claude-api | 1 case · Δ +0.50 | ✅ |
 | skill | docx | – | ✅ |
+| skill | llm-app-security-review | 6 cases · Δ +0.12 | ✅ |
 | skill | mcp-builder | – |  |
 | skill | skill-creator | – | ✅ |
 | mcp | context7 | 2 cases · Δ +0.58 | ✅ |
