@@ -9,37 +9,42 @@
   "plugins": [
     {
       "name": "notify-done",
-      "source": "./catalog/hook-notify-done",
+      "source": "./catalog\\hook-notify-done",
       "description": "When several sessions run in parallel: a system notification as soon as Claude has finished its turn and is waiting. Costs nothing."
     },
     {
       "name": "context7",
-      "source": "./catalog/mcp-context7",
+      "source": "./catalog\\mcp-context7",
       "description": "Pulls up the current documentation of libraries. Just RAG over current, continuously updated documentation. Almost always pays off."
     },
     {
       "name": "github",
-      "source": "./catalog/mcp-github",
+      "source": "./catalog\\mcp-github",
       "description": "When the project is on GitHub: the agent opens PRs and issues itself, reads reviews and the logs of failed Actions"
     },
     {
       "name": "caveman",
-      "source": "./catalog/skill-caveman",
+      "source": "./catalog\\skill-caveman",
       "description": "When you need short answers: cuts the preamble and the articles, keeping code, errors and warnings about dangerous operations. More experimental"
     },
     {
       "name": "claude-api",
-      "source": "./catalog/skill-claude-api",
+      "source": "./catalog\\skill-claude-api",
       "description": "When the project calls the Claude API: current model ids and prices, adaptive thinking, caching, tool use, model migrations. Pays off in any code on the Anthropic SDK"
     },
     {
       "name": "docx",
-      "source": "./catalog/skill-docx",
+      "source": "./catalog\\skill-docx",
       "description": "When you need to fix up a .docx (touch up a CV, produce a solid report with tables)"
     },
     {
+      "name": "llm-app-security-review",
+      "source": "./catalog\\skill-llm-app-security-review",
+      "description": "For the moment you review or ship an LLM feature (RAG, tool calling, agents): the base model already finds the main holes, the skill adds a strict report with the vulnerable line quoted, a severity per finding and a list of what the code does not show. Worth it as a review template, not as a better detector"
+    },
+    {
       "name": "skill-creator",
-      "source": "./catalog/skill-skill-creator",
+      "source": "./catalog\\skill-skill-creator",
       "description": "When you write or edit an Agent Skill: interview, draft, running evals with subagents, picking a description."
     }
   ]
